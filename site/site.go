@@ -24,6 +24,11 @@ type Site struct {
 	Restaurants []Restaurant
 }
 
+type LunchParser interface {
+	Scrape() (Restaurant, error)
+}
+
+
 func (r *Restaurant) Add(d *Dish) *Restaurant {
 	r.Dishes = append(r.Dishes, *d)
 	return r
