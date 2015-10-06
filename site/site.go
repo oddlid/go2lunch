@@ -27,7 +27,7 @@ type Site struct {
 }
 
 type LunchParser interface {
-	Scrape() (Restaurant, error)
+	Scrape(url string, cRes chan Restaurant, cCtrl chan bool)
 }
 
 
