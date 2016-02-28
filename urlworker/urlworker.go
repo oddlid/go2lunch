@@ -4,8 +4,11 @@ package urlworker
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
+	"io"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -13,19 +16,30 @@ import (
 const UA string = "go2lunch.urlworker/0.1"
 
 type Request struct {
-	Url string
-	Tag string
+	Url string `json:"url"`
+	Tag string `json:"name,omitempty"`
 }
 
-//type Requests []Request
+type Requests []Request
 
 type Response struct {
-	Req Request
 	Res *http.Response
-	Err error
+	Req Request
+	//Err error
 }
 
 //type Responses []Response
+
+func (reqs *Requests) NewFromJSON(rdr io.Reader) error {
+	dec := json.NewDecoder(rdr)
+	var r Requests
+	err := dec.Decode(&r)
+	if err != nil && err != io.EOF {
+		return err
+	}
+	*reqs = r
+	return nil
+}
 
 func Seed(done <-chan struct{}, reqs ...Request) <-chan Request {
 	out := make(chan Request, len(reqs))
@@ -70,7 +84,7 @@ func Get(done <-chan struct{}, in <-chan Request) <-chan Response {
 			}
 
 			select {
-			case out <- Response{req, res}:
+			case out <- Response{res, req}:
 			case <-done:
 				return
 			}
@@ -93,7 +107,7 @@ func Merge(done <-chan struct{}, cs ...<-chan Response) <-chan Response {
 				return
 			}
 		}
-		wg.Done()
+		//wg.Done()
 	}
 	wg.Add(len(cs))
 
@@ -115,4 +129,9 @@ func InitWithWorkers(workers int, done <-chan struct{}, reqs ...Request) <-chan 
 		minions[i] = Get(done, in)
 	}
 	return Merge(done, minions...)
+}
+
+func Init(done <-chan struct{}, reqs ...Request) <-chan Response {
+	numCPU := runtime.NumCPU()
+	return InitWithWorkers(numCPU, done, reqs...)
 }

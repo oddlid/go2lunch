@@ -6,9 +6,9 @@ import (
 	//"strings"
 )
 
-type httpbinGet struct {
-	Args []struct{} `json:"args"`
-}
+//type httpbinGet struct {
+//	Args []struct{} `json:"args"`
+//}
 
 var tests = []Request{
 	{"http://httpbin.org/ip", "LHMS"},
@@ -31,5 +31,8 @@ func TestSeed(t *testing.T) {
 
 // Call httpbinorg/get?somekey=somevalue and compare
 // Requires JSON parsing. Too tired right now for that
-func TestInitWithWorkers(t *testing.T) {
+//func TestInitWithWorkers(t *testing.T) {
+//}
+
+func TestInit(t *testing.T) {
 }
