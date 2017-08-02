@@ -32,13 +32,13 @@ func (r Restaurant) ParsedRFC3339() string {
 	return r.Parsed.Format(time.RFC3339)
 }
 
-func (r *Restaurant) Add(d *Dish) *Restaurant {
-	r.Dishes = append(r.Dishes, *d)
+func (r *Restaurant) Add(d Dish) *Restaurant {
+	r.Dishes = append(r.Dishes, d)
 	return r
 }
 
-func (s *Site) Add(r *Restaurant) *Site {
-	s.Restaurants = append(s.Restaurants, *r)
+func (s *Site) Add(r Restaurant) *Site {
+	s.Restaurants = append(s.Restaurants, r)
 	return s
 }
 
