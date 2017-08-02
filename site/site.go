@@ -23,7 +23,7 @@ type Restaurant struct {
 
 type Site struct {
 	Name        string       `json:"name"`
-	ID          string       `json:"siteid"`
+	ID          string       `json:"siteid"` // eg. se/gbg/lindholmen or the url it came from
 	Comment     string       `json:"comment,omitempty"`
 	Restaurants []Restaurant `json:"restaurants"`
 }
