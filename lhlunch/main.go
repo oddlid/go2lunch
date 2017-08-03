@@ -172,10 +172,44 @@ func entryPointScrape(ctx *cli.Context) error {
 	return nil
 }
 
+// setCustomAppHelpTmpl slightly changes the help text to include BUILD_DATE
+// See https://github.com/urfave/cli/blob/master/help.go
+func setCustomAppHelpTmpl() {
+	cli.AppHelpTemplate = `NAME:
+   {{.Name}}{{if .Usage}} - {{.Usage}}{{end}}
+
+USAGE:
+   {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Version}}{{if not .HideVersion}}
+
+VERSION / BUILD_DATE:
+   {{.Version}} / {{.Compiled}}{{end}}{{end}}{{if .Description}}
+
+DESCRIPTION:
+   {{.Description}}{{end}}{{if len .Authors}}
+
+AUTHOR{{with $length := len .Authors}}{{if ne 1 $length}}S{{end}}{{end}}:
+   {{range $index, $author := .Authors}}{{if $index}}
+   {{end}}{{$author}}{{end}}{{end}}{{if .VisibleCommands}}
+
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+     {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}{{if .VisibleFlags}}
+
+GLOBAL OPTIONS:
+   {{range $index, $option := .VisibleFlags}}{{if $index}}
+   {{end}}{{$option}}{{end}}{{end}}{{if .Copyright}}
+
+COPYRIGHT:
+   {{.Copyright}}{{end}}
+`
+}
+
 func main() {
+	setCustomAppHelpTmpl()
 	app := cli.NewApp()
 	app.Name = "Lindholmen Lunch Scraper/Server"
 	app.Version = VERSION
+	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "Odd E. Ebbesen",
