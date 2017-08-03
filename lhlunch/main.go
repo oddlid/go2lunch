@@ -17,21 +17,30 @@ import (
 
 const (
 	VERSION string = "2017-08-03"
-	SRC_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
+	DEF_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR string = ":20666"
+)
+
+const (
+	E_OK int = iota
+	E_UPDATE
+	E_READPID
+	E_WRITEPID
+	E_NOTIFYPID
 )
 
 var BUILD_TIME string
 
 type LHSite struct {
 	sync.Mutex
-	s *site.Site
+	s   *site.Site
+	url string
 }
 
 var _site *LHSite
 
 func init() {
-	_site = &LHSite{s: &site.Site{Name: "Lindholmen", ID: "se/gbg/lindholmen", Comment: "Gruvan"}}
+	_site = &LHSite{s: &site.Site{Name: "Lindholmen", ID: "se/gbg/lindholmen", Comment: "Gruvan"}, url: DEF_URL}
 }
 
 func writePid(filename string) error {
@@ -46,7 +55,16 @@ func writePid(filename string) error {
 	return nil
 }
 
+func setUrl(ctx *cli.Context) {
+	url := ctx.String("url")
+	if url != "" {
+		_site.url = url
+	}
+}
+
 func entryPointServe(ctx *cli.Context) error {
+	setUrl(ctx)
+
 	log.Infof("LHLunch PID: %d", os.Getpid())
 
 	pidfile := ctx.String("writepid")
@@ -54,7 +72,7 @@ func entryPointServe(ctx *cli.Context) error {
 		log.Debugf("Got pidfile arg: %q", pidfile)
 		err := writePid(pidfile)
 		if err != nil {
-			return cli.NewExitError(err.Error(), 5)
+			return cli.NewExitError(err.Error(), E_WRITEPID)
 		}
 		log.Infof("Wrote PID ( %d ) to %q", os.Getpid(), pidfile)
 	} else {
@@ -84,21 +102,19 @@ func entryPointServe(ctx *cli.Context) error {
 					log.Error(err.Error())
 				}
 			default:
-				log.Info("Caught unhandled signal, exiting...")
+				log.Debug("Caught unhandled signal, exiting...")
 				os.Exit(255)
 			}
 		}
 	}()
 	// END signal handling
 
-
-	http.HandleFunc("/", lhHandler)
-	log.Infof("Listening on: %q", adr)
-	err := http.ListenAndServe(adr, nil)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
+	setupMux()
+	server := http.Server{
+		Addr:    adr,
+		Handler: &lhHandler{},
 	}
-	return nil
+	return server.ListenAndServe()
 }
 
 func notifyPid(pid int) error {
@@ -118,15 +134,17 @@ func readPid(filename string) (int, error) {
 }
 
 func entryPointScrape(ctx *cli.Context) error {
+	setUrl(ctx)
+
 	pidf := ctx.String("notify-pid")
 	pid, err := readPid(pidf)
 	if err != nil {
-		return cli.NewExitError(err.Error(), 4)
+		return cli.NewExitError(err.Error(), E_READPID)
 	}
 	if pid > 0 {
 		err := notifyPid(pid)
 		if err != nil {
-			return cli.NewExitError(err.Error(), 3)
+			return cli.NewExitError(err.Error(), E_NOTIFYPID)
 		} else {
 			log.Infof("Told PID %d to re-scrape", pid)
 			return nil
@@ -137,7 +155,7 @@ func entryPointScrape(ctx *cli.Context) error {
 
 	err = update()
 	if err != nil {
-		return cli.NewExitError(err.Error(), 2)
+		return cli.NewExitError(err.Error(), E_UPDATE)
 	}
 
 	if outfile == "-" || outfile == "" {
@@ -204,6 +222,11 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "url, u",
+			Usage: "`URL` to scrape",
+			Value: DEF_URL,
+		},
 		cli.StringFlag{
 			Name:  "log-level, l",
 			Value: "info",
