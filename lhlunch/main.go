@@ -22,6 +22,7 @@ const (
 	DEF_ADR string = ":20666"
 )
 
+// exit codes
 const (
 	E_OK int = iota
 	E_UPDATE
@@ -32,6 +33,7 @@ const (
 )
 
 var BUILD_DATE string
+var COMMIT_ID string
 
 type LHSite struct {
 	sync.Mutex
@@ -214,7 +216,7 @@ func main() {
 	setCustomAppHelpTmpl()
 	app := cli.NewApp()
 	app.Name = "Lindholmen Lunch Scraper/Server"
-	app.Version = VERSION
+	app.Version = fmt.Sprintf("%s_%s", VERSION, COMMIT_ID)
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
 	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
 	app.Authors = []cli.Author{
