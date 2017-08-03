@@ -10,7 +10,7 @@ const (
 	lhtmpl string = "lhlunch.html"
 )
 
-var tmpl = template.Must(template.ParseFiles(lhtmpl))
+var tmpl = template.Must(template.New("LH").Parse(lhlunch_tmpl_str))
 
 func renderTemplate(w http.ResponseWriter, tpl string, s *site.Site) {
 	err := tmpl.ExecuteTemplate(w, tpl, s)
@@ -31,5 +31,5 @@ func lhHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	renderTemplate(w, lhtmpl, _site.s)
+	renderTemplate(w, "LH", _site.s)
 }
