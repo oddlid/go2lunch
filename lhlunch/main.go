@@ -28,6 +28,7 @@ const (
 	E_READPID
 	E_WRITEPID
 	E_NOTIFYPID
+	E_WRITEJSON
 )
 
 var BUILD_DATE string
@@ -138,23 +139,26 @@ func entryPointScrape(ctx *cli.Context) error {
 	setUrl(ctx)
 
 	pidf := ctx.String("notify-pid")
-	pid, err := readPid(pidf)
-	if err != nil {
-		return cli.NewExitError(err.Error(), E_READPID)
-	}
-	if pid > 0 {
-		err := notifyPid(pid)
+	if pidf != "" {
+		pid, err := readPid(pidf)
 		if err != nil {
-			return cli.NewExitError(err.Error(), E_NOTIFYPID)
-		} else {
-			log.Infof("Told PID %d to re-scrape", pid)
-			return nil
+			return cli.NewExitError(err.Error(), E_READPID)
+		}
+		if pid > 0 {
+			err := notifyPid(pid)
+			if err != nil {
+				return cli.NewExitError(err.Error(), E_NOTIFYPID)
+			} else {
+				log.Infof("Told PID %d to re-scrape", pid)
+				return nil
+			}
 		}
 	}
 
 	outfile := ctx.String("outfile")
+	log.Debugf("Outfile: %q", outfile)
 
-	err = update()
+	err := update()
 	if err != nil {
 		return cli.NewExitError(err.Error(), E_UPDATE)
 	}
@@ -169,6 +173,7 @@ func entryPointScrape(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		log.Debugf("Wrote JSON result to %q", outfile)
 	}
 	return nil
 }
