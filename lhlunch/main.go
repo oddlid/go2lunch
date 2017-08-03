@@ -166,12 +166,12 @@ func entryPointScrape(ctx *cli.Context) error {
 	if outfile == "-" || outfile == "" {
 		err := _site.s.Encode(os.Stdout)
 		if err != nil {
-			return err
+			return cli.NewExitError(err.Error(), E_WRITEJSON)
 		}
 	} else {
 		err := _site.s.SaveJSON(outfile)
 		if err != nil {
-			return err
+			return cli.NewExitError(err.Error(), E_WRITEJSON)
 		}
 		log.Debugf("Wrote JSON result to %q", outfile)
 	}
