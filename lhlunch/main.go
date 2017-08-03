@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/site"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 )
@@ -17,6 +20,8 @@ const (
 	SRC_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR string = ":20666"
 )
+
+var BUILD_TIME string
 
 type LHSite struct {
 	sync.Mutex
@@ -100,8 +105,24 @@ func notifyPid(pid int) error {
 	return syscall.Kill(pid, syscall.SIGUSR1)
 }
 
+func readPid(filename string) (int, error) {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return -1, err
+	}
+	pid, err := strconv.Atoi(string(bytes.TrimSpace(b)))
+	if err != nil {
+		return -1, fmt.Errorf("Error parsing PID from %q: %s", filename, err.Error())
+	}
+	return pid, nil
+}
+
 func entryPointScrape(ctx *cli.Context) error {
-	pid := ctx.Int("notify-pid")
+	pidf := ctx.String("notify-pid")
+	pid, err := readPid(pidf)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 4)
+	}
 	if pid > 0 {
 		err := notifyPid(pid)
 		if err != nil {
@@ -174,9 +195,9 @@ func main() {
 					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
 					Value: "-",
 				},
-				cli.IntFlag{
+				cli.StringFlag{
 					Name:  "notify-pid, p",
-					Usage: "Make `PID` re-scrape instead of doing it in this process",
+					Usage: "Read PID from `FILE` and tell the process with that PID to re-scrape",
 				},
 			},
 		},
