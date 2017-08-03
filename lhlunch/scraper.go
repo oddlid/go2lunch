@@ -5,7 +5,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/site"
 	"strings"
-	//"sync"
 	"time"
 )
 

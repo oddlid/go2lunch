@@ -137,15 +137,6 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
-		//cli.StringFlag{
-		//	Name:  "url, u",
-		//	Usage: "`URL` to scrape",
-		//	Value: SRC_URL,
-		//},
-		//cli.StringFlag{
-		//	Name:  "log-file, f",
-		//	Usage: "Log to `FILE`. Will log to STDERR if not given.",
-		//},
 		cli.StringFlag{
 			Name:  "log-level, l",
 			Value: "info",
