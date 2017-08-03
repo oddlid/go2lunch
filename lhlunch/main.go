@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/site"
 	"github.com/urfave/cli"
@@ -28,7 +29,28 @@ func init() {
 	_site = &LHSite{s: &site.Site{Name: "Lindholmen", ID: "se/gbg/lindholmen", Comment: "Gruvan"}}
 }
 
+func writePid(filename string) error {
+	f, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "%d", os.Getpid())
+
+	return nil
+}
+
 func entryPointServe(ctx *cli.Context) error {
+	pidfile := ctx.String("writepid")
+	if pidfile != "" {
+		err := writePid(pidfile)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 5)
+		}
+		log.Infof("Wrote PID ( %d ) to %q", os.Getpid(), pidfile)
+	}
+
 	adr := ctx.String("listen-adr")
 	if adr == "" {
 		adr = DEF_ADR
@@ -53,7 +75,7 @@ func entryPointServe(ctx *cli.Context) error {
 				}
 			default:
 				log.Info("Caught unhandled signal, exiting...")
-				os.Exit(0)
+				os.Exit(255)
 			}
 		}
 	}()
@@ -69,7 +91,22 @@ func entryPointServe(ctx *cli.Context) error {
 	return nil
 }
 
+func notifyPid(pid int) error {
+	return syscall.Kill(pid, syscall.SIGUSR1)
+}
+
 func entryPointScrape(ctx *cli.Context) error {
+	pid := ctx.Int("notify-pid")
+	if pid > 0 {
+		err := notifyPid(pid)
+		if err != nil {
+			return cli.NewExitError(err.Error(), 3)
+		} else {
+			log.Infof("Told PID %d to re-scrape", pid)
+			return nil
+		}
+	}
+
 	outfile := ctx.String("outfile")
 
 	err := update()
@@ -131,6 +168,10 @@ func main() {
 					Name:  "outfile, o",
 					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
 					Value: "-",
+				},
+				cli.IntFlag{
+					Name:  "notify-pid, p",
+					Usage: "Make `PID` re-scrape instead of doing it in this process",
 				},
 			},
 		},
