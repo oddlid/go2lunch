@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"sync"
 	"syscall"
+	"time"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 	E_NOTIFYPID
 )
 
-var BUILD_TIME string
+var BUILD_DATE string
 
 type LHSite struct {
 	sync.Mutex
@@ -210,6 +211,7 @@ func main() {
 	app.Name = "Lindholmen Lunch Scraper/Server"
 	app.Version = VERSION
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
+	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "Odd E. Ebbesen",
