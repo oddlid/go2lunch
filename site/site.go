@@ -56,7 +56,12 @@ func (s *Site) SaveJSON(fileName string) error {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-	return s.Encode(w)
+	err = s.Encode(w)
+	if err != nil {
+		return err
+	}
+	w.Flush()
+	return nil
 }
 
 func NewFromJSON(r io.Reader) (*Site, error) {

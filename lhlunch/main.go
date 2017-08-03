@@ -40,12 +40,12 @@ func entryPointServe(ctx *cli.Context) error {
 	go func() {
 		for sig := range sig_chan {
 			switch sig {
-			case syscall.SIGUSR1:
+			case syscall.SIGUSR1: // re-scrape and update internal DB
 				err := update()
 				if err != nil {
 					log.Error(err.Error())
 				}
-			case syscall.SIGUSR2:
+			case syscall.SIGUSR2: // dump internal DB to stdout
 				log.Info("Dumping parsed contents as JSON to STDOUT:")
 				err := _site.s.Encode(os.Stdout)
 				if err != nil {
