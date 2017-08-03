@@ -30,7 +30,7 @@ func scrape(url string) (site.Restaurants, error) {
 
 	doc.Find(csel[0]).Each(func(i int, sel1 *goquery.Selection) {
 		rname := sel1.Find("a").Text()
-		log.Debugf("Found restaurant: %q", rname)
+		//log.Debugf("Found restaurant: %q", rname)
 
 		r := &site.Restaurant{Name: rname, Parsed: time.Now(), Url: url}
 		num_restaurants++
@@ -42,7 +42,7 @@ func scrape(url string) (site.Restaurants, error) {
 			r.Add(site.Dish{Name: dname, Desc: ddesc, Price: dprice})
 			num_dishes++
 
-			log.Debugf("Found dish: %q", dname)
+			//log.Debugf("Found dish: %q", dname)
 		})
 
 		rs = append(rs, *r)

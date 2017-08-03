@@ -30,7 +30,7 @@ func init() {
 }
 
 func writePid(filename string) error {
-	f, err := os.Create(fileName)
+	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
@@ -42,13 +42,18 @@ func writePid(filename string) error {
 }
 
 func entryPointServe(ctx *cli.Context) error {
+	log.Infof("LHLunch PID: %d", os.Getpid())
+
 	pidfile := ctx.String("writepid")
 	if pidfile != "" {
+		log.Debugf("Got pidfile arg: %q", pidfile)
 		err := writePid(pidfile)
 		if err != nil {
 			return cli.NewExitError(err.Error(), 5)
 		}
 		log.Infof("Wrote PID ( %d ) to %q", os.Getpid(), pidfile)
+	} else {
+		log.Debugf("No PIDfile given")
 	}
 
 	adr := ctx.String("listen-adr")
@@ -81,9 +86,9 @@ func entryPointServe(ctx *cli.Context) error {
 	}()
 	// END signal handling
 
-	log.Infof("LHLunch PID: %d", os.Getpid())
 
 	http.HandleFunc("/", lhHandler)
+	log.Infof("Listening on: %q", adr)
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)

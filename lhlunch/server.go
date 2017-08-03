@@ -1,6 +1,7 @@
 package main
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/site"
 	"html/template"
 	"net/http"
@@ -26,6 +27,7 @@ func lhHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _site.s.Restaurants == nil {
+		log.Debug("No content yet, scraping...")
 		err := update()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
