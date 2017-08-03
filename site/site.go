@@ -1,11 +1,11 @@
 package site
 
 import (
-	"time"
-	"io"
 	"bufio"
-	"os"
 	"encoding/json"
+	"io"
+	"os"
+	"time"
 )
 
 type Dish struct {
@@ -82,4 +82,3 @@ func NewFromFile(fileName string) (*Site, error) {
 	r := bufio.NewReader(f)
 	return NewFromJSON(r)
 }
-
