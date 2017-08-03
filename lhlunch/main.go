@@ -135,7 +135,7 @@ func entryPointScrape(ctx *cli.Context) error {
 
 	outfile := ctx.String("outfile")
 
-	err := update()
+	err = update()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 2)
 	}
