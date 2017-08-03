@@ -21,11 +21,13 @@ type Restaurant struct {
 	Dishes []Dish    `json:"dishes"`
 }
 
+type Restaurants []Restaurant
+
 type Site struct {
-	Name        string       `json:"name"`
-	ID          string       `json:"siteid"` // eg. se/gbg/lindholmen or the url it came from
-	Comment     string       `json:"comment,omitempty"`
-	Restaurants []Restaurant `json:"restaurants"`
+	Name        string      `json:"name"`
+	ID          string      `json:"siteid"` // eg. se/gbg/lindholmen or the url it came from
+	Comment     string      `json:"comment,omitempty"`
+	Restaurants Restaurants `json:"restaurants"`
 }
 
 func (r Restaurant) ParsedRFC3339() string {
@@ -52,6 +54,7 @@ func (s *Site) SaveJSON(fileName string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	w := bufio.NewWriter(f)
 	return s.Encode(w)
 }
@@ -70,6 +73,7 @@ func NewFromFile(fileName string) (*Site, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	r := bufio.NewReader(f)
 	return NewFromJSON(r)
 }
