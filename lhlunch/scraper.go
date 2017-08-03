@@ -54,7 +54,7 @@ func scrape(url string) (site.Restaurants, error) {
 }
 
 func update() error {
-	rs, err := scrape(SRC_URL)
+	rs, err := scrape(_site.url)
 	if err != nil {
 		return err
 	}
