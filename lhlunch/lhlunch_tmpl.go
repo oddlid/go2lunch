@@ -153,6 +153,21 @@ var lhlunch_html_tmpl_str string = `
 </html>
 `
 
+var lhlunch_html_tmpl_str_def string = `
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>Lunch</title>
+   </head>
+   <body>
+      <a href="lindholmen.html">Lindholmen (html)</a><br />
+      <a href="lindholmen.txt">Lindholmen (text)</a><br />
+      <a href="lindholmen.json">Lindholmen (json)</a><br />
+   </body>
+</html>
+`
+
 var lhlunch_text_tmpl_str string = `
 {{range .Restaurants}}
 ### {{.Name}}:

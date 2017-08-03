@@ -23,7 +23,7 @@ var mux map[string]func(http.ResponseWriter, *http.Request)
 
 func setupMux() {
 	mux = make(map[string]func(http.ResponseWriter, *http.Request))
-	mux["/"] = lhHandlerHTML
+	mux["/"] = lhHandlerHTMLIndex
 	mux[urlpath_base+".html"] = lhHandlerHTML
 	mux[urlpath_base+".txt"] = lhHandlerTXT
 	mux[urlpath_base+".json"] = lhHandlerJSON
@@ -65,6 +65,10 @@ func renderTextTemplate(w http.ResponseWriter, tpl string, s *site.Site) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func lhHandlerHTMLIndex(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(lhlunch_html_tmpl_str_def))
 }
 
 func lhHandlerHTML(w http.ResponseWriter, r *http.Request) {
