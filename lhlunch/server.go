@@ -34,7 +34,8 @@ func (*lhHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, r) // pass on to registered handler
 		return
 	}
-	fmt.Fprintf(w, "LHLunch server: %q", r.URL.String())
+	//fmt.Fprintf(w, "LHLunch server: %q", r.URL.String())
+	http.Error(w, "Invalid request", http.StatusBadRequest)
 }
 
 func initSite(w http.ResponseWriter) error {
