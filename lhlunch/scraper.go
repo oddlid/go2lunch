@@ -49,6 +49,7 @@ func scrape(url string) (site.Restaurants, error) {
 		sel1.NextFilteredUntil(csel[1], csel[0]).Each(func(j int, sel2 *goquery.Selection) {
 			dname := strings.TrimSpace(sel2.Find(csel[2]).Find(csel[3]).Text())
 			ddesc := strings.TrimSpace(strings.Replace(sel2.Find(csel[2]).Text(), dname, "", 1))
+			ddesc = strings.Join(strings.Fields(ddesc), " ") // remove redundant WS inside string
 			dprice := strings.TrimSpace(strings.Replace(sel2.Find(csel[4]).Text(), "kr", "", 1))
 			r.Add(site.Dish{Name: dname, Desc: ddesc, Price: dprice})
 			num_dishes++

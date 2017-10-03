@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	VERSION string = "2017-09-05"
+	VERSION string = "2017-09-29"
 	DEF_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR string = ":20666"
 )
