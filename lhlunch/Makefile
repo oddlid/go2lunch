@@ -1,7 +1,7 @@
 SOURCEDIR=.
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 BINARY=lhlunch.bin
-VERSION=0.0.1
+VERSION=0.0.2
 BUILD_TIME=`date +%FT%T%:z`
 COMMIT_ID=`git describe --tags --always`
 LDFLAGS=-ldflags "-X main.BUILD_DATE=${BUILD_TIME} -X main.COMMIT_ID=${COMMIT_ID} -d -s -w"
