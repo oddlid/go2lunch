@@ -53,6 +53,7 @@ func Seed(done <-chan struct{}, reqs ...Request) <-chan Request {
 	return out
 }
 
+// should rewrite this to use Get from httpclient.go
 func Get(done <-chan struct{}, in <-chan Request) <-chan Response {
 	out := make(chan Response)
 
