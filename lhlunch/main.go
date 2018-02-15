@@ -3,9 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/oddlid/go2lunch/site"
-	"github.com/urfave/cli"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,10 +11,15 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/oddlid/go2lunch/site"
+	"github.com/robfig/cron"
+	"github.com/urfave/cli"
 )
 
 const (
-	VERSION string = "2017-09-29"
+	VERSION string = "2018-02-15"
 	DEF_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR string = ":20666"
 )
@@ -112,6 +114,30 @@ func entryPointServe(ctx *cli.Context) error {
 		}
 	}()
 	// END signal handling
+
+	// cron-like scheduling.
+	// Turns out app/docker hangs sometimes, when triggering scrape from regular cron with "docker exec" (even with timeout),
+	// so trying to use an internal solution instead
+	cronspec := ctx.String("cron")
+	if cronspec != "" {
+		log.Infof("Auto-updating via built-in cron @ %q", cronspec)
+		cr := cron.New()
+
+		err := cr.AddFunc(cronspec, func() {
+			log.Info("Re-scraping on request from internal cron...")
+			if err := update(); err != nil {
+				log.Errorf("Update via internal cron failed: %q", err)
+			}
+		})
+
+		if err != nil {
+			log.Errorf("Failed to add cronjob: %q", err)
+		} else {
+			cr.Start()
+			log.Info("Built-in cron started")
+		}
+	}
+	// END cron
 
 	setupMux()
 	server := http.Server{
@@ -242,6 +268,12 @@ func main() {
 				cli.StringFlag{
 					Name:  "writepid, p",
 					Usage: "Write PID to `FILE`",
+				},
+				cli.StringFlag{
+					Name:  "cron",
+					Usage: "Specify intervals for re-scrape in cron format with `TIMESPEC`",
+					// what I had in regular cron: "0 0,30 08-12 * * 1-5"
+					// That is: on second 0 of minute 0 and 30 of hour 08-12 of weekday mon-fri on any day of month any month
 				},
 			},
 		},
