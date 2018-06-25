@@ -1,7 +1,9 @@
 FROM alpine:latest
 MAINTAINER Odd E. Ebbesen <oddebb@gmail.com>
 
-RUN apk add --update tini ca-certificates
+RUN apk add --no-cache --update tini ca-certificates \
+		&& \
+		rm -rf /var/cache/apk/*
 RUN adduser -D -u 1000 lunchsrv
 
 COPY lhlunch.bin /usr/local/bin/lhlunch
