@@ -3,7 +3,7 @@ package main
 import (
 	//"github.com/PuerkitoBio/goquery"
 	log "github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	"github.com/oddlid/go2lunch/engine"
 	//"github.com/oddlid/go2lunch/site"
 	"github.com/oddlid/go2lunch/urlworker"
