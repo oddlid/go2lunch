@@ -4,6 +4,18 @@ var lhlunch_html_tmpl_str string = `
 <!DOCTYPE html>
 <html>
 	<head>
+
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126840341-1" type="text/javascript"></script>
+		<script type="text/javascript">
+			/*<![CDATA[*/
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'UA-126840341-1');
+			/*]]>*/
+		</script>
+
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Lunch at {{.Name}} today</title>
 		<style type="text/css" media="screen">
@@ -105,16 +117,6 @@ var lhlunch_html_tmpl_str string = `
 			}
 			/*]]>*/
 		</style>
-
-		<!-- Global site tag (gtag.js) - Google Analytics -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126840341-1"></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'UA-126840341-1');
-		</script>
-
 		<script type="text/javascript">
 			/*<![CDATA[*/
 			var _open = true;
@@ -166,15 +168,27 @@ var lhlunch_html_tmpl_str string = `
 var lhlunch_html_tmpl_str_def string = `
 <!DOCTYPE html>
 <html>
-   <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>Lunch</title>
-   </head>
-   <body>
-      <a href="lindholmen.html">Lindholmen (html)</a><br />
-      <a href="lindholmen.txt">Lindholmen (text)</a><br />
-      <a href="lindholmen.json">Lindholmen (json)</a><br />
-   </body>
+	<head>
+
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126840341-1" type="text/javascript"></script>
+		<script type="text/javascript">
+			/*<![CDATA[*/
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'UA-126840341-1');
+			/*]]>*/
+		</script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Lunch</title>
+	</head>
+	<body>
+		<a href="lindholmen.html">Lindholmen (html)</a><br />
+    <a href="lindholmen.txt">Lindholmen (text)</a><br />
+    <a href="lindholmen.json">Lindholmen (json)</a><br />
+	</body>
 </html>
 `
 
