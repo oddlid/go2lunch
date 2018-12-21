@@ -1,15 +1,14 @@
-SOURCEDIR=.
-SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
-BINARY=lhlunch.bin
-VERSION=0.0.3
-BUILD_TIME=`date +%FT%T%:z`
-COMMIT_ID=`git describe --tags --always`
-LDFLAGS=-ldflags "-X main.BUILD_DATE=${BUILD_TIME} -X main.COMMIT_ID=${COMMIT_ID} -d -s -w"
+BINARY := lhlunch.bin
+VERSION := 2018-12-21
+SOURCES := $(wildcard *.go)
+COMMIT_ID := $(shell git describe --tags --always)
+BUILD_TIME := $(shell date +%FT%T%:z)
+LDFLAGS = -ldflags "-X main.VERSION=${VERSION} -X main.BUILD_DATE=${BUILD_TIME} -X main.COMMIT_ID=${COMMIT_ID} -d -s -w"
 
 .DEFAULT_GOAL: $(BINARY)
 
 $(BINARY): $(SOURCES)
-	env CGO_ENABLED=0 go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
+	env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ ${SOURCES}
 
 .PHONY: install
 install:
