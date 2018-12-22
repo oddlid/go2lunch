@@ -6,7 +6,8 @@ RUN go get -d -u -v github.com/robfig/cron
 RUN go get -d -u -v github.com/urfave/cli
 RUN go get -d -u -v github.com/Sirupsen/logrus
 RUN go get -d -u -v github.com/gorilla/mux
-RUN go get -u -v github.com/GeertJohan/go.rice
+RUN go get -d -u -v github.com/GeertJohan/go.rice
+RUN go get -u -v github.com/GeertJohan/go.rice/rice
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch
