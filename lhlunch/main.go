@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	VERSION string = "2018-02-15"
+	VERSION string = "2018-12-21"
 	DEF_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR string = ":20666"
 )
@@ -32,6 +32,7 @@ const (
 	E_WRITEPID
 	E_NOTIFYPID
 	E_WRITEJSON
+	E_INITTMPL
 )
 
 var BUILD_DATE string
@@ -139,12 +140,11 @@ func entryPointServe(ctx *cli.Context) error {
 	}
 	// END cron
 
-	setupMux()
-	server := http.Server{
-		Addr:    adr,
-		Handler: &lhHandler{},
+	err := initTmpl()
+	if err != nil {
+		return cli.NewExitError(err.Error(), E_INITTMPL)
 	}
-	return server.ListenAndServe()
+	return http.ListenAndServe(adr, setupRouter())
 }
 
 func notifyPid(pid int) error {

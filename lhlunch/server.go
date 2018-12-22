@@ -2,40 +2,69 @@ package main
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/oddlid/go2lunch/site"
 	htmpl "html/template"
 	"net/http"
 	ttmpl "text/template"
+
+	"github.com/GeertJohan/go.rice"
+	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/mux"
 )
 
 const (
-	htmpl_ID     string = "LH_HTML"
-	ttmpl_ID     string = "LH_TEXT"
 	urlpath_base string = "/lindholmen"
+	default_html string = "default.html"
+	lhlunch_html string = "lhlunch.html"
+	lhlunch_text string = "lhlunch.txt"
+	tmpl_folder  string = "tmpl"
 )
 
-type lhHandler struct{}
+var (
+	//tmpl_default_html *htmpl.Template
+	tmpl_lhlunch_html *htmpl.Template
+	tmpl_lhlunch_text *ttmpl.Template
+	str_default_html  string
+)
 
-var tmpl_html = htmpl.Must(htmpl.New(htmpl_ID).Parse(lhlunch_html_tmpl_str))
-var tmpl_text = ttmpl.Must(ttmpl.New(ttmpl_ID).Parse(lhlunch_text_tmpl_str))
-var mux map[string]func(http.ResponseWriter, *http.Request)
-
-func setupMux() {
-	mux = make(map[string]func(http.ResponseWriter, *http.Request))
-	mux["/"] = lhHandlerHTMLIndex
-	mux[urlpath_base+".html"] = lhHandlerHTML
-	mux[urlpath_base+".txt"] = lhHandlerTXT
-	mux[urlpath_base+".json"] = lhHandlerJSON
-}
-
-func (*lhHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h, ok := mux[r.URL.String()]; ok {
-		h(w, r) // pass on to registered handler
-		return
+func initTmpl() error {
+	log.Debug("Looking for template folder...")
+	tBox, err := rice.FindBox("tmpl")
+	if err != nil {
+		return err
 	}
-	//fmt.Fprintf(w, "LHLunch server: %q", r.URL.String())
-	http.Error(w, "Invalid request", http.StatusBadRequest)
+	log.Debug("Loading default html template...")
+	str_default_html, err = tBox.String("default.html")
+	if err != nil {
+		return err
+	}
+	log.Debug("Loading lunch html template...")
+	tLunchHtml, err := tBox.String("lhlunch.html")
+	if err != nil {
+		return err
+	}
+	log.Debug("Loading lunch text template...")
+	tLunchStr, err := tBox.String("lhlunch.txt")
+	if err != nil {
+		return err
+	}
+	//log.Debug("Parsing default html template...")
+	//tmpl_default_html, err = htmpl.New(default_html).Parse(str_default_html)
+	//if err != nil {
+	//	return err
+	//}
+	log.Debug("Parsing lunch html template...")
+	tmpl_lhlunch_html, err = htmpl.New(lhlunch_html).Parse(tLunchHtml)
+	if err != nil {
+		return err
+	}
+	log.Debug("Parsing lunch text template...")
+	tmpl_lhlunch_text, err = ttmpl.New(lhlunch_text).Parse(tLunchStr)
+	if err != nil {
+		return err
+	}
+
+	log.Debug("All templates loaded and parsed successfully!")
+	return nil
 }
 
 func initSite(w http.ResponseWriter) error {
@@ -54,47 +83,50 @@ func initSite(w http.ResponseWriter) error {
 	return nil
 }
 
-func renderHTMLTemplate(w http.ResponseWriter, tpl string, s *site.Site) {
-	err := tmpl_html.ExecuteTemplate(w, tpl, s)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+func setupRouter() *mux.Router {
+	r := mux.NewRouter()
+	r.HandleFunc("/", htmlIndexHandler)
+	r.HandleFunc(urlpath_base+"{ext:.?[a-z]+}", preHandler)
+	//r.HandleFunc(urlpath_base, htmlLunchHandler) // this is needed if I want /lindholmen (no ext) to work
+	return r
 }
 
-func renderTextTemplate(w http.ResponseWriter, tpl string, s *site.Site) {
-	err := tmpl_text.ExecuteTemplate(w, tpl, s)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func lhHandlerHTMLIndex(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(lhlunch_html_tmpl_str_def))
-}
-
-func lhHandlerHTML(w http.ResponseWriter, r *http.Request) {
+func preHandler(w http.ResponseWriter, r *http.Request) {
 	err := initSite(w)
 	if err != nil {
+		log.Error(err)
 		return
 	}
-	renderHTMLTemplate(w, htmpl_ID, _site.s)
+	vars := mux.Vars(r)
+	log.Debugf("mux vars: %+v", vars)
+	if vars["ext"] == ".html" {
+		htmlLunchHandler(w, r)
+		return
+	} else if vars["ext"] == ".json" {
+		jsonLunchHandler(w, r)
+		return
+	} else if vars["ext"] == ".txt" {
+		textLunchHandler(w, r)
+		return
+	}
 }
 
-func lhHandlerTXT(w http.ResponseWriter, r *http.Request) {
-	err := initSite(w)
-	if err != nil {
-		return
-	}
-	renderTextTemplate(w, ttmpl_ID, _site.s)
+func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
+	//tmpl_default_html.Execute(w, nil)
+	w.Write([]byte(str_default_html))
 }
 
-func lhHandlerJSON(w http.ResponseWriter, r *http.Request) {
-	err := initSite(w)
-	if err != nil {
-		return
-	}
+func htmlLunchHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl_lhlunch_html.Execute(w, _site.s)
+}
+
+func textLunchHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl_lhlunch_text.Execute(w, _site.s)
+}
+
+func jsonLunchHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	err = _site.s.Encode(w)
+	err := _site.s.Encode(w)
 	if err != nil {
 		log.Errorf("Error serving JSON: %q", err.Error())
 	}
