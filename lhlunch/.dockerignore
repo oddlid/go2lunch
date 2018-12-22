@@ -1,7 +1,1 @@
-Makefile
-default.html
-lhlunch.html
-lhlunch_tmpl.go
-main.go
-scraper.go
-server.go
+old/
