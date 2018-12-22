@@ -1,11 +1,12 @@
 package main
 
 import (
+	"strings"
+	"time"
+
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/site"
-	"strings"
-	"time"
 )
 
 // getRestaurantUrl is a helper that tries to return the link to each restaurant
