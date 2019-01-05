@@ -1,22 +1,20 @@
-FROM oddlid/arch-cli:latest as builder 
-MAINTAINER Odd E. Ebbesen <oddebb@gmail.com>
-ENV GOPATH=/go
-RUN go get -d -u -v github.com/PuerkitoBio/goquery
-RUN go get -d -u -v github.com/robfig/cron
-RUN go get -d -u -v github.com/urfave/cli
-RUN go get -d -u -v github.com/Sirupsen/logrus
-RUN go get -d -u -v github.com/gorilla/mux
-RUN go get -d -u -v github.com/GeertJohan/go.rice
-RUN go get -u -v github.com/GeertJohan/go.rice/rice
+FROM golang:stretch as builder
+
+# Note that $GOPATH is set to /go from the parent image
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch
 RUN git checkout dev
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch/lhlunch
+RUN go get -d -v ./...
+# This needs to be done in addition, for the binary rice. Will not get pulled in from the step above
+RUN go get -u -v github.com/GeertJohan/go.rice/rice
 RUN make
 RUN ${GOPATH}/bin/rice append --exec lhlunch.bin
 
+
 FROM alpine:latest
+MAINTAINER Odd E. Ebbesen <oddebb@gmail.com>
 RUN apk add --no-cache --update tini ca-certificates \
 		&& \
 		rm -rf /var/cache/apk/*
