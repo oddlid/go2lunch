@@ -12,7 +12,7 @@ $(BINARY): $(SOURCES)
 
 .PHONY: install
 install:
-	go install ${LDFLAGS} ./...
+	env CGO_ENABLED=0 go install ${LDFLAGS} ./...
 
 .PHONY: clean
 clean:
