@@ -33,6 +33,7 @@ const (
 	E_NOTIFYPID
 	E_WRITEJSON
 	E_INITTMPL
+	E_WRITEHTML
 )
 
 var BUILD_DATE string
@@ -183,13 +184,25 @@ func entryPointScrape(ctx *cli.Context) error {
 		}
 	}
 
-	outfile := ctx.String("outfile")
-	log.Debugf("Outfile: %q", outfile)
-
+	// get content
 	err := update()
 	if err != nil {
 		return cli.NewExitError(err.Error(), E_UPDATE)
 	}
+
+	// write html output if requested, otherwise json
+	dumpHtml := ctx.Bool("html")
+	if dumpHtml {
+		err := initTmpl() // does more than we need here, so maybe rewrite some time...
+		if err != nil {
+			return cli.NewExitError(err.Error(), E_INITTMPL)
+		}
+		tmpl_lhlunch_html.Execute(os.Stdout, _site.s)
+		return nil // be sure to not proceed when done here
+	}
+
+	outfile := ctx.String("outfile")
+	log.Debugf("Outfile: %q", outfile)
 
 	if outfile == "-" || outfile == "" {
 		err := _site.s.Encode(os.Stdout)
@@ -280,13 +293,17 @@ func main() {
 		{
 			Name:    "scrape",
 			Aliases: []string{"scr"},
-			Usage:   "Scrape source and output JSON, then exit",
+			Usage:   "Scrape source and output JSON or HTML, then exit",
 			Action:  entryPointScrape,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "outfile, o",
 					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
 					Value: "-",
+				},
+				cli.BoolFlag{
+					Name: "html",
+					Usage: "Write HTML result to STDOUT",
 				},
 				cli.StringFlag{
 					Name:  "notify-pid, p",
