@@ -30,8 +30,15 @@ type Site struct {
 	Restaurants Restaurants `json:"restaurants"`
 }
 
+// ParsedRFC3339 returns the date in RFC3339 format
 func (r Restaurant) ParsedRFC3339() string {
 	return r.Parsed.Format(time.RFC3339)
+}
+
+// ParsedHumanDate returns a more human readable date/time format, without too much detail
+func (r Restaurant) ParsedHumanDate() string {
+	const format string = "2006-01-02 15:04"
+	return r.Parsed.Format(format)
 }
 
 func (r *Restaurant) Add(d Dish) *Restaurant {
