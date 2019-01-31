@@ -1,0 +1,56 @@
+summary::-webkit-details-marker {
+	display: none;
+}
+summary {
+	outline-style: none;
+}
+summary:focus {
+	outline-style: none;
+}
+summary:after {
+	content: "˃";
+	font-size: 1.2rem;
+	margin-left: 0.6rem;
+}
+details[open] summary:after {
+	content: "˅";
+}
+a {
+	color: #669BBC;
+}
+.parsed {
+	font-size: 65%;
+	color: #B4881D;
+}
+.parsed:before {
+	content: "Uppdaterat: ";
+}
+.price:before {
+	content: ":: ";
+}
+.price:after {
+	content: ",-";
+}
+.toggledetails {
+	font-size: 60%;
+	cursor: pointer;
+	color: #166088;
+}
+.pghdr {
+	color: #166088;
+}
+.bodybg {
+	background: #4F6D7A;
+}
+.dishes {
+	background: #DFE9F0;
+	font-size: 90%;
+}
+div#content {
+	background-color: #fff;
+	background-image: url('static/sky.jpg');
+	background-repeat: no-repeat;
+	background-size: 100% 8rem;
+	width: 95%;
+}
+
