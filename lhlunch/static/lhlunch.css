@@ -22,9 +22,11 @@ a {
 	font-size: 65%;
 	color: #B4881D;
 }
+/*
 .parsed:before {
 	content: "Uppdaterat: ";
 }
+*/
 .price:before {
 	content: ":: ";
 }

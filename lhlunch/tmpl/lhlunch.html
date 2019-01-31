@@ -14,7 +14,7 @@
       <h1 class="pghdr h5 text-center">Dagens lunch på {{.Name}}</h1>
       <div class="toggledetails text-center mt-3" onclick="toggledetail();">[ Visa / dölj alla ]</div>
       <div class="w-100 pb-3">&nbsp;</div>
-      <div class="parsed ml-1">{{.ParsedHumanDate}}</div>
+      <div class="parsed ml-1">Uppdaterad: {{.ParsedHumanDate}}</div>
       {{range .Restaurants}}
       <div class="restaurant m-2">
         <details open class="pb-3">
