@@ -13,10 +13,10 @@ import (
 
 const (
 	urlpath_base string = "/lindholmen"
-	default_html string = "default.html"
 	lhlunch_html string = "lhlunch.html"
 	lhlunch_text string = "lhlunch.txt"
-	tmpl_folder  string = "tmpl"
+	default_html string = "default.html"
+	//tmpl_folder  string = "tmpl"
 )
 
 var (
@@ -33,17 +33,17 @@ func initTmpl() error {
 		return err
 	}
 	log.Debug("Loading default html template...")
-	str_default_html, err = tBox.String("default.html")
+	str_default_html, err = tBox.String(default_html)
 	if err != nil {
 		return err
 	}
 	log.Debug("Loading lunch html template...")
-	tLunchHtml, err := tBox.String("lhlunch.html")
+	tLunchHtml, err := tBox.String(lhlunch_html)
 	if err != nil {
 		return err
 	}
 	log.Debug("Loading lunch text template...")
-	tLunchStr, err := tBox.String("lhlunch.txt")
+	tLunchStr, err := tBox.String(lhlunch_text)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,10 @@ func initSite(w http.ResponseWriter) error {
 }
 
 func setupRouter() *mux.Router {
+	const s string = "/static/"
+	box := rice.MustFindBox("static")
 	r := mux.NewRouter()
+	r.PathPrefix(s).Handler(http.StripPrefix(s, http.FileServer(box.HTTPBox())))
 	r.HandleFunc("/", htmlIndexHandler)
 	r.HandleFunc(urlpath_base+"{ext:.?[a-z]+}", preHandler)
 	//r.HandleFunc(urlpath_base, htmlLunchHandler) // this is needed if I want /lindholmen (no ext) to work
