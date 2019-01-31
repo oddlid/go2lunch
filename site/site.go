@@ -30,6 +30,13 @@ type Site struct {
 	Restaurants Restaurants `json:"restaurants"`
 }
 
+func (s Site) ParsedHumanDate() string {
+	if len(s.Restaurants) > 0 {
+		return s.Restaurants[0].ParsedHumanDate()
+	}
+	return "0000-00-00 00:00" // "undefined"
+}
+
 // ParsedRFC3339 returns the date in RFC3339 format
 func (r Restaurant) ParsedRFC3339() string {
 	return r.Parsed.Format(time.RFC3339)
