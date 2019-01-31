@@ -1,151 +1,40 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Lunch at {{.Name}} today</title>
-		<style type="text/css" media="screen">
-			/*<![CDATA[*/
-			body {
-				font-family : sans-serif;
-				font-size   : 1.2em;
-				background  : #000;
-			}
-			div#content {
-				background    : #369;
-				border-radius : 2em;
-				padding       : 2em;
-			}
-			h1.pghdr {
-				color : #dd9;
-			}
-			div.restaurant {
-				background    : #eeb;
-				border-radius : 2em;
-				padding       : 1em;
-				margin-bottom : 0.7em;
-			}
-			div.restaurant h2.name {
-				background    : #69c;
-				font-weight   : bold;
-				border-radius : 2em;
-				padding       : 0.8em;
-			}
-			h2.name {
-				margin-top : 0em;
-			}
-			h2.name a {
-				color     : #eee;
-				font-size : 1.1em;
-			}
-			h2.name span.parsed {
-				font-size : 0.5em;
-				color     : #eee;
-				float     : right;
-			}
-			h2.name span.parsed:before {
-				content: "Parsed: ";
-			}
-			div.restaurant div.dishes {
-				background    : #9cf;
-				border-radius : 2em;
-				padding       : 0.8em;
-				margin-left   : 2em;
-			}
-			div.dish {
-				background    : #369;
-				color         : #dd9;
-				border-radius : 2em;
-				padding       : 0.7em;
-				margin-bottom : 0.5em;
-				overflow      : auto;
-			}
-			div.dish h3.name {
-				color       : #cf6;
-				font-weight : bold;
-				display     : inline;
-			}
-			div.dish p.desc {
-				display : inline;
-			}
-			div.dish span.price {
-				font-size : 1.1em;
-				float     : right;
-			}
-			div.dish span.price:after {
-				content : ",-";
-			}
-			summary::-webkit-details-marker {
-				display : none;
-			}
-			summary {
-				outline-style : none;
-				color         : #369;
-				font-weight   : bold;
-				cursor        : help;
-			}
-			summary:focus {
-				outline-style : none;
-			}
-			summary:after {
-				content     : "[ + ]";
-				font-size   : 0.6em;
-				margin-left : 2em;
-			}
-			details[open] summary:after {
-				content : "[ - ]";
-			}
-			h1.pghdr span.toggledetails {
-				font-size : 0.5em;
-				color     : #fff;
-				float     : right;
-				cursor    : pointer;
-			}
-			/*]]>*/
-		</style>
-		<script type="text/javascript">
-			/*<![CDATA[*/
-			var _open = true;
-			function toggledetail() {
-				var ds = document.getElementsByTagName("details");
-				var len = ds.length;
-				for (var i = 0; i < len; i++) {
-					if (_open) {
-						ds[i].removeAttribute("open");
-					}
-					else {
-						ds[i].setAttribute("open", "");
-					}
-				}
-				_open = !_open;
-			}
-			/*]]>*/
-		</script>
-	</head>
-	<body>
-		<div id="content">
-			<h1 class="pghdr">Lunch at {{.Name}} today <span class="toggledetails" onclick="toggledetail();">[ +/- ]</span></h1>
-			{{range .Restaurants}}
-			<div class="restaurant">
-				<details open>
-					<summary>
-						<h2 class="name">
-							<a href="{{.Url}}">{{.Name}}</a>
-							<span class="parsed">{{.ParsedRFC3339}}</span>
-						</h2>
-					</summary>
-					<div class="dishes">
-					{{range .Dishes}}
-						<div class="dish">
-							<h3 class="name">{{.Name}}</h3>
-							<p class="desc">{{.Desc}}</p>
-							<span class="price">{{.Price}}</span>
-						</div> <!-- div dish -->
-					{{end}}
-					</div> <!-- div dishes -->
-				</details>
-			</div> <!-- div restaurant -->
-			{{end}}
-		</div> <!-- div content -->
-	</body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/static/lhlunch.css" />
+    <script type="text/javascript" src="/static/lhlunch.js"></script>
+    <title>Dagens lunch på {{.Name}}</title>
+  </head>
+  <body class="bodybg">
+    <div id="content" class="mt-3 mx-auto rounded">
+      <div class="w-100 p-3">&nbsp;</div>
+      <h1 class="pghdr h5 text-center">Dagens lunch på {{.Name}}</h1>
+      <div class="toggledetails text-center mt-3" onclick="toggledetail();">[ Visa / dölj alla ]</div>
+      <div class="w-100 pb-3">&nbsp;</div>
+      <div class="parsed ml-1">{{.ParsedHumanDate}}</div>
+      {{range .Restaurants}}
+      <div class="restaurant m-2">
+        <details open class="pb-3">
+          <summary>
+            <h2 class="name h6"><a href="{{.Url}}">{{.Name}}</a></h2>
+          </summary>
+          <div class="dishes ml-2 p-2 shadow rounded">
+            {{range .Dishes}}
+            <div class="dish m-2">
+              <h3 class="name h6 d-inline">{{.Name}}</h3>
+              <p class="desc d-inline">{{.Desc}}</p>
+              <span class="price">{{.Price}}</span>
+            </div> <!-- div dish -->
+            {{end}}
+          </div> <!-- div dishes -->
+        </details>
+      </div> <!-- div restaurant -->
+      {{end}}
+      <div class="w-100">&nbsp;</div>
+    </div> <!-- div content -->
+  </body>
 </html>
 
