@@ -19,9 +19,12 @@ import (
 )
 
 const (
-	VERSION string = "2018-12-21"
-	DEF_URL string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
-	DEF_ADR string = ":20666"
+	VERSION     string = "2019-01-31"
+	DEF_URL     string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
+	DEF_ADR     string = ":20666"
+	DEF_NAME    string = "Lindholmen"
+	DEF_ID      string = "se/gbg/lindholmen"
+	DEF_COMMENT string = "Gruvan"
 )
 
 // exit codes
@@ -32,6 +35,7 @@ const (
 	E_WRITEPID
 	E_NOTIFYPID
 	E_WRITEJSON
+	E_READJSON
 	E_INITTMPL
 	E_WRITEHTML
 )
@@ -48,7 +52,28 @@ type LHSite struct {
 var _site *LHSite
 
 func init() {
-	_site = &LHSite{s: &site.Site{Name: "Lindholmen", ID: "se/gbg/lindholmen", Comment: "Gruvan"}, url: DEF_URL}
+	defaultSite()
+}
+
+func defaultSite() {
+	_site = &LHSite{
+		s: &site.Site{
+			Name:    DEF_NAME,
+			ID:      DEF_ID,
+			Comment: DEF_COMMENT,
+		},
+		url: DEF_URL,
+	}
+}
+
+func siteFromJSON(filename string) error {
+	s, err := site.NewFromFile(filename)
+	if err != nil {
+		log.Errorf("Unable to load site from JSON: %q", err.Error())
+		return err
+	}
+	_site.s = s // replace default
+	return nil
 }
 
 func writePid(filename string) error {
@@ -145,6 +170,17 @@ func entryPointServe(ctx *cli.Context) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), E_INITTMPL)
 	}
+
+	// handle "load" argument here before serving
+	jfile := ctx.String("load")
+	if jfile != "" {
+		err := siteFromJSON(jfile)
+		if err != nil {
+			return cli.NewExitError(err.Error(), E_READJSON)
+		}
+		log.Debugf("Load site from %q successful!", jfile)
+	}
+
 	return http.ListenAndServe(adr, setupRouter())
 }
 
@@ -288,6 +324,10 @@ func main() {
 					// what I had in regular cron: "0 0,30 08-12 * * 1-5"
 					// That is: on second 0 of minute 0 and 30 of hour 08-12 of weekday mon-fri on any day of month any month
 				},
+				cli.StringFlag{
+					Name:  "load",
+					Usage: "Load data from `JSONFILE` instead of scraping",
+				},
 			},
 		},
 		{
@@ -302,7 +342,7 @@ func main() {
 					Value: "-",
 				},
 				cli.BoolFlag{
-					Name: "html",
+					Name:  "html",
 					Usage: "Write HTML result to STDOUT",
 				},
 				cli.StringFlag{
