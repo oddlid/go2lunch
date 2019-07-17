@@ -72,7 +72,8 @@ func initSite(w http.ResponseWriter) error {
 		http.Error(w, "Site is uninitialised", http.StatusInternalServerError)
 		return fmt.Errorf("Site not initialised")
 	}
-	if _site.s.Restaurants == nil {
+	lhs := _site.getLHSite()
+	if lhs == nil || !lhs.HasRestaurants() {
 		log.Debug("No content yet, scraping...")
 		err := update()
 		if err != nil {
@@ -89,6 +90,7 @@ func setupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.PathPrefix(s).Handler(http.StripPrefix(s, http.FileServer(box.HTTPBox())))
 	r.HandleFunc("/", htmlIndexHandler)
+	r.HandleFunc("/api/", jsonApiIndexHandler)
 	r.HandleFunc(urlpath_base+"{ext:.?[a-z]+}", preHandler)
 	//r.HandleFunc(urlpath_base, htmlLunchHandler) // this is needed if I want /lindholmen (no ext) to work
 	return r
@@ -114,22 +116,35 @@ func preHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func setCTJsonHdr(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+}
+
 func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
 	//tmpl_default_html.Execute(w, nil)
 	w.Write([]byte(str_default_html))
 }
 
 func htmlLunchHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl_lhlunch_html.Execute(w, _site.s)
+	tmpl_lhlunch_html.Execute(w, _site.getLHSite())
 }
 
 func textLunchHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl_lhlunch_text.Execute(w, _site.s)
+	tmpl_lhlunch_text.Execute(w, _site.getLHSite())
+}
+
+func jsonApiIndexHandler(w http.ResponseWriter, r *http.Request) {
+	setCTJsonHdr(w)
+	err := _site.ll.GetSiteLinks().Encode(w)
+	if err != nil {
+		log.Errorf("Error serving JSON: %q", err.Error())
+	}
 }
 
 func jsonLunchHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := _site.s.Encode(w)
+	//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	setCTJsonHdr(w)
+	err := _site.ll.Encode(w)
 	if err != nil {
 		log.Errorf("Error serving JSON: %q", err.Error())
 	}

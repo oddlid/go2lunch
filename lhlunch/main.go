@@ -6,25 +6,30 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/signal"
+	//"os/signal"
 	"strconv"
 	"sync"
-	"syscall"
+	//"syscall"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oddlid/go2lunch/site"
+	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 )
 
 const (
-	VERSION     string = "2019-01-31"
-	DEF_URL     string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
-	DEF_ADR     string = ":20666"
-	DEF_NAME    string = "Lindholmen"
-	DEF_ID      string = "se/gbg/lindholmen"
-	DEF_COMMENT string = "Gruvan"
+	VERSION          string = "2019-07-16"
+	DEF_URL          string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
+	DEF_ADR          string = ":20666"
+	DEF_COUNTRY_NAME string = "Sweden"
+	DEF_COUNTRY_ID   string = "se"
+	DEF_CITY_NAME    string = "Gothenburg"
+	DEF_CITY_ID      string = "gbg"
+	DEF_SITE_NAME    string = "Lindholmen"
+	DEF_SITE_ID      string = "lindholmen"
+	DEF_ID           string = "/se/gbg/lindholmen"
+	DEF_COMMENT      string = "Gruvan"
 )
 
 // exit codes
@@ -45,7 +50,8 @@ var COMMIT_ID string
 
 type LHSite struct {
 	sync.Mutex
-	s   *site.Site
+	//s   *lunchdata.Site
+	ll  *lunchdata.LunchList
 	url string
 }
 
@@ -56,24 +62,55 @@ func init() {
 }
 
 func defaultSite() {
+	lhsite := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT)
+	city := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID)
+	country := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID)
+	llist := lunchdata.NewLunchList()
+
+	city.AddSite(*lhsite)
+	country.AddCity(*city)
+	llist.AddCountry(*country)
+
 	_site = &LHSite{
-		s: &site.Site{
-			Name:    DEF_NAME,
-			ID:      DEF_ID,
-			Comment: DEF_COMMENT,
-		},
 		url: DEF_URL,
+		//s:   lhsite,
+		ll:  llist,
 	}
 }
 
 func siteFromJSON(filename string) error {
-	s, err := site.NewFromFile(filename)
+	ll, err := lunchdata.LunchListFromFile(filename)
 	if err != nil {
 		log.Errorf("Unable to load site from JSON: %q", err.Error())
 		return err
 	}
-	_site.s = s // replace default
+	//_site.s = s // replace default
+	//_site.ll.Countries[0].Cities[0].Sites[0] = *s
+	_site.ll = ll
 	return nil
+}
+
+func (lhs *LHSite) getLHSite() *lunchdata.Site {
+	se := lhs.ll.GetCountryById(DEF_COUNTRY_ID)
+	if nil == se {
+		return nil
+	}
+
+	gbg := se.GetCityById(DEF_CITY_ID)
+	if nil == gbg {
+		return nil
+	}
+
+	lh := gbg.GetSiteById(DEF_SITE_ID)
+
+	return lh // might be nil
+}
+
+func (lhs *LHSite) setLHRestaurants(rs lunchdata.Restaurants) {
+	lh := lhs.getLHSite()
+	if nil != lh {
+		lh.SetRestaurants(rs)
+	}
 }
 
 func writePid(filename string) error {
@@ -98,7 +135,7 @@ func setUrl(ctx *cli.Context) {
 func entryPointServe(ctx *cli.Context) error {
 	setUrl(ctx)
 
-	log.Infof("LHLunch PID: %d", os.Getpid())
+	log.Debugf("LHLunch PID: %d", os.Getpid())
 
 	pidfile := ctx.String("writepid")
 	if pidfile != "" {
@@ -118,28 +155,9 @@ func entryPointServe(ctx *cli.Context) error {
 	}
 
 	// signal handling
-	sig_chan := make(chan os.Signal, 1)
-	signal.Notify(sig_chan, syscall.SIGUSR1, syscall.SIGUSR2)
-	go func() {
-		for sig := range sig_chan {
-			switch sig {
-			case syscall.SIGUSR1: // re-scrape and update internal DB
-				err := update()
-				if err != nil {
-					log.Error(err.Error())
-				}
-			case syscall.SIGUSR2: // dump internal DB to stdout
-				log.Info("Dumping parsed contents as JSON to STDOUT:")
-				err := _site.s.Encode(os.Stdout)
-				if err != nil {
-					log.Error(err.Error())
-				}
-			default:
-				log.Debug("Caught unhandled signal, exiting...")
-				os.Exit(255)
-			}
-		}
-	}()
+	// On windows this only logs a message about skipping signal handling
+	// See: signalhandling.go and signalhandling_windows.go
+	setupSignalHandling()
 	// END signal handling
 
 	// cron-like scheduling.
@@ -181,11 +199,16 @@ func entryPointServe(ctx *cli.Context) error {
 		log.Debugf("Load site from %q successful!", jfile)
 	}
 
-	return http.ListenAndServe(adr, setupRouter())
-}
+	// temporary fix for struct migration
+	doDump := ctx.Bool("dump")
+	if doDump {
+		//_site.ll.Encode(os.Stdout)
+		_site.ll.GetSiteLinks().Encode(os.Stdout)
+		return nil
+	}
 
-func notifyPid(pid int) error {
-	return syscall.Kill(pid, syscall.SIGUSR1)
+	log.Infof("Listening on: %s", adr)
+	return http.ListenAndServe(adr, setupRouter())
 }
 
 func readPid(filename string) (int, error) {
@@ -233,7 +256,7 @@ func entryPointScrape(ctx *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(err.Error(), E_INITTMPL)
 		}
-		tmpl_lhlunch_html.Execute(os.Stdout, _site.s)
+		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
 		return nil // be sure to not proceed when done here
 	}
 
@@ -241,12 +264,12 @@ func entryPointScrape(ctx *cli.Context) error {
 	log.Debugf("Outfile: %q", outfile)
 
 	if outfile == "-" || outfile == "" {
-		err := _site.s.Encode(os.Stdout)
+		err := _site.ll.Encode(os.Stdout)
 		if err != nil {
 			return cli.NewExitError(err.Error(), E_WRITEJSON)
 		}
 	} else {
-		err := _site.s.SaveJSON(outfile)
+		err := _site.ll.SaveJSON(outfile)
 		if err != nil {
 			return cli.NewExitError(err.Error(), E_WRITEJSON)
 		}
@@ -327,6 +350,10 @@ func main() {
 				cli.StringFlag{
 					Name:  "load",
 					Usage: "Load data from `JSONFILE` instead of scraping",
+				},
+				cli.BoolFlag{
+					Name:  "dump",
+					Usage: "Dump new struct to stdout",
 				},
 			},
 		},

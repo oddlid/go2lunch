@@ -1,5 +1,5 @@
 BINARY := lhlunch.bin
-VERSION := 2019-01-31
+VERSION := 2019-07-16
 UNAME := $(shell uname -s)
 SOURCES := $(wildcard *.go)
 COMMIT_ID := $(shell git describe --tags --always)
@@ -13,7 +13,9 @@ endif
 .DEFAULT_GOAL: $(BINARY)
 
 $(BINARY): $(SOURCES)
-	env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ ${SOURCES}
+	#env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ ${SOURCES}
+	# Since we have build constraints, we should pass '.' (package) to build, not a list of go files
+	env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ .
 
 .PHONY: install
 install:
