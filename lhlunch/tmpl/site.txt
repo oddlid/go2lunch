@@ -1,7 +1,0 @@
-# Lunch @ {{.Name}} today
-{{range .Restaurants}}
-## {{.Name}}:
-{{range .Dishes}} * {{.Name}} {{.Desc}} - {{.Price}},-
-{{end}}
-{{end}}
-

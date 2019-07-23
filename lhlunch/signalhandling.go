@@ -41,4 +41,3 @@ func setupSignalHandling() {
 func notifyPid(pid int) error {
 	return syscall.Kill(pid, syscall.SIGUSR1)
 }
-

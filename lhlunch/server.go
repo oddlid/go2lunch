@@ -15,22 +15,12 @@ import (
 )
 
 var (
-	//htmlTemplates map[string]*htmpl.Template
 	htmlTemplates *htmpl.Template
-	htmlFiles     = []string{"lunchlist.html", "country.html", "city.html", "site.html", "default.html", "snippets.html"}
-	textTemplates map[string]*ttmpl.Template
-	textFiles     = []string{"lunchlist.txt", "country.txt", "city.txt", "site.txt"}
+	textTemplates *ttmpl.Template
+	htmlFiles     = []string{"lunchlist.html", "country.html", "city.html", "site.html", "default.html"} // virtual files
+	textFiles     = []string{"lunchlist.txt", "country.txt", "city.txt", "site.txt"}                     // virtual files
 	urlIds        = []string{"country_id", "city_id", "site_id"}
 )
-
-func getHtmlTemplate(idx int) *htmpl.Template {
-	//return htmlTemplates[htmlFiles[idx]]
-	return nil
-}
-
-func getTextTemplate(idx int) *ttmpl.Template {
-	return textTemplates[textFiles[idx]]
-}
 
 func initTmpl() error {
 	log.Debug("Looking for template folder...")
@@ -39,42 +29,22 @@ func initTmpl() error {
 		return err
 	}
 
-	//htmlTemplates = make(map[string]*htmpl.Template)
-	//for _, htmlfile := range htmlFiles {
-	//	log.Debugf("Loading html template %q", htmlfile)
-	//	htmlstr, err := tBox.String(htmlfile)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	log.Debugf("Parsing html template %q", htmlfile)
-	//	htmltmpl, err := htmpl.New(htmlfile).Parse(htmlstr)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	htmlTemplates[htmlfile] = htmltmpl
-	//}
-	htmplStr, err := tBox.String("all.tmpl")
+	htmplStr, err := tBox.String("allhtml.tmpl")
 	if err != nil {
 		return err
 	}
-	htmlTemplates, err = htmpl.New("test").Parse(htmplStr)
+	htmlTemplates, err = htmpl.New("html").Parse(htmplStr)
 	if err != nil {
 		return err
 	}
 
-	textTemplates = make(map[string]*ttmpl.Template)
-	for _, textfile := range textFiles {
-		log.Debugf("Loading text template %q", textfile)
-		textstr, err := tBox.String(textfile)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Parsing text template %q", textfile)
-		texttmpl, err := ttmpl.New(textfile).Parse(textstr)
-		if err != nil {
-			return err
-		}
-		textTemplates[textfile] = texttmpl
+	ttmplStr, err := tBox.String("alltext.tmpl")
+	if err != nil {
+		return err
+	}
+	textTemplates, err = ttmpl.New("text").Parse(ttmplStr)
+	if err != nil {
+		return err
 	}
 
 	log.Debug("All templates loaded and parsed successfully!")
@@ -163,7 +133,6 @@ func setCTJsonHdr(w http.ResponseWriter) {
 }
 
 func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
-	//getHtmlTemplate(4).Execute(w, _site.ll)
 	htmlTemplates.ExecuteTemplate(w, htmlFiles[4], _site.ll)
 }
 
@@ -224,13 +193,12 @@ func genericTmplHandler(
 
 func textTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, w http.ResponseWriter, obj interface{}) {
-		getTextTemplate(tmplIdx).Execute(w, obj)
+		textTemplates.ExecuteTemplate(w, textFiles[tmplIdx], obj)
 	})
 }
 
 func htmlTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, w http.ResponseWriter, obj interface{}) {
-		//getHtmlTemplate(tmplIdx).Execute(w, obj)
 		htmlTemplates.ExecuteTemplate(w, htmlFiles[tmplIdx], obj)
 	})
 }

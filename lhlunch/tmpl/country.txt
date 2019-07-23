@@ -1,5 +1,0 @@
-# Cities in {{.Name}}
-{{range .Cities}}
-* {{.Name}} ({{.ID}})
-{{end}}
-

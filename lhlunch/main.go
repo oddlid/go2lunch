@@ -6,10 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	//"os/signal"
 	"strconv"
 	"sync"
-	//"syscall"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -30,7 +28,7 @@ const (
 	DEF_SITE_ID      string = "lindholmen"
 	DEF_ID           string = "/se/gbg/lindholmen"
 	DEF_COMMENT      string = "Gruvan"
-	GTAG_ID          string = "UA-126840341-2"
+	GTAG_ID          string = "UA-126840341-2" // used for Google Analytics in generated pages
 )
 
 // exit codes
@@ -51,7 +49,6 @@ var COMMIT_ID string
 
 type LHSite struct {
 	sync.Mutex
-	//s   *lunchdata.Site
 	ll  *lunchdata.LunchList
 	url string
 }
@@ -69,7 +66,6 @@ func defaultSite() {
 	se := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID, GTAG_ID)
 	no := lunchdata.NewCountry("Norway", "no", GTAG_ID)
 
-
 	llist := lunchdata.NewLunchList(GTAG_ID)
 
 	gbg.AddSite(*lh)
@@ -81,7 +77,6 @@ func defaultSite() {
 
 	_site = &LHSite{
 		url: DEF_URL,
-		//s:   lhsite,
 		ll:  llist,
 	}
 }
@@ -92,8 +87,6 @@ func siteFromJSON(filename string) error {
 		log.Errorf("Unable to load site from JSON: %q", err.Error())
 		return err
 	}
-	//_site.s = s // replace default
-	//_site.ll.Countries[0].Cities[0].Sites[0] = *s
 	_site.ll = ll
 	return nil
 }
@@ -208,12 +201,12 @@ func entryPointServe(ctx *cli.Context) error {
 	}
 
 	// temporary fix for struct migration
-	doDump := ctx.Bool("dump")
-	if doDump {
-		//_site.ll.Encode(os.Stdout)
-		_site.ll.GetSiteLinks().Encode(os.Stdout)
-		return nil
-	}
+	//	doDump := ctx.Bool("dump")
+	//	if doDump {
+	//		//_site.ll.Encode(os.Stdout)
+	//		_site.ll.GetSiteLinks().Encode(os.Stdout)
+	//		return nil
+	//	}
 
 	log.Infof("Listening on: %s", adr)
 	return http.ListenAndServe(adr, setupRouter())
@@ -257,16 +250,16 @@ func entryPointScrape(ctx *cli.Context) error {
 		return cli.NewExitError(err.Error(), E_UPDATE)
 	}
 
-//	// write html output if requested, otherwise json
-//	dumpHtml := ctx.Bool("html")
-//	if dumpHtml {
-//		err := initTmpl() // does more than we need here, so maybe rewrite some time...
-//		if err != nil {
-//			return cli.NewExitError(err.Error(), E_INITTMPL)
-//		}
-//		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
-//		return nil // be sure to not proceed when done here
-//	}
+	//	// write html output if requested, otherwise json
+	//	dumpHtml := ctx.Bool("html")
+	//	if dumpHtml {
+	//		err := initTmpl() // does more than we need here, so maybe rewrite some time...
+	//		if err != nil {
+	//			return cli.NewExitError(err.Error(), E_INITTMPL)
+	//		}
+	//		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
+	//		return nil // be sure to not proceed when done here
+	//	}
 
 	outfile := ctx.String("outfile")
 	log.Debugf("Outfile: %q", outfile)
@@ -359,10 +352,10 @@ func main() {
 					Name:  "load",
 					Usage: "Load data from `JSONFILE` instead of scraping",
 				},
-				cli.BoolFlag{
-					Name:  "dump",
-					Usage: "Dump new struct to stdout",
-				},
+				//				cli.BoolFlag{
+				//					Name:  "dump",
+				//					Usage: "Dump new struct to stdout",
+				//				},
 			},
 		},
 		{
@@ -376,10 +369,10 @@ func main() {
 					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
 					Value: "-",
 				},
-				cli.BoolFlag{
-					Name:  "html",
-					Usage: "Write HTML result to STDOUT",
-				},
+				//				cli.BoolFlag{
+				//					Name:  "html",
+				//					Usage: "Write HTML result to STDOUT",
+				//				},
 				cli.StringFlag{
 					Name:  "notify-pid, p",
 					Usage: "Read PID from `FILE` and tell the process with that PID to re-scrape",

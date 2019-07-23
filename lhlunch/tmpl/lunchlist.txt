@@ -1,4 +1,0 @@
-# Lunchlist countries
-{{range .Countries}}
-* {{.Name}} ({{.ID}})
-{{end}}

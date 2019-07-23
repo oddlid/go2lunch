@@ -92,7 +92,6 @@ func update() error {
 		return err
 	}
 	_site.Lock()
-	//_site.s.Restaurants = rs
 	_site.setLHRestaurants(rs)
 	_site.Unlock()
 	return nil
