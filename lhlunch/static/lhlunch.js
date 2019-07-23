@@ -13,3 +13,8 @@ function toggledetail() {
 	_open = !_open;
 }
 
+window.dataLayer = window.dataLayer || [];
+function gtag() {
+	dataLayer.push(arguments);
+}
+

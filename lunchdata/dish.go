@@ -9,6 +9,7 @@ type Dish struct {
 	Name  string `json:"dish_name"`
 	Desc  string `json:"dish_desc"`
 	Price int    `json:"dish_price"`
+	Gtag  string `json:"-"`
 }
 
 type Dishes []Dish
@@ -17,11 +18,12 @@ func (ds *Dishes) Add(d *Dish) {
 	*ds = append(*ds, *d)
 }
 
-func NewDish(name, desc string, price int) *Dish {
+func NewDish(name, desc, tag string, price int) *Dish {
 	return &Dish{
 		Name:  name,
 		Desc:  desc,
 		Price: price,
+		Gtag:  tag,
 	}
 }
 

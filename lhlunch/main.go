@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	VERSION          string = "2019-07-16"
+	VERSION          string = "2019-07-23"
 	DEF_URL          string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_ADR          string = ":20666"
 	DEF_COUNTRY_NAME string = "Sweden"
@@ -30,6 +30,7 @@ const (
 	DEF_SITE_ID      string = "lindholmen"
 	DEF_ID           string = "/se/gbg/lindholmen"
 	DEF_COMMENT      string = "Gruvan"
+	GTAG_ID          string = "UA-126840341-2"
 )
 
 // exit codes
@@ -62,14 +63,21 @@ func init() {
 }
 
 func defaultSite() {
-	lhsite := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT)
-	city := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID)
-	country := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID)
-	llist := lunchdata.NewLunchList()
+	lh := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT, GTAG_ID)
+	gbg := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID, GTAG_ID)
+	sthlm := lunchdata.NewCity("Stockholm", "sthlm", GTAG_ID)
+	se := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID, GTAG_ID)
+	no := lunchdata.NewCountry("Norway", "no", GTAG_ID)
 
-	city.AddSite(*lhsite)
-	country.AddCity(*city)
-	llist.AddCountry(*country)
+
+	llist := lunchdata.NewLunchList(GTAG_ID)
+
+	gbg.AddSite(*lh)
+	se.AddCity(*gbg)
+	se.AddCity(*sthlm)
+
+	llist.AddCountry(*se)
+	llist.AddCountry(*no)
 
 	_site = &LHSite{
 		url: DEF_URL,
@@ -249,16 +257,16 @@ func entryPointScrape(ctx *cli.Context) error {
 		return cli.NewExitError(err.Error(), E_UPDATE)
 	}
 
-	// write html output if requested, otherwise json
-	dumpHtml := ctx.Bool("html")
-	if dumpHtml {
-		err := initTmpl() // does more than we need here, so maybe rewrite some time...
-		if err != nil {
-			return cli.NewExitError(err.Error(), E_INITTMPL)
-		}
-		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
-		return nil // be sure to not proceed when done here
-	}
+//	// write html output if requested, otherwise json
+//	dumpHtml := ctx.Bool("html")
+//	if dumpHtml {
+//		err := initTmpl() // does more than we need here, so maybe rewrite some time...
+//		if err != nil {
+//			return cli.NewExitError(err.Error(), E_INITTMPL)
+//		}
+//		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
+//		return nil // be sure to not proceed when done here
+//	}
 
 	outfile := ctx.String("outfile")
 	log.Debugf("Outfile: %q", outfile)

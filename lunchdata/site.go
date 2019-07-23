@@ -14,6 +14,7 @@ type Site struct {
 	ID          string                 `json:"site_id"` // something unique within this site
 	Comment     string                 `json:"site_comment,omitempty"`
 	Restaurants map[string]*Restaurant `json:"restaurants"`
+	Gtag        string                 `json:"-"`
 }
 
 type Sites []Site
@@ -22,12 +23,13 @@ func (ss *Sites) Add(s Site) {
 	*ss = append(*ss, s)
 }
 
-func NewSite(name, id, comment string) *Site {
+func NewSite(name, id, comment, tag string) *Site {
 	return &Site{
 		Name:        name,
 		ID:          id,
 		Comment:     comment,
 		Restaurants: make(map[string]*Restaurant),
+		Gtag:        tag,
 	}
 }
 

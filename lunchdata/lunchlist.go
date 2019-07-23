@@ -10,11 +10,13 @@ import (
 // A giant list of everything
 type LunchList struct {
 	Countries map[string]*Country `json:"countries"`
+	Gtag      string              `json:"-"`
 }
 
-func NewLunchList() *LunchList {
+func NewLunchList(tag string) *LunchList {
 	return &LunchList{
 		Countries: make(map[string]*Country),
+		Gtag:      tag,
 	}
 }
 

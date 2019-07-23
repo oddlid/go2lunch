@@ -9,6 +9,7 @@ type City struct {
 	Name  string           `json:"city_name"`
 	ID    string           `json:"city_id"` // e.g. osl, gbg or something like the airlines use
 	Sites map[string]*Site `json:"sites"`
+	Gtag  string           `json:"-"`
 }
 
 type Cities []City
@@ -17,11 +18,12 @@ func (cs *Cities) Add(c City) {
 	*cs = append(*cs, c)
 }
 
-func NewCity(name, id string) *City {
+func NewCity(name, id, tag string) *City {
 	return &City{
 		Name:  name,
 		ID:    id,
 		Sites: make(map[string]*Site),
+		Gtag:  tag,
 	}
 }
 

@@ -1,0 +1,4 @@
+# Sites in {{.Name}}
+{{range .Sites}}
+* {{.Name}} ({{.ID}})
+{{end}}

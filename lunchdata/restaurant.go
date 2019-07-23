@@ -16,6 +16,7 @@ type Restaurant struct {
 	Url    string    `json:"url"`
 	Parsed time.Time `json:"scrape_date"`
 	Dishes Dishes    `json:"dishes"`
+	Gtag   string    `json:"-"`
 }
 
 type Restaurants []Restaurant
@@ -24,13 +25,14 @@ func (rs *Restaurants) Add(r Restaurant) {
 	*rs = append(*rs, r)
 }
 
-func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
+func NewRestaurant(name, id, url, tag string, parsed time.Time) *Restaurant {
 	return &Restaurant{
 		Name:   name,
 		ID:     id,
 		Url:    url,
 		Parsed: parsed,
 		Dishes: make(Dishes, 0),
+		Gtag:   tag,
 	}
 }
 

@@ -1,5 +1,5 @@
 BINARY := lhlunch.bin
-VERSION := 2019-07-16
+VERSION := 2019-07-23
 UNAME := $(shell uname -s)
 SOURCES := $(wildcard *.go)
 COMMIT_ID := $(shell git describe --tags --always)

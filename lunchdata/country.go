@@ -9,6 +9,7 @@ type Country struct {
 	Name   string           `json:"country_name"`
 	ID     string           `json:"country_id"` // preferrably international country code, like "se", "no", and so on
 	Cities map[string]*City `json:"cities"`
+	Gtag   string           `json:"-"`
 }
 
 type Countries []Country
@@ -17,11 +18,12 @@ func (cs *Countries) Add(c Country) {
 	*cs = append(*cs, c)
 }
 
-func NewCountry(name, id string) *Country {
+func NewCountry(name, id, tag string) *Country {
 	return &Country{
 		Name:   name,
 		ID:     id,
 		Cities: make(map[string]*City),
+		Gtag:   tag,
 	}
 }
 

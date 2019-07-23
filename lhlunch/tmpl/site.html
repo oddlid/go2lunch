@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/static/lhlunch.css" />
+    <title>Lunch @ {{.Name}} today</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{.Gtag}}"></script>
+    <script type="text/javascript" src="/static/lhlunch.js"></script>
+    <script>
+      gtag('js', new Date());
+      gtag('config', '{{.Gtag}}');
+    </script>
+  </head>
+  <body class="bodybg">
+    <div id="content" class="mt-3 mx-auto rounded">
+      <div class="w-100 p-3">&nbsp;</div>
+      <h1 class="pghdr h5 text-center">Lunch @ {{.Name}} today</h1>
+      <div class="toggledetails text-center mt-3" onclick="toggledetail();">[ Show / hide all ]</div>
+      <div class="w-100 pb-3">&nbsp;</div>
+      <div class="parsed ml-1">Updated: {{.ParsedHumanDate}}</div>
+      {{range .Restaurants}}
+      <div class="restaurant m-2">
+        <details open class="pb-3">
+          <summary>
+            <h2 class="name h6"><a href="{{.Url}}">{{.Name}}</a></h2>
+          </summary>
+          <div class="dishes ml-2 p-2 shadow rounded">
+            {{range .Dishes}}
+            <div class="dish m-2">
+              <h3 class="name h6 d-inline">{{.Name}}</h3>
+              <p class="desc d-inline">{{.Desc}}</p>
+              <span class="price">{{.Price}}</span>
+            </div> <!-- div dish -->
+            {{end}}
+          </div> <!-- div dishes -->
+        </details>
+      </div> <!-- div restaurant -->
+      {{end}}
+      <div class="w-100">&nbsp;</div>
+    </div> <!-- div content -->
+  </body>
+</html>

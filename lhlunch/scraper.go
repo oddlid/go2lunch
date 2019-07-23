@@ -1,5 +1,11 @@
 package main
 
+/*
+This file is hardcoded for scraping from lindholmen.se
+Should separate this functionality into a separate module/binary or something,
+and have an interface for delivering results from any scraper to a running server.
+*/
+
 import (
 	"net/url"
 	"strconv"
@@ -52,8 +58,8 @@ func scrape(url string) (lunchdata.Restaurants, error) {
 	doc.Find(csel[0]).Each(func(i int, sel1 *goquery.Selection) {
 		rname := strings.TrimSpace(sel1.Find("a").Text())
 
-		r := lunchdata.NewRestaurant(rname, getRestaurantID(rname), getRestaurantUrl(rname), time.Now())
-		log.Debugf("%s: Got Restaurant: %#v", logTag, r)
+		r := lunchdata.NewRestaurant(rname, getRestaurantID(rname), getRestaurantUrl(rname), GTAG_ID, time.Now())
+		//log.Debugf("%s: Got Restaurant: %#v", logTag, r)
 		num_restaurants++
 
 		sel1.NextFilteredUntil(csel[1], csel[0]).Each(func(j int, sel2 *goquery.Selection) {
@@ -65,8 +71,8 @@ func scrape(url string) (lunchdata.Restaurants, error) {
 			if err != nil {
 				price = -1
 			}
-			dish := lunchdata.NewDish(dname, ddesc, price)
-			log.Debugf("%s: Got Dish: %#v", logTag, dish)
+			dish := lunchdata.NewDish(dname, ddesc, GTAG_ID, price)
+			//log.Debugf("%s: Got Dish: %#v", logTag, dish)
 			r.AddDish(*dish)
 			num_dishes++
 
