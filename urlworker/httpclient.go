@@ -1,41 +1,48 @@
 package urlworker
 
-
 import (
 	//"crypto/tls"
-	log "github.com/Sirupsen/logrus"
-	"net/http"
-	"time"
+	"bytes"
 	"io"
 	"io/ioutil"
-	"bytes"
+	"net/http"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 const (
-	DEF_UA    string  = "oddware.urlworker/0.1"
-	DEF_TMOUT float64 = 3.0
+	HDR_KEY_UA = "User-Agent"
+	DEF_UA     = "oddware.urlworker/0.2"
+	DEF_TMOUT  = 3.0
 )
 
 type HttpClient struct {
-	Client *http.Client
-	UA     string
+	Client    *http.Client
+	UA        string
+	transport *http.Transport
 }
 
 func NewHttpClient() *HttpClient {
 	client := &HttpClient{
-		Client: http.DefaulClient,
-		UA:     DEF_UA,
+		Client:    http.DefaultClient,
+		UA:        DEF_UA,
+		transport: http.DefaultTransport.(*http.Transport),
 	}
 	return client.SetTimeout(DEF_TMOUT)
 }
 
 func (c *HttpClient) SkipCertCheck(skip bool) *HttpClient {
-	c.Transport.TLSClientConfig.InsecureSkipVerify = skip
+	//c.Client.Transport.TLSClientConfig.InsecureSkipVerify = skip
+	c.transport.TLSClientConfig.InsecureSkipVerify = skip
+	c.Client.Transport = c.transport
 	return c
 }
 
 func (c *HttpClient) SetKeepAlives(val bool) *HttpClient {
-	c.Transport.DisableKeepAlives = val
+	//c.Client.Transport.DisableKeepAlives = val
+	c.transport.DisableKeepAlives = val
+	c.Client.Transport = c.transport
 	return c
 }
 
@@ -51,14 +58,19 @@ func (c *HttpClient) Setup(ua string, timeout float64, keepAlive, skipcertcheck 
 	return c.SetTimeout(timeout).SetKeepAlives(keepAlive).SkipCertCheck(skipcertcheck)
 }
 
-func (c *HttpClient) Get(url) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", c.UA)
+//func (c *HttpClient) Get(url string) (*http.Response, error) {
+//	req, err := http.NewRequest(http.MethodGet, url, nil)
+//	if err != nil {
+//		return nil, err
+//	}
+//	req.Header.Set(HDR_KEY_UA, c.UA)
+//
+//	return c.Client.Do(req)
+//}
 
-	return c.Do(req)
+func (c *HttpClient) Get(req *http.Request) (*http.Response, error) {
+	req.Header.Set(HDR_KEY_UA, c.UA)
+	return c.Client.Do(req)
 }
 
 // GetResponseBody reads http.Response.Body, closes it, and returns the contents as a byte slice
@@ -75,10 +87,10 @@ func GetResponseBody(res *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func GetResponseReader(res *http.Response) bytes.Reader {
+func GetResponseReader(res *http.Response) *bytes.Reader {
 	b, err := GetResponseBody(res)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("%s: %s", PKG_NAME, err)
 		return nil
 	}
 	return bytes.NewReader(b)
@@ -89,4 +101,3 @@ func CloseResponse(res *http.Response) error {
 	io.Copy(ioutil.Discard, res.Body)
 	return res.Body.Close()
 }
-
