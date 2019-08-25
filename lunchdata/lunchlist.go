@@ -3,6 +3,7 @@ package lunchdata
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 )
@@ -13,11 +14,30 @@ type LunchList struct {
 	Gtag      string              `json:"-"`
 }
 
-func NewLunchList(tag string) *LunchList {
+func NewLunchList() *LunchList {
 	return &LunchList{
 		Countries: make(map[string]*Country),
-		Gtag:      tag,
 	}
+}
+
+func (ll *LunchList) Len() int {
+	return len(ll.Countries)
+}
+
+func (ll *LunchList) SubItems() int {
+	total := 0
+	for k := range ll.Countries {
+		total += ll.Countries[k].SubItems() + 1 // +1 to count the Country itself as well
+	}
+	return total
+}
+
+func (ll *LunchList) PropagateGtag(tag string) *LunchList {
+	ll.Gtag = tag
+	for k := range ll.Countries {
+		ll.Countries[k].PropagateGtag(tag)
+	}
+	return ll
 }
 
 func (ll *LunchList) AddCountry(c Country) *LunchList {
@@ -25,12 +45,144 @@ func (ll *LunchList) AddCountry(c Country) *LunchList {
 	return ll
 }
 
+func (ll *LunchList) DeleteCountry(id string) *LunchList {
+	delete(ll.Countries, id)
+	return ll
+}
+
+func (ll *LunchList) HasCountries() bool {
+	return len(ll.Countries) > 0
+}
+
+func (ll *LunchList) HasCountry(countryID string) bool {
+	_, found := ll.Countries[countryID]
+	return found
+}
+
+func (ll *LunchList) HasCity(countryID, cityID string) bool {
+	if !ll.HasCountry(countryID) {
+		return false
+	}
+	return ll.GetCountryById(countryID).HasCity(cityID)
+}
+
+func (ll *LunchList) HasSite(countryID, cityID, siteID string) bool {
+	if !ll.HasCity(countryID, cityID) {
+		return false
+	}
+	return ll.GetCityById(countryID, cityID).HasSite(siteID)
+}
+
+func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID string) bool {
+	if !ll.HasSite(countryID, cityID, siteID) {
+		return false
+	}
+	return ll.GetSiteById(countryID, cityID, siteID).HasRestaurant(restaurantID)
+}
+
+func (ll *LunchList) ClearCountries() *LunchList {
+	ll.Countries = make(map[string]*Country)
+	return ll
+}
+
+func (ll *LunchList) ClearCities() *LunchList {
+	for k := range ll.Countries {
+		ll.Countries[k].ClearCities()
+	}
+	return ll
+}
+
+func (ll *LunchList) ClearSites() *LunchList {
+	for k := range ll.Countries {
+		ll.Countries[k].ClearSites()
+	}
+	return ll
+}
+
+func (ll *LunchList) ClearRestaurants() *LunchList {
+	for k := range ll.Countries {
+		ll.Countries[k].ClearRestaurants()
+	}
+	return ll
+}
+
+func (ll *LunchList) ClearDishes() *LunchList {
+	for k := range ll.Countries {
+		ll.Countries[k].ClearDishes()
+	}
+	return ll
+}
+
 func (ll *LunchList) GetCountryById(id string) *Country {
-	return ll.Countries[id]
+	c, found := ll.Countries[id]
+	if !found {
+		debugLunchList("GetCountryById: %q not found", id)
+	}
+	return c
+}
+
+func (ll *LunchList) GetCityById(countryID, cityID string) *City {
+	c := ll.GetCountryById(countryID)
+	if nil == c {
+		return nil
+	}
+	return c.GetCityById(cityID)
+}
+
+func (ll *LunchList) GetSiteById(countryID, cityID, siteID string) *Site {
+	c := ll.GetCountryById(countryID)
+	if nil == c {
+		return nil
+	}
+	return c.GetSiteById(cityID, siteID)
+}
+
+func (ll *LunchList) GetSiteByLink(sl SiteLink) *Site {
+	return ll.GetSiteById(sl.CountryID, sl.CityID, sl.SiteID)
+}
+
+func (ll *LunchList) GetRestaurantById(countryID, cityID, siteID, restaurantID string) *Restaurant {
+	c := ll.GetCountryById(countryID)
+	if nil == c {
+		return nil
+	}
+	return c.GetRestaurantById(cityID, siteID, restaurantID)
 }
 
 func (ll *LunchList) NumCountries() int {
 	return len(ll.Countries)
+}
+
+func (ll *LunchList) NumCities() int {
+	total := 0
+	for k := range ll.Countries {
+		total += ll.Countries[k].NumCities()
+	}
+	return total
+}
+
+func (ll *LunchList) NumSites() int {
+	total := 0
+	for k := range ll.Countries {
+		total += ll.Countries[k].NumSites()
+	}
+	return total
+}
+
+func (ll *LunchList) NumRestaurants() int {
+	total := 0
+	for k := range ll.Countries {
+		total += ll.Countries[k].NumRestaurants()
+	}
+	return total
+}
+
+func (ll *LunchList) NumDishes() int {
+	total := 0
+	for k := range ll.Countries {
+		total += ll.Countries[k].NumDishes()
+	}
+	return total
 }
 
 func (ll *LunchList) Encode(w io.Writer) error {
@@ -74,6 +226,7 @@ func LunchListFromFile(fileName string) (*LunchList, error) {
 	return LunchListFromJSON(r)
 }
 
+// GetSiteLinks returns a SiteLinks slice for all configured sites
 func (ll *LunchList) GetSiteLinks() SiteLinks {
 	sl := make(SiteLinks, 0)
 
@@ -82,9 +235,14 @@ func (ll *LunchList) GetSiteLinks() SiteLinks {
 			for _, site := range city.Sites {
 				sl = append(sl, SiteLink{
 					CountryName: country.Name,
+					CountryID:   country.ID,
 					CityName:    city.Name,
+					CityID:      city.ID,
 					SiteName:    site.Name,
-					Url:         site.ID,
+					SiteID:      site.ID,
+					//SiteKey:     site.Key,
+					Url:         fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
+					Comment:     fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
 				})
 			}
 		}
@@ -92,3 +250,61 @@ func (ll *LunchList) GetSiteLinks() SiteLinks {
 
 	return sl
 }
+
+func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
+	skls := make(SiteKeyLinks, 0)
+
+	for _, country := range ll.Countries {
+		for _, city := range country.Cities {
+			for _, site := range city.Sites {
+				//if site.Key != "" {
+					skls = append(skls, SiteKeyLink{
+						CountryID: country.ID,
+						CityID:    city.ID,
+						SiteID:    site.ID,
+						SiteKey:   site.Key,
+					})
+				//}
+			}
+		}
+	}
+
+	return skls
+}
+
+func (ll *LunchList) SetSiteKeys(skls SiteKeyLinks) {
+	for _, skl := range skls {
+		site := ll.GetSiteById(skl.CountryID, skl.CityID, skl.SiteID)
+		if nil != site {
+			site.Key = skl.SiteKey
+		}
+	}
+}
+
+func (ll *LunchList) GetSiteLinkById(countryID, cityID, siteID string) *SiteLink {
+	country := ll.GetCountryById(countryID)
+	if nil == country {
+		return nil
+	}
+	city := country.GetCityById(cityID)
+	if nil == city {
+		return nil
+	}
+	site := city.GetSiteById(siteID)
+	if nil == site {
+		return nil
+	}
+
+	return &SiteLink{
+		CountryName: country.Name,
+		CountryID:   country.ID,
+		CityName:    city.Name,
+		CityID:      city.ID,
+		SiteName:    site.Name,
+		SiteID:      site.ID,
+		SiteKey:     site.Key,
+		Url:         fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
+		Comment:     fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
+	}
+}
+
