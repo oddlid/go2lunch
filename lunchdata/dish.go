@@ -14,24 +14,23 @@ type Dish struct {
 
 type Dishes []Dish
 
-func (ds *Dishes) Add(d *Dish) {
-	*ds = append(*ds, *d)
+func (ds *Dishes) Add(d Dish) {
+	*ds = append(*ds, d)
 }
 
-func NewDish(name, desc, tag string, price int) *Dish {
+func NewDish(name, desc string, price int) *Dish {
 	return &Dish{
 		Name:  name,
 		Desc:  desc,
 		Price: price,
-		Gtag:  tag,
 	}
 }
 
-func (d *Dish) Encode(w io.Writer) error {
+func (d Dish) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(d)
 }
 
-func (d *Dish) Decode(r io.Reader) error {
+func (d Dish) Decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(d)
 }
 
