@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+	"sync"
 	"time"
 )
 
 type Restaurant struct {
+	sync.RWMutex
 	Name   string    `json:"restaurant_name"`
 	ID     string    `json:"restaurant_id"`
 	Url    string    `json:"url,omitempty"`
@@ -45,6 +47,8 @@ func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 }
 
 func (r *Restaurant) Len() int {
+	r.RLock()
+	defer r.RUnlock()
 	return len(r.Dishes)
 }
 
@@ -69,6 +73,8 @@ func (rs Restaurants) PropagateGtag(tag string) {
 }
 
 func (r Restaurant) PropagateGtag(tag string) {
+	r.Lock()
+	defer r.Unlock()
 	r.Gtag = tag
 	for i := range r.Dishes {
 		r.Dishes[i].Gtag = tag
@@ -76,23 +82,32 @@ func (r Restaurant) PropagateGtag(tag string) {
 }
 
 func (r *Restaurant) AddDish(d Dish) {
+	r.Lock()
 	r.Dishes = append(r.Dishes, d)
+	r.Unlock()
 }
 
 func (r *Restaurant) SetDishes(ds Dishes) {
+	r.Lock()
 	r.Dishes = ds
+	r.Unlock()
 }
 
 func (r *Restaurant) ClearDishes() {
+	r.Lock()
 	r.Dishes = nil
+	r.Unlock()
 }
 
 func (r *Restaurant) ResetDishes() {
-	r.ClearDishes()
+	r.Lock()
 	r.Dishes = make(Dishes, 0)
+	r.Unlock()
 }
 
 func (r *Restaurant) NumDishes() int {
+	r.RLock()
+	defer r.RUnlock()
 	return len(r.Dishes)
 }
 
@@ -105,6 +120,8 @@ func (r Restaurant) GetDishByIndex(idx int) *Dish {
 		debugRestaurant("GetDishByIndex: Index (%d) out of range", idx)
 		return nil
 	}
+	r.Lock()
+	defer r.Unlock()
 	return &r.Dishes[idx]
 }
 
@@ -170,7 +187,6 @@ func (rs *Restaurants) Encode(w io.Writer) error {
 func (rs *Restaurants) Decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(rs)
 }
-
 
 func RestaurantFromJSON(r io.Reader) (*Restaurant, error) {
 	rs := &Restaurant{}

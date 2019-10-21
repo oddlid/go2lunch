@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"sync"
 	//"time"
 	//log "github.com/Sirupsen/logrus"
 )
 
 type Site struct {
+	sync.RWMutex
 	Name        string                 `json:"site_name"`
 	ID          string                 `json:"site_id"` // something unique within the parent city
 	Comment     string                 `json:"site_comment,omitempty"`
@@ -39,14 +41,18 @@ func NewSite(name, id, comment string) *Site {
 }
 
 func (s *Site) Len() int {
+	s.RLock()
+	defer s.RUnlock()
 	return len(s.Restaurants)
 }
 
 func (s *Site) SubItems() int {
 	total := 0
+	s.RLock()
 	for k := range s.Restaurants {
 		total += s.Restaurants[k].SubItems() + 1 // +1 to count the restaurant itself as well
 	}
+	s.RUnlock()
 	return total
 }
 
@@ -66,10 +72,12 @@ func (s *Site) getRndRestaurant() *Restaurant {
 }
 
 func (s *Site) PropagateGtag(tag string) *Site {
+	s.Lock()
 	s.Gtag = tag
 	for k := range s.Restaurants {
 		s.Restaurants[k].PropagateGtag(tag)
 	}
+	s.Unlock()
 	return s
 }
 
@@ -82,21 +90,29 @@ func (s *Site) ParsedHumanDate() string {
 }
 
 func (s *Site) AddRestaurant(r Restaurant) *Site {
+	s.Lock()
 	s.Restaurants[r.ID] = &r
+	s.Unlock()
 	return s
 }
 
 func (s *Site) DeleteRestaurant(id string) *Site {
+	s.Lock()
 	delete(s.Restaurants, id)
+	s.Unlock()
 	return s
 }
 
 func (s *Site) HasRestaurants() bool {
+	s.RLock()
+	defer s.RUnlock()
 	return len(s.Restaurants) > 0
 }
 
 func (s *Site) HasRestaurant(restaurantID string) bool {
+	s.RLock()
 	_, found := s.Restaurants[restaurantID]
+	s.RUnlock()
 	return found
 }
 
@@ -104,25 +120,32 @@ func (s *Site) HasRestaurant(restaurantID string) bool {
 func (s *Site) SetRestaurants(rs Restaurants) *Site {
 	s.ClearRestaurants() // otherwise, old restaurants in the new set might linger on
 	for _, r := range rs {
+		// maybe we should re-implment AddRestaurant here, to avoid lock/unlock for each call...?
 		s.AddRestaurant(r)
 	}
 	return s
 }
 
 func (s *Site) ClearRestaurants() *Site {
+	s.Lock()
 	s.Restaurants = make(map[string]*Restaurant)
+	s.Unlock()
 	return s
 }
 
 func (s *Site) ClearDishes() *Site {
+	s.Lock()
 	for k := range s.Restaurants {
 		s.Restaurants[k].ClearDishes()
 	}
+	s.Unlock()
 	return s
 }
 
 func (s *Site) GetRestaurantById(id string) *Restaurant {
+	s.RLock()
 	r, found := s.Restaurants[id]
+	s.RUnlock()
 	if !found {
 		debugSite("GetRestaurantById: %q not found", id)
 	}
@@ -130,14 +153,18 @@ func (s *Site) GetRestaurantById(id string) *Restaurant {
 }
 
 func (s *Site) NumRestaurants() int {
+	s.RLock()
+	defer s.RUnlock()
 	return len(s.Restaurants)
 }
 
 func (s *Site) NumDishes() int {
 	total := 0
+	s.RLock()
 	for k := range s.Restaurants {
 		total += s.Restaurants[k].NumDishes()
 	}
+	s.RUnlock()
 	return total
 }
 

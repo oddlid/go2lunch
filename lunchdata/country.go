@@ -3,9 +3,11 @@ package lunchdata
 import (
 	"encoding/json"
 	"io"
+	"sync"
 )
 
 type Country struct {
+	sync.RWMutex
 	Name   string           `json:"country_name"`
 	ID     string           `json:"country_id"` // preferrably international country code, like "se", "no", and so on
 	Gtag   string           `json:"-"`
@@ -31,41 +33,55 @@ func NewCountry(name, id string) *Country {
 }
 
 func (c *Country) Len() int {
+	c.RLock()
+	defer c.RUnlock()
 	return len(c.Cities)
 }
 
 func (c *Country) SubItems() int {
 	total := 0
+	c.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].SubItems() + 1 // +1 to count the City itself as well
 	}
+	c.RUnlock()
 	return total
 }
 
 func (c *Country) PropagateGtag(tag string) *Country {
+	c.Lock()
 	c.Gtag = tag
 	for k := range c.Cities {
 		c.Cities[k].PropagateGtag(tag)
 	}
+	c.Unlock()
 	return c
 }
 
 func (c *Country) AddCity(city City) *Country {
+	c.Lock()
 	c.Cities[city.ID] = &city
+	c.Unlock()
 	return c
 }
 
 func (c *Country) DeleteCity(id string) *Country {
+	c.Lock()
 	delete(c.Cities, id)
+	c.Unlock()
 	return c
 }
 
 func (c *Country) HasCities() bool {
+	c.RLock()
+	defer c.RUnlock()
 	return len(c.Cities) > 0
 }
 
 func (c *Country) HasCity(cityID string) bool {
+	c.RLock()
 	_, found := c.Cities[cityID]
+	c.RUnlock()
 	return found
 }
 
@@ -84,33 +100,43 @@ func (c *Country) HasRestaurant(cityID, siteID, restaurantID string) bool {
 }
 
 func (c *Country) ClearCities() *Country {
+	c.Lock()
 	c.Cities = make(map[string]*City)
+	c.Unlock()
 	return c
 }
 
 func (c *Country) ClearSites() *Country {
+	c.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearSites()
 	}
+	c.Unlock()
 	return c
 }
 
 func (c *Country) ClearRestaurants() *Country {
+	c.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearRestaurants()
 	}
+	c.Unlock()
 	return c
 }
 
 func (c *Country) ClearDishes() *Country {
+	c.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearDishes()
 	}
+	c.Unlock()
 	return c
 }
 
 func (c *Country) GetCityById(id string) *City {
+	c.RLock()
 	city, found := c.Cities[id]
+	c.RUnlock()
 	if !found {
 		debugCountry("GetCityById: %q not found", id)
 	}
@@ -134,30 +160,38 @@ func (c *Country) GetRestaurantById(cityID, siteID, restaurantID string) *Restau
 }
 
 func (c *Country) NumCities() int {
+	c.RLock()
+	defer c.RUnlock()
 	return len(c.Cities)
 }
 
 func (c *Country) NumSites() int {
 	total := 0
+	c.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumSites()
 	}
+	c.RUnlock()
 	return total
 }
 
 func (c *Country) NumRestaurants() int {
 	total := 0
+	c.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumRestaurants()
 	}
+	c.RUnlock()
 	return total
 }
 
 func (c *Country) NumDishes() int {
 	total := 0
+	c.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumDishes()
 	}
+	c.RUnlock()
 	return total
 }
 
