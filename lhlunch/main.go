@@ -189,6 +189,8 @@ func setGtag(ctx *cli.Context) {
 	if gtag != "" {
 		_gtag = gtag
 		_site.ll.PropagateGtag(_gtag)
+	} else {
+		log.Debug("gtag is empty")
 	}
 }
 
@@ -198,7 +200,7 @@ func entryPointServe(ctx *cli.Context) error {
 	//return nil
 
 	//setUrl(ctx)
-	setGtag(ctx)
+	//setGtag(ctx)
 
 	log.Debugf("PID: %d", os.Getpid())
 
@@ -254,6 +256,10 @@ func entryPointServe(ctx *cli.Context) error {
 		log.Debugf("Load site from %q successful!", jfile)
 	}
 
+	// Important that this call comes after anything that sets content, like lunchListFromJSON above
+	// We should probably make a hook that calls this after any update of content as well
+	setGtag(ctx)
+
 	// temporary fix for struct migration
 	//	doDump := ctx.Bool("dump")
 	//	if doDump {
@@ -300,14 +306,17 @@ func entryPointServe(ctx *cli.Context) error {
 
 	// If we did load contents from a file, let's save it back
 	saveOnExit := ctx.Bool("save-on-exit")
+	stripOnSave := ctx.Bool("strip-menus-on-save")
 	if saveOnExit && jfile != "" {
-		_site.ll.ClearRestaurants() // we don't need to save outdated menus, just the structure of countries/cities/sites
+		if stripOnSave {
+			_site.ll.ClearRestaurants()
+		}
 		err := _site.ll.SaveJSON(jfile)
 		if err != nil {
 			log.Error(err.Error())
 			return err
 		}
-		log.Infof("Wrote config, without menus, back to %q", jfile)
+		log.Infof("Wrote config back to %q", jfile)
 	}
 
 	return nil
@@ -491,8 +500,9 @@ func main() {
 					Usage: "If config was loaded from file, save it back to the same file on exit",
 				},
 				cli.BoolFlag{
-					Name: "strip-menus-on-save",
+					Name:  "strip-menus-on-save",
 					Usage: "Do not save restaurants and their dishes when saving on exit. Only save structure.",
+					Value: false,
 				},
 				cli.StringFlag{
 					Name:  "gtag",
@@ -501,35 +511,35 @@ func main() {
 				},
 			},
 		},
-//		{
-//			Name:    "scrape",
-//			Aliases: []string{"scr"},
-//			Usage:   "Scrape source and output JSON or HTML, then exit",
-//			Action:  entryPointScrape,
-//			Flags: []cli.Flag{
-//				cli.StringFlag{
-//					Name:  "outfile, o",
-//					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
-//					Value: "-",
-//				},
-//				//				cli.BoolFlag{
-//				//					Name:  "html",
-//				//					Usage: "Write HTML result to STDOUT",
-//				//				},
-//				cli.StringFlag{
-//					Name:  "notify-pid, p",
-//					Usage: "Read PID from `FILE` and tell the process with that PID to re-scrape",
-//				},
-//			},
-//		},
+		//		{
+		//			Name:    "scrape",
+		//			Aliases: []string{"scr"},
+		//			Usage:   "Scrape source and output JSON or HTML, then exit",
+		//			Action:  entryPointScrape,
+		//			Flags: []cli.Flag{
+		//				cli.StringFlag{
+		//					Name:  "outfile, o",
+		//					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
+		//					Value: "-",
+		//				},
+		//				//				cli.BoolFlag{
+		//				//					Name:  "html",
+		//				//					Usage: "Write HTML result to STDOUT",
+		//				//				},
+		//				cli.StringFlag{
+		//					Name:  "notify-pid, p",
+		//					Usage: "Read PID from `FILE` and tell the process with that PID to re-scrape",
+		//				},
+		//			},
+		//		},
 	}
 
 	app.Flags = []cli.Flag{
-//		cli.StringFlag{
-//			Name:  "url, u",
-//			Usage: "`URL` to scrape",
-//			Value: DEF_URL,
-//		},
+		//		cli.StringFlag{
+		//			Name:  "url, u",
+		//			Usage: "`URL` to scrape",
+		//			Value: DEF_URL,
+		//		},
 		cli.StringFlag{
 			Name:  "log-level, l",
 			Value: "info",
