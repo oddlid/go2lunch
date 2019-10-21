@@ -502,7 +502,6 @@ func main() {
 				cli.BoolFlag{
 					Name:  "strip-menus-on-save",
 					Usage: "Do not save restaurants and their dishes when saving on exit. Only save structure.",
-					Value: false,
 				},
 				cli.StringFlag{
 					Name:  "gtag",
