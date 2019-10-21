@@ -33,6 +33,7 @@ func (ll *LunchList) SubItems() int {
 }
 
 func (ll *LunchList) PropagateGtag(tag string) *LunchList {
+	//debugLunchList("PropagateGtag(): tag=%s", tag)
 	ll.Gtag = tag
 	for k := range ll.Countries {
 		ll.Countries[k].PropagateGtag(tag)
