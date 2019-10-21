@@ -147,8 +147,8 @@ func setupRouter() (pubR, admR *mux.Router) {
 
 	// POST routes, for receiving updates in public router
 	usubr := pubR.PathPrefix(ppUpd).Subrouter() // .StrictSlash(true) // seemed to not be desirable
-	usubr.HandleFunc(slash, updateHandler).Methods(MPOST)
-	usubr.HandleFunc(ppath(2), updateHandler).Methods(MPOST)
+	usubr.HandleFunc(slash, setGtagMW(updateHandler)).Methods(MPOST)
+	usubr.HandleFunc(ppath(2), setGtagMW(updateHandler)).Methods(MPOST)
 
 	// Redirects just to not break old urls
 	pubR.HandleFunc("/lindholmen.html", func(w http.ResponseWriter, r *http.Request) {
@@ -167,11 +167,11 @@ func setupRouter() (pubR, admR *mux.Router) {
 	// admin POST interface
 	admR = mux.NewRouter()
 	admSubr := admR.PathPrefix(ppAdm).Subrouter().StrictSlash(false)
-	admSubr.HandleFunc(ppAdd + ppath(0), logInventoryMW(addCountryHandler)).Methods(MPOST)
+	admSubr.HandleFunc(ppAdd + ppath(0), logInventoryMW(setGtagMW(addCountryHandler))).Methods(MPOST)
 	admSubr.HandleFunc(ppDel + ppath(0), logInventoryMW(delCountryHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd + ppath(1), logInventoryMW(addCityHandler)).Methods(MPOST)
+	admSubr.HandleFunc(ppAdd + ppath(1), logInventoryMW(setGtagMW(addCityHandler))).Methods(MPOST)
 	admSubr.HandleFunc(ppDel + ppath(1), logInventoryMW(delCityHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd + ppath(2), logInventoryMW(addSiteHandler)).Methods(MPOST)
+	admSubr.HandleFunc(ppAdd + ppath(2), logInventoryMW(setGtagMW(addSiteHandler))).Methods(MPOST)
 	admSubr.HandleFunc(ppDel + ppath(2), logInventoryMW(delSiteHandler)).Methods(MDEL)
 
 //	r.HandleFunc("/getauth", createTokenHandler).Methods(MPOST)
@@ -633,6 +633,13 @@ func getTokenForSiteLink(sl lunchdata.SiteLink) (string, error) {
 //		}
 //	})
 //}
+
+func setGtagMW(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		next(w, req)
+		_site.ll.PropagateGtag(_gtag)
+	})
+}
 
 func logInventoryMW(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
