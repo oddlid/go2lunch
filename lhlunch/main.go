@@ -40,7 +40,7 @@ import (
 )
 
 const (
-	VERSION           string = "2019-08-16"
+	VERSION           string = "2019-10-21"
 	DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_WEB_ADR       string = ":20666"
 	DEF_ADM_ADR       string = ":20667"
