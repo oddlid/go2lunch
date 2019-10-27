@@ -35,12 +35,15 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
-	"github.com/robfig/cron"
+	//"github.com/robfig/cron"
 	"github.com/urfave/cli"
+
+	// Internal scrapers
+	"github.com/oddlid/go2lunch/lhlunch/scraper/se/gbg/lindholmen"
 )
 
 const (
-	VERSION           string = "2019-10-21"
+	VERSION           string = "2019-10-27"
 	DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_WEB_ADR       string = ":20666"
 	DEF_ADM_ADR       string = ":20667"
@@ -53,10 +56,10 @@ const (
 	DEF_ID            string = "se/gbg/lindholmen"
 	DEF_COMMENT       string = "Gruvan"
 	GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - replace!
-	JWT_TOKEN_SECRET  string = "this secret should not be part of the code"
 	DEF_READ_TIMEOUT         = 5
 	DEF_WRITE_TIMEOUT        = 10
 	DEF_IDLE_TIMEOUT         = 15
+	//JWT_TOKEN_SECRET  string = "this secret should not be part of the code"
 )
 
 // exit codes
@@ -77,6 +80,7 @@ var (
 	COMMIT_ID  string
 	_gtag      string
 	_site      *LHSite // to be deprecated
+	_noScrape  bool
 )
 
 // We should remove this and just use a LunchList as soon as we get to the next level,
@@ -92,6 +96,7 @@ type LHSite struct {
 
 func init() {
 	defaultSite()
+	RegisterSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
 }
 
 func defaultSite() {
@@ -115,6 +120,14 @@ func defaultSite() {
 		url: DEF_URL,
 		ll:  llist,
 	}
+}
+
+func RegisterSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
+	lsite := _site.ll.GetSiteById(countryID, cityID, siteID)
+	if nil == lsite {
+		return
+	}
+	lsite.Scraper = scraper
 }
 
 func lunchListFromJSON(filename string) error {
@@ -195,13 +208,6 @@ func setGtag(ctx *cli.Context) {
 }
 
 func entryPointServe(ctx *cli.Context) error {
-	//log.Debugf("%#v", _site.ll.GetSiteKeyLinks())
-	//_site.ll.GetSiteKeyLinks().Encode(os.Stdout)
-	//return nil
-
-	//setUrl(ctx)
-	//setGtag(ctx)
-
 	log.Debugf("PID: %d", os.Getpid())
 
 	pidfile := ctx.String("writepid")
@@ -220,25 +226,25 @@ func entryPointServe(ctx *cli.Context) error {
 	// Turns out app/docker hangs sometimes, when triggering scrape from regular cron with "docker exec" (even with timeout),
 	// so trying to use an internal solution instead
 	// When post updates is fully ready, this should be removed
-	cronspec := ctx.String("cron")
-	if cronspec != "" {
-		log.Infof("Auto-updating via built-in cron @ %q", cronspec)
-		cr := cron.New()
+	//cronspec := ctx.String("cron")
+	//if cronspec != "" {
+	//	log.Infof("Auto-updating via built-in cron @ %q", cronspec)
+	//	cr := cron.New()
 
-		err := cr.AddFunc(cronspec, func() {
-			log.Info("Re-scraping on request from internal cron...")
-			if err := update(); err != nil {
-				log.Errorf("Update via internal cron failed: %q", err)
-			}
-		})
+	//	err := cr.AddFunc(cronspec, func() {
+	//		log.Info("Re-scraping on request from internal cron...")
+	//		if err := update(); err != nil {
+	//			log.Errorf("Update via internal cron failed: %q", err)
+	//		}
+	//	})
 
-		if err != nil {
-			log.Errorf("Failed to add cronjob: %q", err)
-		} else {
-			cr.Start()
-			log.Info("Built-in cron started")
-		}
-	}
+	//	if err != nil {
+	//		log.Errorf("Failed to add cronjob: %q", err)
+	//	} else {
+	//		cr.Start()
+	//		log.Info("Built-in cron started")
+	//	}
+	//}
 	// END cron
 
 	err := initTmpl()
@@ -254,19 +260,12 @@ func entryPointServe(ctx *cli.Context) error {
 			return cli.NewExitError(err.Error(), E_READJSON)
 		}
 		log.Debugf("Load site from %q successful!", jfile)
+		_noScrape = true
 	}
 
 	// Important that this call comes after anything that sets content, like lunchListFromJSON above
 	// We should probably make a hook that calls this after any update of content as well
 	setGtag(ctx)
-
-	// temporary fix for struct migration
-	//	doDump := ctx.Bool("dump")
-	//	if doDump {
-	//		//_site.ll.Encode(os.Stdout)
-	//		_site.ll.GetSiteLinks().Encode(os.Stdout)
-	//		return nil
-	//	}
 
 	numServers := 2
 	quit := make(chan bool, numServers)
@@ -286,8 +285,8 @@ func entryPointServe(ctx *cli.Context) error {
 
 	var wg sync.WaitGroup
 	wg.Add(numServers)
-	go gracefullShutdown(pubSrv, quit, &wg)
-	go gracefullShutdown(admSrv, quit, &wg)
+	go gracefulShutdown(pubSrv, quit, &wg)
+	go gracefulShutdown(admSrv, quit, &wg)
 	go func() {
 		log.Infof("Public server listening on port %s", listenAdr)
 		if err := pubSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -301,7 +300,24 @@ func entryPointServe(ctx *cli.Context) error {
 		}
 	}()
 
-	logInventory()
+	// now, run registered scrapers
+	// By running 2 levels of goroutines and using waitgroups, we can do all scraping in the background,
+	// and still wait until all are done before displaying updated stats
+	if !_noScrape {
+		go func() {
+			var wg2 sync.WaitGroup
+			_site.ll.RunSiteScrapers(&wg2) // each scraper runs in its own goroutine, incrementing wg2
+			wg2.Wait()
+			//if "" != _gtag {
+			//	_site.ll.PropagateGtag(_gtag)
+			//}
+			logInventory()
+		}()
+	}
+
+	// Here we block until we get a signal to quit
+	// Might be months until we reach the next line after this
+	// Given that thought, maybe this would be a good place to display some uptime stats or something...
 	wg.Wait()
 
 	// If we did load contents from a file, let's save it back
@@ -332,7 +348,7 @@ func createServer(addr string, hnd http.Handler) *http.Server {
 	}
 }
 
-func gracefullShutdown(srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
+func gracefulShutdown(srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	<-quit
 	log.Debug("Shutting down server gracefully...")
@@ -414,6 +430,15 @@ func gracefullShutdown(srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
 //		}
 //		log.Debugf("Wrote JSON result to %q", outfile)
 //	}
+//	return nil
+//}
+
+// new, potential variant of this:
+//func entryPointScrape(ctx *cli.Context) error {
+//	var wg sync.WaitGroup
+//	_site.ll.RunSiteScrapers(&wg)
+//	wg.Wait()
+//	_site.ll.Encode(os.Stdout)
 //	return nil
 //}
 

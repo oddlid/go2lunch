@@ -190,15 +190,15 @@ func genericTmplHandler(
 	f func(tmplIndex int, wr http.ResponseWriter, obj interface{})) {
 
 	vars := mux.Vars(r)
-
+	index := 0
 	var country *lunchdata.Country
 	var city *lunchdata.City
 	var site *lunchdata.Site
 
-	countryID, found := vars[urlIds[0]]
+	countryID, found := vars[urlIds[index]]
 	if !found {
 		// show list of countries and return
-		f(0, w, _site.ll)
+		f(index, w, _site.ll)
 		return
 	}
 	country = _site.ll.GetCountryById(countryID)
@@ -206,10 +206,11 @@ func genericTmplHandler(
 		http.NotFound(w, r) // 404
 		return
 	}
-	cityID, found := vars[urlIds[1]]
+	index++
+	cityID, found := vars[urlIds[index]]
 	if !found {
 		// show list of cities below above country and return
-		f(1, w, country)
+		f(index, w, country)
 		return
 	}
 	city = country.GetCityById(cityID)
@@ -217,10 +218,11 @@ func genericTmplHandler(
 		http.NotFound(w, r) // 404
 		return
 	}
-	siteID, found := vars[urlIds[2]]
+	index++
+	siteID, found := vars[urlIds[index]]
 	if !found {
 		// show list of sites below above city and return
-		f(2, w, city)
+		f(index, w, city)
 		return
 	}
 	site = city.GetSiteById(siteID)
@@ -228,6 +230,7 @@ func genericTmplHandler(
 		http.NotFound(w, r) // 404
 		return
 	}
+
 	// at this point, we might need to do a scrape
 //	if !site.HasRestaurants() {
 //		err := update()
@@ -237,7 +240,8 @@ func genericTmplHandler(
 //		logInventory()
 //	}
 
-	f(3, w, site)
+	index++
+	f(index, w, site)
 }
 
 func textTmplHandler(w http.ResponseWriter, r *http.Request) {
@@ -546,7 +550,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	// return 201 created on success
 }
 
-func getTokenForSiteLink(sl lunchdata.SiteLink) (string, error) {
+func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"country_name": sl.CountryName,
 		"country_id":   sl.CountryID,
@@ -557,7 +561,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink) (string, error) {
 		"comment":      sl.Comment,
 		"url":          sl.Url,
 	})
-	tokenString, err := token.SignedString([]byte(JWT_TOKEN_SECRET))
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		log.Error(err.Error())
 		return "", err
@@ -590,7 +594,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink) (string, error) {
 //		"username": wu.Username,
 //		"password": wu.Password,
 //	})
-//	tokenString, err := token.SignedString([]byte(JWT_TOKEN_SECRET))
+//	tokenString, err := token.SignedString([]byte("secret"))
 //	if err != nil {
 //		log.Error(err.Error())
 //	}
@@ -615,7 +619,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink) (string, error) {
 //					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 //						return nil, fmt.Errorf("Error parsing JWT token")
 //					}
-//					return []byte(JWT_TOKEN_SECRET), nil
+//					return []byte("secret"), nil
 //				})
 //				if err != nil {
 //					json.NewEncoder(w).Encode(Exception{Message: err.Error()})
