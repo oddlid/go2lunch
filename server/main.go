@@ -39,7 +39,7 @@ import (
 	"github.com/urfave/cli"
 
 	// Internal scrapers
-	"github.com/oddlid/go2lunch/lhlunch/scraper/se/gbg/lindholmen"
+	"github.com/oddlid/go2lunch/scraper/se/gbg/lindholmen"
 )
 
 const (
