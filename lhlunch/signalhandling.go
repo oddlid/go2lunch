@@ -39,7 +39,7 @@ func setupSignalHandling(quit chan<- bool, numServers int) {
 			case syscall.SIGUSR1, syscall.SIGUSR2:
 				log.Debug("SIGUSR[1|2]: Deprecated signals")
 			case syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM:
-				log.Info("Got quit signal, notifying goroutines...")
+				log.Debug("Got quit signal, notifying goroutines...")
 				//close(done)
 				// send signals, one for each goroutine with a server
 				for i := 0; i < numServers; i++ {
