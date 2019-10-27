@@ -224,6 +224,23 @@ func (ll *LunchList) NumDishes() int {
 	return total
 }
 
+func (ll *LunchList) RunSiteScrapers(wg *sync.WaitGroup) {
+	// I _think_ we might not need to lock the whole LunchList... Should be
+	// enough that each site locks itself before updating contents, as we're
+	// not adding or removing any countries/cities/sites from the list, only
+	// changing the content in each site, if it has a registered scraper
+	//ll.Lock()
+	for _, country := range ll.Countries {
+		for _, city := range country.Cities {
+			for _, site := range city.Sites {
+				wg.Add(1)
+				go site.RunScraper(wg)
+			}
+		}
+	}
+	//ll.Unlock()
+}
+
 func (ll *LunchList) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(ll)
 }
@@ -311,16 +328,17 @@ func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
 	return skls
 }
 
-func (ll *LunchList) SetSiteKeys(skls SiteKeyLinks) {
-	for _, skl := range skls {
-		site := ll.GetSiteById(skl.CountryID, skl.CityID, skl.SiteID)
-		if nil != site {
-			site.Lock()
-			site.Key = skl.SiteKey
-			site.Unlock()
-		}
-	}
-}
+// really usable...?
+//func (ll *LunchList) SetSiteKeys(skls SiteKeyLinks) {
+//	for _, skl := range skls {
+//		site := ll.GetSiteById(skl.CountryID, skl.CityID, skl.SiteID)
+//		if nil != site {
+//			site.Lock()
+//			site.Key = skl.SiteKey
+//			site.Unlock()
+//		}
+//	}
+//}
 
 func (ll *LunchList) GetSiteLinkById(countryID, cityID, siteID string) *SiteLink {
 	country := ll.GetCountryById(countryID)

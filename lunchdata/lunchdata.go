@@ -25,6 +25,15 @@ func debugf(moduleName, format string, args ...interface{}) {
 	log.Debugf(prefix + format, args...)
 }
 
+func errorf(moduleName, format string, args ...interface{}) {
+	if !log.IsLevelEnabled(log.ErrorLevel) {
+		return
+	}
+	prefix := fmt.Sprintf("%s.%s: ", PKG_NAME, moduleName)
+	log.Errorf(prefix + format, args...)
+}
+
+
 func debugDish(format string, args ...interface{}) {
 	debugf(TAG_DISH, format, args...)
 }
@@ -35,6 +44,10 @@ func debugRestaurant(format string, args ...interface{}) {
 
 func debugSite(format string, args ...interface{}) {
 	debugf(TAG_SITE, format, args...)
+}
+
+func errorSite(format string, args ...interface{}) {
+	errorf(TAG_SITE, format, args...)
 }
 
 func debugCity(format string, args ...interface{}) {
