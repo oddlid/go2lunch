@@ -37,6 +37,13 @@
 </html>
 {{- end }}
 
+{{- define "p3" }}
+      <div class="w-100 p-3">&nbsp;</div>
+{{- end }}
+
+{{- define "pb3" }}
+      <div class="w-100 pb-3">&nbsp;</div>
+{{- end }}
 
 {{- define "default.html" }}
 {{- template "pgHdrStart" -}}
@@ -44,14 +51,14 @@
 {{- template "pgHdrScript" .Gtag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
-      <div class="w-100 p-3">&nbsp;</div>
+{{- template "p3" }}
       <h1 class="pghdr h5 text-center">Choose location and format for lunch menu</h1>
-      <div class="w-100 pb-3">&nbsp;</div>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
+{{- template "pb3" }}
       <h2 class="dlistitem h6"><a href="html/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (html)</a></h2>
       <h2 class="dlistitem h6"><a href="text/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (text)</a></h2>
       <h2 class="dlistitem h6"><a href="json/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (json)</a></h2>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
 
@@ -61,14 +68,14 @@
 {{- template "pgHdrScript" .Gtag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
-      <div class="w-100 p-3">&nbsp;</div>
+{{- template "p3" }}
       <h1 class="pghdr h5 text-center">Lunchlist countries</h1>
-      <div class="w-100 pb-3">&nbsp;</div>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
+{{- template "pb3" }}
       {{- range .Countries }}
       <h2 class="dlistitem h6"><a href="{{.ID}}">{{.Name}}</a></h2>
       {{- end}}
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
 
@@ -78,14 +85,14 @@
 {{- template "pgHdrScript" .Gtag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
-      <div class="w-100 p-3">&nbsp;</div>
+{{- template "p3" }}
       <h1 class="pghdr h5 text-center">Cities in {{.Name}}</h1>
-      <div class="w-100 pb-3">&nbsp;</div>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
+{{- template "pb3" }}
       {{- range .Cities }}
       <h2 class="dlistitem h6"><a href="{{.ID}}">{{.Name}}</a></h2>
       {{- end}}
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
 
@@ -95,14 +102,14 @@
 {{- template "pgHdrScript" .Gtag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
-      <div class="w-100 p-3">&nbsp;</div>
+{{- template "p3" }}
       <h1 class="pghdr h5 text-center">Sites in {{.Name}}</h1>
-      <div class="w-100 pb-3">&nbsp;</div>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
+{{- template "pb3" }}
       {{- range .Sites }}
       <h2 class="dlistitem h6"><a href="{{.ID}}">{{.Name}}</a></h2>
       {{- end}}
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
 
@@ -112,10 +119,10 @@
 {{- template "pgHdrScript" .Gtag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
-      <div class="w-100 p-3">&nbsp;</div>
+{{- template "p3" }}
       <h1 class="pghdr h5 text-center">Lunch @ {{.Name}} today</h1>
       <div class="toggledetails text-center mt-3" onclick="toggledetail();">[ Show / hide all ]</div>
-      <div class="w-100 pb-3">&nbsp;</div>
+{{- template "pb3" }}
       <div class="parsed ml-1">Updated: {{.ParsedHumanDate}}</div>
       {{- range .Restaurants }}
       <div class="restaurant m-2">
@@ -135,7 +142,7 @@
         </details>
       </div> <!-- div restaurant -->
       {{- end}}
-      <div class="w-100">&nbsp;</div>
+{{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
 
