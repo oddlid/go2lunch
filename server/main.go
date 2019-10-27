@@ -79,51 +79,51 @@ var (
 	BUILD_DATE string
 	COMMIT_ID  string
 	_gtag      string
-	_site      *LHSite // to be deprecated
 	_noScrape  bool
+	_lunchList *lunchdata.LunchList
 )
 
 // We should remove this and just use a LunchList as soon as we get to the next level,
 // which is removing the legacy to Lindholmen, and being able to serve any site.
 // We should then add sync.Mutex to LunchList, maybe even at each level, so we don't
 // run into future trouble with concurrenct content updates.
-type LHSite struct {
-	sync.Mutex
-	ll  *lunchdata.LunchList
-	url string // should remove this as soon as we get updates via POST
-}
+//type LHSite struct {
+//	sync.Mutex
+//	ll  *lunchdata.LunchList
+//	url string // should remove this as soon as we get updates via POST
+//}
 
 
 func init() {
-	defaultSite()
+	//defaultSite()
 	RegisterSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
 }
 
-func defaultSite() {
-	lh := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT)
-	lh.Key = "grisentorerstor"
-	gbg := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID)
-	//sthlm := lunchdata.NewCity("Stockholm", "sthlm")
-	se := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID)
-	//no := lunchdata.NewCountry("Norway", "no")
-
-	llist := lunchdata.NewLunchList()
-
-	gbg.AddSite(*lh)
-	se.AddCity(*gbg)
-	//se.AddCity(*sthlm)
-
-	llist.AddCountry(*se)
-	//llist.AddCountry(*no)
-
-	_site = &LHSite{
-		url: DEF_URL,
-		ll:  llist,
-	}
-}
+//func defaultSite() {
+//	lh := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT)
+//	lh.Key = "grisentorerstor"
+//	gbg := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID)
+//	//sthlm := lunchdata.NewCity("Stockholm", "sthlm")
+//	se := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID)
+//	//no := lunchdata.NewCountry("Norway", "no")
+//
+//	llist := lunchdata.NewLunchList()
+//
+//	gbg.AddSite(*lh)
+//	se.AddCity(*gbg)
+//	//se.AddCity(*sthlm)
+//
+//	llist.AddCountry(*se)
+//	//llist.AddCountry(*no)
+//
+//	_site = &LHSite{
+//		url: DEF_URL,
+//		ll:  llist,
+//	}
+//}
 
 func RegisterSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
-	lsite := _site.ll.GetSiteById(countryID, cityID, siteID)
+	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
 	if nil == lsite {
 		return
 	}
@@ -136,22 +136,22 @@ func lunchListFromJSON(filename string) error {
 		log.Errorf("Unable to load site from JSON: %q", err.Error())
 		return err
 	}
-	_site.ll = ll
+	_lunchList = ll
 	return nil
 }
 
 // hack, to be removed on next level
-func (lhs *LHSite) getLHSite() *lunchdata.Site {
-	return lhs.ll.GetSiteById(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID)
-}
+//func (lhs *LHSite) getLHSite() *lunchdata.Site {
+//	return lhs.ll.GetSiteById(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID)
+//}
 
 // hack, to be removed on next level
-func (lhs *LHSite) setLHRestaurants(rs lunchdata.Restaurants) {
-	lh := lhs.getLHSite()
-	if nil != lh {
-		lh.SetRestaurants(rs)
-	}
-}
+//func (lhs *LHSite) setLHRestaurants(rs lunchdata.Restaurants) {
+//	lh := lhs.getLHSite()
+//	if nil != lh {
+//		lh.SetRestaurants(rs)
+//	}
+//}
 
 // hack
 func logInventory() {
@@ -160,15 +160,15 @@ func logInventory() {
 	fmt.Fprintf(
 		&b,
 		"Total subitems: %d, Countries: %d, Cities: %d, Sites: %d, Restaurants: %d, Dishes: %d\n",
-		_site.ll.SubItems(),
-		_site.ll.NumCountries(),
-		_site.ll.NumCities(),
-		_site.ll.NumSites(),
-		_site.ll.NumRestaurants(),
-		_site.ll.NumDishes(),
+		getLunchList().SubItems(),
+		getLunchList().NumCountries(),
+		getLunchList().NumCities(),
+		getLunchList().NumSites(),
+		getLunchList().NumRestaurants(),
+		getLunchList().NumDishes(),
 	)
 
-	sls := _site.ll.GetSiteLinks()
+	sls := getLunchList().GetSiteLinks()
 	for _, sl := range sls {
 		fmt.Fprintf(&b, "%s: %s\n", sl.Url, sl.SiteKey)
 	}
@@ -201,7 +201,7 @@ func setGtag(ctx *cli.Context) {
 	gtag := ctx.String("gtag")
 	if gtag != "" {
 		_gtag = gtag
-		_site.ll.PropagateGtag(_gtag)
+		getLunchList().PropagateGtag(_gtag)
 	} else {
 		log.Debug("gtag is empty")
 	}
@@ -306,7 +306,7 @@ func entryPointServe(ctx *cli.Context) error {
 	if !_noScrape {
 		go func() {
 			var wg2 sync.WaitGroup
-			_site.ll.RunSiteScrapers(&wg2) // each scraper runs in its own goroutine, incrementing wg2
+			getLunchList().RunSiteScrapers(&wg2) // each scraper runs in its own goroutine, incrementing wg2
 			wg2.Wait()
 			//if "" != _gtag {
 			//	_site.ll.PropagateGtag(_gtag)
@@ -325,9 +325,9 @@ func entryPointServe(ctx *cli.Context) error {
 	stripOnSave := ctx.Bool("strip-menus-on-save")
 	if saveOnExit && jfile != "" {
 		if stripOnSave {
-			_site.ll.ClearRestaurants()
+			getLunchList().ClearRestaurants()
 		}
-		err := _site.ll.SaveJSON(jfile)
+		err := getLunchList().SaveJSON(jfile)
 		if err != nil {
 			log.Error(err.Error())
 			return err
@@ -436,9 +436,9 @@ func gracefulShutdown(srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
 // new, potential variant of this:
 //func entryPointScrape(ctx *cli.Context) error {
 //	var wg sync.WaitGroup
-//	_site.ll.RunSiteScrapers(&wg)
+//	getLunchList().RunSiteScrapers(&wg)
 //	wg.Wait()
-//	_site.ll.Encode(os.Stdout)
+//	getLunchList().Encode(os.Stdout)
 //	return nil
 //}
 

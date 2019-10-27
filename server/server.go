@@ -181,7 +181,7 @@ func setupRouter() (pubR, admR *mux.Router) {
 }
 
 func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
-	htmlTemplates.ExecuteTemplate(w, htmlFiles[4], _site.ll)
+	htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList())
 }
 
 func genericTmplHandler(
@@ -198,10 +198,10 @@ func genericTmplHandler(
 	countryID, found := vars[urlIds[index]]
 	if !found {
 		// show list of countries and return
-		f(index, w, _site.ll)
+		f(index, w, getLunchList())
 		return
 	}
-	country = _site.ll.GetCountryById(countryID)
+	country = getLunchList().GetCountryById(countryID)
 	if nil == country {
 		http.NotFound(w, r) // 404
 		return
@@ -288,7 +288,7 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_site.ll.AddCountry(*newCountry)
+	getLunchList().AddCountry(*newCountry)
 
 	//logInventory()
 }
@@ -305,12 +305,12 @@ func delCountryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !_site.ll.HasCountry(countryID) {
+	if !getLunchList().HasCountry(countryID) {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
 	}
 
-	_site.ll.DeleteCountry(countryID)
+	getLunchList().DeleteCountry(countryID)
 
 	//logInventory()
 }
@@ -332,7 +332,7 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country := _site.ll.GetCountryById(countryID)
+	country := getLunchList().GetCountryById(countryID)
 	if nil == country {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
@@ -369,7 +369,7 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country := _site.ll.GetCountryById(countryID)
+	country := getLunchList().GetCountryById(countryID)
 	if nil == country {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
@@ -407,7 +407,7 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country := _site.ll.GetCountryById(countryID)
+	country := getLunchList().GetCountryById(countryID)
 	if nil == country {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
@@ -468,7 +468,7 @@ func delSiteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country := _site.ll.GetCountryById(countryID)
+	country := getLunchList().GetCountryById(countryID)
 	if nil == country {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
@@ -522,7 +522,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	site := _site.ll.GetSiteById(countryID, cityID, siteID)
+	site := getLunchList().GetSiteById(countryID, cityID, siteID)
 	if nil == site {
 		http.NotFound(w, r) // 404
 		return
@@ -641,7 +641,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
 func setGtagMW(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		next(w, req)
-		_site.ll.PropagateGtag(_gtag)
+		getLunchList().PropagateGtag(_gtag)
 	})
 }
 
