@@ -15,7 +15,7 @@ WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch/server
 RUN go get -d -v ./...
 # This needs to be done in addition, for the binary rice. Will not get pulled in from the step above
 RUN go get -u -v github.com/GeertJohan/go.rice/rice
-RUN make
+RUN make BINARY=${BUILD_BIN}
 RUN ${GOPATH}/bin/rice append --exec ${BUILD_BIN}
 
 
