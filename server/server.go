@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	htmpl "html/template"
+	"io"
 	"net/http"
 	"strings"
 	ttmpl "text/template"
@@ -238,6 +239,10 @@ func jsonApiHandler(w http.ResponseWriter, r *http.Request) {
 		wr.Header().Set(HDR_KEY_CT, HDR_VAL_JSON)
 		json.NewEncoder(wr).Encode(obj)
 	})
+}
+
+// TODO: implement this in a way that makes it easy to render html to stdout etc...
+func dumpHtml(w io.Writer) {
 }
 
 func addCountryHandler(w http.ResponseWriter, r *http.Request) {

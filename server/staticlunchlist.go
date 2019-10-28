@@ -7,6 +7,7 @@ import (
 
 var lldata string = `
 {
+	"gtag": "UA-126840341-2",
   "countries": {
     "se": {
       "country_name": "Sweden",
@@ -36,6 +37,11 @@ func getLunchList() *lunchdata.LunchList {
 		ll, err := lunchdata.LunchListFromJSON(strings.NewReader(lldata))
 		if err != nil {
 			panic(err)
+		}
+		// If we load the LunchList from JSON, and we only have a top-level
+		// Gtag, we need to propagate it now after load
+		if ll.Gtag != "" {
+			ll.PropagateGtag(ll.Gtag)
 		}
 		_lunchList = ll
 	}

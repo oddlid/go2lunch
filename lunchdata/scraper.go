@@ -20,6 +20,9 @@ any language, as long as they provide the proper JSON to the proper URL.
 // 2019-08-21 21:45: A slice of Restaurant is the answer
 type SiteScraper interface {
 	Scrape() (Restaurants, error)
+	GetCountryID() string
+	GetCityID() string
+	GetSiteID() string
 }
 
 //type CityScraper interface {

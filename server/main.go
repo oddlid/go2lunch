@@ -49,11 +49,11 @@ const (
 	DEF_COUNTRY_ID    string = "se"
 	DEF_CITY_ID       string = "gbg"
 	DEF_SITE_ID       string = "lindholmen"
-	GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - TODO: replace!
 	DEF_READ_TIMEOUT         = 5
 	DEF_WRITE_TIMEOUT        = 10
 	DEF_IDLE_TIMEOUT         = 15
 
+	//GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - TODO: replace!
 	//DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	//DEF_COUNTRY_NAME  string = "Sweden"
 	//DEF_CITY_NAME     string = "Gothenburg"
@@ -86,7 +86,8 @@ var (
 
 
 func init() {
-	registerSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
+	lhs := lindholmen.LHScraper{}
+	registerSiteScraper(lhs.GetCountryID(), lhs.GetCityID(), lhs.GetSiteID(), lhs)
 }
 
 // I'd like to find a more flexible and dynamic way of including scrapers, but for now
@@ -94,6 +95,7 @@ func init() {
 func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
 	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
 	if nil == lsite {
+		log.Warnf("registerSiteScraper(): Could not find site @ %s/%s/%s", countryID, cityID, siteID)
 		return
 	}
 	lsite.Scraper = scraper
@@ -104,6 +106,11 @@ func lunchListFromJSON(filename string) error {
 	if err != nil {
 		log.Errorf("Unable to load site from JSON: %q", err.Error())
 		return err
+	}
+	// If we load the LunchList from JSON, and we only have a top-level
+	// Gtag, we need to propagate it now after load
+	if ll.Gtag != "" {
+		ll.PropagateGtag(ll.Gtag)
 	}
 	_lunchList = ll
 	return nil
@@ -150,8 +157,6 @@ func setGtag(ctx *cli.Context) {
 	if gtag != "" {
 		_gtag = gtag
 		getLunchList().PropagateGtag(_gtag)
-	} else {
-		log.Debug("gtag is empty")
 	}
 }
 
@@ -173,7 +178,7 @@ func entryPointServe(ctx *cli.Context) error {
 	// cron-like scheduling.
 	// Turns out app/docker hangs sometimes, when triggering scrape from regular cron with "docker exec" (even with timeout),
 	// so trying to use an internal solution instead
-	// When post updates is fully ready, this should be removed
+	// When post updates is fully ready, this should be removed..?
 	cronspec := ctx.String("cron")
 	if cronspec != "" {
 		log.Infof("Auto-updating via built-in cron @ %q", cronspec)
@@ -184,6 +189,8 @@ func entryPointServe(ctx *cli.Context) error {
 			var wg sync.WaitGroup
 			getLunchList().RunSiteScrapers(&wg)
 			wg.Wait()
+			// we don't need to propagate _gtag here, as SiteScrapers can only set new Restaurants
+			// for an already configured Site, so a given Gtag will not be removed by scraping
 			logInventory()
 		})
 
@@ -209,11 +216,12 @@ func entryPointServe(ctx *cli.Context) error {
 			return cli.NewExitError(err.Error(), E_READJSON)
 		}
 		log.Debugf("Load site from %q successful!", jfile)
-		_noScrape = true
+		//_noScrape = true
 	}
 
 	// Important that this call comes after anything that sets content, like lunchListFromJSON above
 	// We should probably make a hook that calls this after any update of content as well
+	// If we did load from JSON, this gives us the possibility to override the Gtag from CLI
 	setGtag(ctx)
 
 	numServers := 2
@@ -228,7 +236,6 @@ func entryPointServe(ctx *cli.Context) error {
 	listenAdm := ctx.String("listen-adm")
 
 	pubR, admR := setupRouter()
-
 	pubSrv := createServer(listenAdr, pubR)
 	admSrv := createServer(listenAdm, admR)
 
@@ -252,14 +259,12 @@ func entryPointServe(ctx *cli.Context) error {
 	// now, run registered scrapers
 	// By running 2 levels of goroutines and using waitgroups, we can do all scraping in the background,
 	// and still wait until all are done before displaying updated stats
+	_noScrape = ctx.Bool("noscrape")
 	if !_noScrape {
 		go func() {
 			var wg2 sync.WaitGroup
 			getLunchList().RunSiteScrapers(&wg2) // each scraper runs in its own goroutine, incrementing wg2
 			wg2.Wait()
-			//if "" != _gtag {
-			//	_site.ll.PropagateGtag(_gtag)
-			//}
 			logInventory()
 		}()
 	}
@@ -468,7 +473,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "load",
-					Usage: "Load data from `JSONFILE` instead of scraping",
+					Usage: "Load initial data from `JSONFILE`",
 				},
 				cli.BoolFlag{
 					Name:  "save-on-exit",
@@ -478,10 +483,14 @@ func main() {
 					Name:  "strip-menus-on-save",
 					Usage: "Do not save restaurants and their dishes when saving on exit. Only save structure.",
 				},
+				cli.BoolFlag{
+					Name:  "noscrape",
+					Usage: "Disable scraping",
+				},
 				cli.StringFlag{
 					Name:  "gtag",
 					Usage: "GTAG for Google Analytics in generated pages",
-					Value: GTAG_ID,
+					//Value: GTAG_ID,
 				},
 			},
 		},

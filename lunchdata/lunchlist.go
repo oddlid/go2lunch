@@ -13,7 +13,7 @@ import (
 type LunchList struct {
 	sync.RWMutex
 	Countries map[string]*Country `json:"countries"`
-	Gtag      string              `json:"-"`
+	Gtag      string              `json:"gtag,omitempty"`
 }
 
 func NewLunchList() *LunchList {

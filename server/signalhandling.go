@@ -53,6 +53,6 @@ func setupSignalHandling(quit chan<- bool, numServers int) {
 	}()
 }
 
-func notifyPid(pid int) error {
-	return syscall.Kill(pid, syscall.SIGUSR1)
-}
+//func notifyPid(pid int) error {
+//	return syscall.Kill(pid, syscall.SIGUSR1)
+//}

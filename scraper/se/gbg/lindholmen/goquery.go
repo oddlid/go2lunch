@@ -21,8 +21,11 @@ import (
 )
 
 const (
-	URL = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
-	TAG = "LHScraper"
+	URL        = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
+	TAG        = "LHScraper"
+	COUNTRY_ID = "se"
+	CITY_ID    = "gbg"
+	SITE_ID    = "lindholmen"
 )
 
 type LHScraper struct{} // only for having something to implement the SiteScraper interface
@@ -44,7 +47,19 @@ func getRestaurantID(name string) string {
 	return url.PathEscape(strings.ToLower(name))
 }
 
-func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
+func (lhs LHScraper) GetCountryID() string {
+	return COUNTRY_ID
+}
+
+func (lhs LHScraper) GetCityID() string {
+	return CITY_ID
+}
+
+func (lhs LHScraper) GetSiteID() string {
+	return SITE_ID
+}
+
+func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	csel := []string{
 		"h3.title",
 		"div.table-list__row",
