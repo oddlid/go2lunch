@@ -75,23 +75,6 @@ func initTmpl() error {
 	return nil
 }
 
-//func initSite(w http.ResponseWriter) error {
-//	if _site == nil {
-//		http.Error(w, "Site is uninitialised", http.StatusInternalServerError)
-//		return fmt.Errorf("Site not initialised")
-//	}
-//	lhs := _site.getLHSite()
-//	if lhs == nil || !lhs.HasRestaurants() {
-//		log.Debug("No content yet, scraping...")
-//		err := update()
-//		if err != nil {
-//			http.Error(w, err.Error(), http.StatusInternalServerError)
-//			return err
-//		}
-//	}
-//	return nil
-//}
-
 func setupRouter() (pubR, admR *mux.Router) {
 	const (
 		MGET   = "GET"
@@ -232,13 +215,6 @@ func genericTmplHandler(
 	}
 
 	// at this point, we might need to do a scrape
-//	if !site.HasRestaurants() {
-//		err := update()
-//		if err != nil {
-//			log.Error(err)
-//		}
-//		logInventory()
-//	}
 
 	index++
 	f(index, w, site)
@@ -289,8 +265,6 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getLunchList().AddCountry(*newCountry)
-
-	//logInventory()
 }
 
 func delCountryHandler(w http.ResponseWriter, r *http.Request) {
@@ -311,8 +285,6 @@ func delCountryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getLunchList().DeleteCountry(countryID)
-
-	//logInventory()
 }
 
 func addCityHandler(w http.ResponseWriter, r *http.Request) {
@@ -349,8 +321,6 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country.AddCity(*city)
-
-	//logInventory()
 }
 
 func delCityHandler(w http.ResponseWriter, r *http.Request) {
@@ -381,8 +351,6 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country.DeleteCity(cityID)
-
-	//logInventory()
 }
 
 func addSiteHandler(w http.ResponseWriter, r *http.Request) {
@@ -443,8 +411,6 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 //	} else {
 //		log.Debug("addSiteHandler: got no sitelink to generate key for")
 //	}
-
-	//logInventory()
 }
 
 func delSiteHandler(w http.ResponseWriter, r *http.Request) {
@@ -486,8 +452,6 @@ func delSiteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	city.DeleteSite(siteID)
-
-	//logInventory()
 }
 
 func updateHandler(w http.ResponseWriter, r *http.Request) {

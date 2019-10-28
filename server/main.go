@@ -35,7 +35,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
-	//"github.com/robfig/cron"
+	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 
 	// Internal scrapers
@@ -83,44 +83,10 @@ var (
 	_lunchList *lunchdata.LunchList
 )
 
-// We should remove this and just use a LunchList as soon as we get to the next level,
-// which is removing the legacy to Lindholmen, and being able to serve any site.
-// We should then add sync.Mutex to LunchList, maybe even at each level, so we don't
-// run into future trouble with concurrenct content updates.
-//type LHSite struct {
-//	sync.Mutex
-//	ll  *lunchdata.LunchList
-//	url string // should remove this as soon as we get updates via POST
-//}
-
 
 func init() {
-	//defaultSite()
 	RegisterSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
 }
-
-//func defaultSite() {
-//	lh := lunchdata.NewSite(DEF_SITE_NAME, DEF_SITE_ID, DEF_COMMENT)
-//	lh.Key = "grisentorerstor"
-//	gbg := lunchdata.NewCity(DEF_CITY_NAME, DEF_CITY_ID)
-//	//sthlm := lunchdata.NewCity("Stockholm", "sthlm")
-//	se := lunchdata.NewCountry(DEF_COUNTRY_NAME, DEF_COUNTRY_ID)
-//	//no := lunchdata.NewCountry("Norway", "no")
-//
-//	llist := lunchdata.NewLunchList()
-//
-//	gbg.AddSite(*lh)
-//	se.AddCity(*gbg)
-//	//se.AddCity(*sthlm)
-//
-//	llist.AddCountry(*se)
-//	//llist.AddCountry(*no)
-//
-//	_site = &LHSite{
-//		url: DEF_URL,
-//		ll:  llist,
-//	}
-//}
 
 func RegisterSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
 	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
@@ -139,19 +105,6 @@ func lunchListFromJSON(filename string) error {
 	_lunchList = ll
 	return nil
 }
-
-// hack, to be removed on next level
-//func (lhs *LHSite) getLHSite() *lunchdata.Site {
-//	return lhs.ll.GetSiteById(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID)
-//}
-
-// hack, to be removed on next level
-//func (lhs *LHSite) setLHRestaurants(rs lunchdata.Restaurants) {
-//	lh := lhs.getLHSite()
-//	if nil != lh {
-//		lh.SetRestaurants(rs)
-//	}
-//}
 
 // hack
 func logInventory() {
@@ -189,14 +142,6 @@ func writePid(filename string) error {
 	return nil
 }
 
-// This func should be obsoleted when we get to the new level
-//func setUrl(ctx *cli.Context) {
-//	url := ctx.String("url")
-//	if url != "" {
-//		_site.url = url
-//	}
-//}
-
 func setGtag(ctx *cli.Context) {
 	gtag := ctx.String("gtag")
 	if gtag != "" {
@@ -226,25 +171,26 @@ func entryPointServe(ctx *cli.Context) error {
 	// Turns out app/docker hangs sometimes, when triggering scrape from regular cron with "docker exec" (even with timeout),
 	// so trying to use an internal solution instead
 	// When post updates is fully ready, this should be removed
-	//cronspec := ctx.String("cron")
-	//if cronspec != "" {
-	//	log.Infof("Auto-updating via built-in cron @ %q", cronspec)
-	//	cr := cron.New()
+	cronspec := ctx.String("cron")
+	if cronspec != "" {
+		log.Infof("Auto-updating via built-in cron @ %q", cronspec)
+		cr := cron.New()
 
-	//	err := cr.AddFunc(cronspec, func() {
-	//		log.Info("Re-scraping on request from internal cron...")
-	//		if err := update(); err != nil {
-	//			log.Errorf("Update via internal cron failed: %q", err)
-	//		}
-	//	})
+		_, err := cr.AddFunc(cronspec, func() {
+			log.Info("Re-scraping on request from internal cron...")
+			var wg sync.WaitGroup
+			getLunchList().RunSiteScrapers(&wg)
+			wg.Wait()
+			logInventory()
+		})
 
-	//	if err != nil {
-	//		log.Errorf("Failed to add cronjob: %q", err)
-	//	} else {
-	//		cr.Start()
-	//		log.Info("Built-in cron started")
-	//	}
-	//}
+		if err != nil {
+			log.Errorf("Failed to add cronjob: %q", err)
+		} else {
+			cr.Start()
+			log.Info("Built-in cron started")
+		}
+	}
 	// END cron
 
 	err := initTmpl()
@@ -515,6 +461,7 @@ func main() {
 					Usage: "Specify intervals for re-scrape in cron format with `TIMESPEC`",
 					// what I had in regular cron: "0 0,30 08-12 * * 1-5"
 					// That is: on second 0 of minute 0 and 30 of hour 08-12 of weekday mon-fri on any day of month any month
+					// Update @ 2019-10-28: New version of cron-lib does not use second field
 				},
 				cli.StringFlag{
 					Name:  "load",
@@ -559,11 +506,6 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
-		//		cli.StringFlag{
-		//			Name:  "url, u",
-		//			Usage: "`URL` to scrape",
-		//			Value: DEF_URL,
-		//		},
 		cli.StringFlag{
 			Name:  "log-level, l",
 			Value: "info",
