@@ -12,9 +12,8 @@ endif
 
 .DEFAULT_GOAL: $(BINARY)
 
+# Since we have build constraints, we should pass '.' (package) to build, not a list of go files
 $(BINARY): $(SOURCES)
-	#env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ ${SOURCES}
-	# Since we have build constraints, we should pass '.' (package) to build, not a list of go files
 	env CGO_ENABLED=0 go build ${LDFLAGS} -o $@ .
 
 .PHONY: install

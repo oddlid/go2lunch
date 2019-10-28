@@ -431,7 +431,7 @@ COPYRIGHT:
 func main() {
 	setCustomAppHelpTmpl()
 	app := cli.NewApp()
-	app.Name = "Lunch Scraper/Server"
+	app.Name = "go2lunch server"
 	app.Version = fmt.Sprintf("%s_%s", VERSION, COMMIT_ID)
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
 	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
@@ -441,7 +441,7 @@ func main() {
 			Email: "oddebb@gmail.com",
 		},
 	}
-	app.Usage = "Scrape and/or serve results of todays lunch from configured sites"
+	app.Usage = "Serve lunch menus from configured sites"
 
 	app.Commands = []cli.Command{
 		{
