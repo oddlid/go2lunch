@@ -44,35 +44,36 @@ import (
 
 const (
 	VERSION           string = "2019-10-27"
-	DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	DEF_WEB_ADR       string = ":20666"
 	DEF_ADM_ADR       string = ":20667"
-	DEF_COUNTRY_NAME  string = "Sweden"
 	DEF_COUNTRY_ID    string = "se"
-	DEF_CITY_NAME     string = "Gothenburg"
 	DEF_CITY_ID       string = "gbg"
-	DEF_SITE_NAME     string = "Lindholmen"
 	DEF_SITE_ID       string = "lindholmen"
-	DEF_ID            string = "se/gbg/lindholmen"
-	DEF_COMMENT       string = "Gruvan"
-	GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - replace!
+	GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - TODO: replace!
 	DEF_READ_TIMEOUT         = 5
 	DEF_WRITE_TIMEOUT        = 10
 	DEF_IDLE_TIMEOUT         = 15
+
+	//DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
+	//DEF_COUNTRY_NAME  string = "Sweden"
+	//DEF_CITY_NAME     string = "Gothenburg"
+	//DEF_SITE_NAME     string = "Lindholmen"
+	//DEF_ID            string = "se/gbg/lindholmen"
+	//DEF_COMMENT       string = "Gruvan"
 	//JWT_TOKEN_SECRET  string = "this secret should not be part of the code"
 )
 
 // exit codes
 const (
 	E_OK int = iota
-	E_UPDATE
-	E_READPID
+	//E_UPDATE
+	//E_READPID
 	E_WRITEPID
-	E_NOTIFYPID
-	E_WRITEJSON
+	//E_NOTIFYPID
+	//E_WRITEJSON
 	E_READJSON
 	E_INITTMPL
-	E_WRITEHTML
+	//E_WRITEHTML
 )
 
 var (
@@ -85,10 +86,12 @@ var (
 
 
 func init() {
-	RegisterSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
+	registerSiteScraper(DEF_COUNTRY_ID, DEF_CITY_ID, DEF_SITE_ID, &lindholmen.LHScraper{})
 }
 
-func RegisterSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
+// I'd like to find a more flexible and dynamic way of including scrapers, but for now
+// we'll use this
+func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
 	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
 	if nil == lsite {
 		return

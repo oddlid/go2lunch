@@ -33,18 +33,18 @@ var (
 	urlIds        = []string{"country_id", "city_id", "site_id", "restaurant_id"}
 )
 
-type WebUser struct {
-    Username string `json:"username"`
-    Password string `json:"password"`
-}
+//type WebUser struct {
+//    Username string `json:"username"`
+//    Password string `json:"password"`
+//}
 
-type JwtToken struct {
-    Token string `json:"token"`
-}
+//type JwtToken struct {
+//    Token string `json:"token"`
+//}
 
-type Exception struct {
-    Message string `json:"message"`
-}
+//type Exception struct {
+//    Message string `json:"message"`
+//}
 
 func initTmpl() error {
 	log.Debug("Looking for template folder...")
