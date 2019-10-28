@@ -1,6 +1,5 @@
 // +build ignore
 
-
 package lindholmen
 
 /*
@@ -23,8 +22,11 @@ import (
 )
 
 const (
-	UA  = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
-	TAG = "LHScraper"
+	UA         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
+	TAG        = "LHScraper"
+	COUNTRY_ID = "se"
+	CITY_ID    = "gbg"
+	SITE_ID    = "lindholmen"
 )
 
 type LHScraper struct{}
@@ -32,6 +34,18 @@ type LHScraper struct{}
 // Encode ID field. Might find a better strategy for this later
 func getRestaurantID(name string) string {
 	return url.PathEscape(strings.ToLower(name))
+}
+
+func (lhs LHScraper) GetCountryID() string {
+	return COUNTRY_ID
+}
+
+func (lhs LHScraper) GetCityID() string {
+	return CITY_ID
+}
+
+func (lhs LHScraper) GetSiteID() string {
+	return SITE_ID
 }
 
 /*
@@ -46,7 +60,7 @@ Need to find out why this happens.
 Update: Turns out it was due to some obscure pointer dereferencing in Go I wasn't aware of. Not related
 to the code in this module at all.
 */
-func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
+func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	rmap := make(map[string]*lunchdata.Restaurant)
 	// create a queue for holding links to each restaurant to parse
 	q, _ := queue.New(
