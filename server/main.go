@@ -43,7 +43,7 @@ import (
 )
 
 const (
-	VERSION           string = "2019-10-27"
+	VERSION           string = "2019-10-28"
 	DEF_WEB_ADR       string = ":20666"
 	DEF_ADM_ADR       string = ":20667"
 	DEF_COUNTRY_ID    string = "se"
