@@ -129,10 +129,14 @@ func setupRouter() (pubR, admR *mux.Router) {
 	tsubr.HandleFunc(ppath(1), textTmplHandler).Methods(MGET)
 	tsubr.HandleFunc(ppath(2), textTmplHandler).Methods(MGET)
 
+	// 2019-10-29 16:50: Disabling registration of update routes temporarily,
+	// so I can build a docker image and try to run this newer version in prod
+	// for a while, without risking unauthorized updates.
+
 	// POST routes, for receiving updates in public router
-	usubr := pubR.PathPrefix(ppUpd).Subrouter() // .StrictSlash(true) // seemed to not be desirable
-	usubr.HandleFunc(slash, setGtagMW(updateHandler)).Methods(MPOST)
-	usubr.HandleFunc(ppath(2), setGtagMW(updateHandler)).Methods(MPOST)
+	//usubr := pubR.PathPrefix(ppUpd).Subrouter() // .StrictSlash(true) // seemed to not be desirable
+	//usubr.HandleFunc(slash, setGtagMW(updateHandler)).Methods(MPOST)
+	//usubr.HandleFunc(ppath(2), setGtagMW(updateHandler)).Methods(MPOST)
 
 	// Redirects just to not break old urls
 	pubR.HandleFunc("/lindholmen.html", func(w http.ResponseWriter, r *http.Request) {
