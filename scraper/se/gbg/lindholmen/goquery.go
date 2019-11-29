@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
 )
 

@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func setupSignalHandling(quit chan<- bool, numServers int) {

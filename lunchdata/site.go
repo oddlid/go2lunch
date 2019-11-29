@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 	//"time"
-	//log "github.com/Sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 )
 
 type Site struct {

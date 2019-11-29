@@ -33,7 +33,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"

@@ -10,7 +10,7 @@ import (
 	ttmpl "text/template"
 
 	"github.com/GeertJohan/go.rice"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	//"github.com/gorilla/context"
 	"github.com/gorilla/mux"

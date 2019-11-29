@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
 	"github.com/oddlid/go2lunch/lunchdata"
