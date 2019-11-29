@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Country struct {
@@ -138,7 +140,10 @@ func (c *Country) GetCityById(id string) *City {
 	city, found := c.Cities[id]
 	c.RUnlock()
 	if !found {
-		debugCountry("GetCityById: %q not found", id)
+		countryLog.WithFields(log.Fields{
+			"func": "GetCityById",
+			"id":   id,
+		}).Debug("Not found")
 	}
 	return city
 }

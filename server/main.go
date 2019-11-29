@@ -29,13 +29,13 @@ import (
 	"net/http"
 	"os"
 	//"strconv"
-	"strings"
+	//"strings"
 	"sync"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/robfig/cron"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	// Internal scrapers
@@ -84,7 +84,6 @@ var (
 	_lunchList *lunchdata.LunchList
 )
 
-
 func init() {
 	lhs := lindholmen.LHScraper{}
 	registerSiteScraper(lhs.GetCountryID(), lhs.GetCityID(), lhs.GetSiteID(), lhs)
@@ -95,7 +94,11 @@ func init() {
 func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
 	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
 	if nil == lsite {
-		log.Warnf("registerSiteScraper(): Could not find site @ %s/%s/%s", countryID, cityID, siteID)
+		log.WithFields(log.Fields{
+			"countryID": countryID,
+			"cityID":    cityID,
+			"siteID":    siteID,
+		}).Warn("Could not find site")
 		return
 	}
 	lsite.Scraper = scraper
@@ -104,7 +107,9 @@ func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.Sit
 func lunchListFromJSON(filename string) error {
 	ll, err := lunchdata.LunchListFromFile(filename)
 	if err != nil {
-		log.Errorf("Unable to load site from JSON: %q", err.Error())
+		log.WithFields(log.Fields{
+			"ErrMSG": err.Error(),
+		}).Error("Unable to load site from JSON")
 		return err
 	}
 	// If we load the LunchList from JSON, and we only have a top-level
@@ -118,25 +123,34 @@ func lunchListFromJSON(filename string) error {
 
 // hack
 func logInventory() {
-	var b strings.Builder
+	//var b strings.Builder
 
-	fmt.Fprintf(
-		&b,
-		"Total subitems: %d, Countries: %d, Cities: %d, Sites: %d, Restaurants: %d, Dishes: %d\n",
-		getLunchList().SubItems(),
-		getLunchList().NumCountries(),
-		getLunchList().NumCities(),
-		getLunchList().NumSites(),
-		getLunchList().NumRestaurants(),
-		getLunchList().NumDishes(),
-	)
+	//fmt.Fprintf(
+	//	&b,
+	//	"Total subitems: %d, Countries: %d, Cities: %d, Sites: %d, Restaurants: %d, Dishes: %d\n",
+	//	getLunchList().SubItems(),
+	//	getLunchList().NumCountries(),
+	//	getLunchList().NumCities(),
+	//	getLunchList().NumSites(),
+	//	getLunchList().NumRestaurants(),
+	//	getLunchList().NumDishes(),
+	//)
 
-	sls := getLunchList().GetSiteLinks()
-	for _, sl := range sls {
-		fmt.Fprintf(&b, "%s: %s\n", sl.Url, sl.SiteKey)
-	}
+	//sls := getLunchList().GetSiteLinks()
+	//for _, sl := range sls {
+	//	fmt.Fprintf(&b, "%s: %s\n", sl.Url, sl.SiteKey)
+	//}
 
-	log.Debug(b.String())
+	//log.Debug(b.String())
+
+	log.WithFields(log.Fields{
+		"Total subitems": getLunchList().SubItems(),
+		"Countries":      getLunchList().NumCountries(),
+		"Cities":         getLunchList().NumCities(),
+		"Sites":          getLunchList().NumSites(),
+		"Restaurants":    getLunchList().NumRestaurants(),
+		"Dishes":         getLunchList().NumDishes(),
+	}).Debug("Inventory")
 }
 
 // This might not be needed anymore when on next level
@@ -161,18 +175,25 @@ func setGtag(ctx *cli.Context) {
 }
 
 func entryPointServe(ctx *cli.Context) error {
-	log.Debugf("PID: %d", os.Getpid())
+	log.WithFields(log.Fields{
+		"PID": os.Getpid(),
+	}).Debug("Startup info")
 
 	pidfile := ctx.String("writepid")
 	if pidfile != "" {
-		log.Debugf("Got pidfile arg: %q", pidfile)
+		log.WithFields(log.Fields{
+			"pidfile": pidfile,
+		}).Debug("Got argument")
 		err := writePid(pidfile)
 		if err != nil {
 			return cli.NewExitError(err.Error(), E_WRITEPID)
 		}
-		log.Infof("Wrote PID ( %d ) to %q", os.Getpid(), pidfile)
+		log.WithFields(log.Fields{
+			"PID":     os.Getpid(),
+			"PIDFile": pidfile,
+		}).Info("Wrote pidfile")
 	} else {
-		log.Debugf("No PIDfile given")
+		log.Debug("No PIDfile given")
 	}
 
 	// cron-like scheduling.
@@ -181,7 +202,9 @@ func entryPointServe(ctx *cli.Context) error {
 	// When post updates is fully ready, this should be removed..?
 	cronspec := ctx.String("cron")
 	if cronspec != "" {
-		log.Infof("Auto-updating via built-in cron @ %q", cronspec)
+		log.WithFields(log.Fields{
+			"cronspec": cronspec,
+		}).Info("Auto-updating via built-in cron")
 		cr := cron.New()
 
 		_, err := cr.AddFunc(cronspec, func() {
@@ -195,7 +218,9 @@ func entryPointServe(ctx *cli.Context) error {
 		})
 
 		if err != nil {
-			log.Errorf("Failed to add cronjob: %q", err)
+			log.WithFields(log.Fields{
+				"ErrMSG": err.Error(),
+			}).Error("Failed to add cronjob")
 		} else {
 			cr.Start()
 			log.Info("Built-in cron started")
@@ -215,7 +240,9 @@ func entryPointServe(ctx *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(err.Error(), E_READJSON)
 		}
-		log.Debugf("Load site from %q successful!", jfile)
+		log.WithFields(log.Fields{
+			"JSONFile": jfile,
+		}).Debug("Load site successful")
 		//_noScrape = true
 	}
 
@@ -241,18 +268,24 @@ func entryPointServe(ctx *cli.Context) error {
 
 	var wg sync.WaitGroup
 	wg.Add(numServers)
-	go gracefulShutdown(pubSrv, quit, &wg)
-	go gracefulShutdown(admSrv, quit, &wg)
+	go gracefulShutdown("PubSRV", pubSrv, quit, &wg)
+	go gracefulShutdown("AdmSRV", admSrv, quit, &wg)
 	go func() {
-		log.Infof("Public server listening on port %s", listenAdr)
+		ctxlog := log.WithFields(log.Fields{
+			"Port": listenAdr,
+		})
+		ctxlog.Info("Public server listening")
 		if err := pubSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("Error starting pub server on port %s", listenAdr)
+			ctxlog.Error("Error starting public server")
 		}
 	}()
 	go func() {
-		log.Infof("Admin server listening on port %s", listenAdm)
+		ctxlog := log.WithFields(log.Fields{
+			"Port": listenAdm,
+		})
+		ctxlog.Info("Admin server listening")
 		if err := admSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("Error starting admin server on port %s", listenAdm)
+			ctxlog.Error("Error starting admin server")
 		}
 	}()
 
@@ -286,7 +319,9 @@ func entryPointServe(ctx *cli.Context) error {
 			log.Error(err.Error())
 			return err
 		}
-		log.Infof("Wrote config back to %q", jfile)
+		log.WithFields(log.Fields{
+			"JSONFile": jfile,
+		}).Info("Wrote config")
 	}
 
 	return nil
@@ -302,16 +337,21 @@ func createServer(addr string, hnd http.Handler) *http.Server {
 	}
 }
 
-func gracefulShutdown(srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
+func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	<-quit
-	log.Debug("Shutting down server gracefully...")
+	log.WithFields(log.Fields{
+		"Server": tag,
+	}).Debug("Shutting down server gracefully...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Errorf("Error shutting down server: %v", err)
+		log.WithFields(log.Fields{
+			"Server": tag,
+			"ErrMSG": err.Error(),
+		}).Error("Error shutting down server")
 	}
 }
 

@@ -117,7 +117,7 @@ func (r *Restaurant) HasDishes() bool {
 
 func (r Restaurant) GetDishByIndex(idx int) *Dish {
 	if idx < 0 || idx >= len(r.Dishes) {
-		debugRestaurant("GetDishByIndex: Index (%d) out of range", idx)
+		restaurantLog.WithField("Index", idx).Debug("Out of range")
 		return nil
 	}
 	r.Lock()
@@ -168,7 +168,7 @@ func (r Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
 // This should be a func that combines all other filter funcs as a convenience, but I'm not
 // sure how to best solve it atm
 func (r Restaurant) FilterDishes() Dishes {
-	debugRestaurant("Not implemented yet")
+	restaurantLog.Debug("Not implemented yet")
 	return nil
 }
 

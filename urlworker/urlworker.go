@@ -182,7 +182,12 @@ func (uw *UrlWorker) get(in <-chan *http.Request) <-chan *http.Response {
 		for req := range in {
 			res, err := uw.client.Get(req)
 			if err != nil {
-				log.Errorf("%s: Error fetching URL: %s", PKG_NAME, err)
+				log.WithFields(log.Fields{
+					"pkg":    PKG_NAME,
+					"func":   "get",
+					"URL":    req.URL,
+					"ErrMSG": err.Error(),
+				}).Error("Fetch error")
 				return
 			}
 			select {

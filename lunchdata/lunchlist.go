@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // A giant list of everything
@@ -39,7 +41,6 @@ func (ll *LunchList) SubItems() int {
 }
 
 func (ll *LunchList) PropagateGtag(tag string) *LunchList {
-	//debugLunchList("PropagateGtag(): tag=%s", tag)
 	ll.Lock()
 	ll.Gtag = tag
 	for k := range ll.Countries {
@@ -145,7 +146,10 @@ func (ll *LunchList) GetCountryById(id string) *Country {
 	c, found := ll.Countries[id]
 	ll.RUnlock()
 	if !found {
-		debugLunchList("GetCountryById: %q not found", id)
+		llLog.WithFields(log.Fields{
+			"func": "GetCountryById",
+			"id":   id,
+		}).Debug("Not found")
 	}
 	return c
 }

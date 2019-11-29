@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
 	"github.com/oddlid/go2lunch/lunchdata"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,6 +27,10 @@ const (
 	COUNTRY_ID = "se"
 	CITY_ID    = "gbg"
 	SITE_ID    = "lindholmen"
+)
+
+var (
+	logger = log.WithField("ScraperName", TAG)
 )
 
 type LHScraper struct{}
@@ -93,11 +97,10 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	if err != nil {
 		numLinks = -1
 	}
-	log.Debugf("%s: Time to parse overview page with %d restaurants: %f seconds\n",
-		TAG,
-		numLinks,
-		time.Duration(time.Now().Sub(t_start)).Seconds(),
-	)
+	logger.WithFields(log.Fields{
+		"Seconds":            time.Duration(time.Now().Sub(t_start)).Seconds(),
+		"NumRestaurantLinks": numLinks,
+	}).Debug("Time to parse overview page")
 
 	// Create collector with callbacks for parsing a restaurant detail page, and picking out dishes from it
 	rc := lc.Clone()
@@ -167,14 +170,11 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 		}
 	}
 
-	log.Debugf(
-		"%s: Time to parse %d pages (of which %d had menus) with %d dishes in total: %f seconds\n",
-		TAG,
-		numLinks,
-		rs.Len(),
-		rs.NumDishes(),
-		time.Duration(t_end.Sub(t_start)).Seconds(),
-	)
+	logger.WithFields(log.Fields{
+		"Seconds":     time.Duration(t_end.Sub(t_start)).Seconds(),
+		"Restaurants": rs.Len(),
+		"Dishes":      rs.NumDishes(),
+	}).Debug("Parse results")
 
 	return rs, nil
 }

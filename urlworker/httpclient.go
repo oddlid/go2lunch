@@ -90,7 +90,11 @@ func GetResponseBody(res *http.Response) ([]byte, error) {
 func GetResponseReader(res *http.Response) *bytes.Reader {
 	b, err := GetResponseBody(res)
 	if err != nil {
-		log.Errorf("%s: %s", PKG_NAME, err)
+		log.WithFields(log.Fields{
+			"pkg":    PKG_NAME,
+			"ErrMSG": err.Error(),
+			"func":   "GetResponseReader",
+		}).Error("Error getting response reader")
 		return nil
 	}
 	return bytes.NewReader(b)

@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 	"sync"
-	//"time"
-	//log "github.com/sirupsen/logrus"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Site struct {
@@ -174,7 +174,10 @@ func (s *Site) GetRestaurantById(id string) *Restaurant {
 	r, found := s.Restaurants[id]
 	s.RUnlock()
 	if !found {
-		debugSite("GetRestaurantById: %q not found", id)
+		siteLog.WithFields(log.Fields{
+			"func": "GetRestaurantById",
+			"id":   id,
+		}).Debug("Not found")
 	}
 	return r
 }
@@ -228,13 +231,17 @@ func SiteFromJSON(r io.Reader) (*Site, error) {
 
 func (s *Site) RunScraper(wg *sync.WaitGroup) {
 	defer wg.Done()
+	rsLog := siteLog.WithFields(log.Fields{
+		"func":   "RunScraper",
+		"SiteID": s.ID,
+	})
 	if nil == s.Scraper {
-		debugSite("RunScraper(): %q has no scraper instance configured. Returning.", s.ID)
+		rsLog.Debug("No scraper instance configured, returning")
 		return
 	}
 	rs, err := s.Scraper.Scrape()
 	if nil != err {
-		errorSite("%q: Error running scraper: %s", s.ID, err)
+		rsLog.WithField("ErrMSG", err.Error()).Error("Error running scraper")
 		return
 	}
 	s.SetRestaurants(rs)

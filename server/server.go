@@ -10,8 +10,8 @@ import (
 	ttmpl "text/template"
 
 	"github.com/GeertJohan/go.rice"
-	log "github.com/sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
+	log "github.com/sirupsen/logrus"
 	//"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	//"github.com/mitchellh/mapstructure"
@@ -72,7 +72,7 @@ func initTmpl() error {
 		return err
 	}
 
-	log.Debug("All templates loaded and parsed successfully!")
+	log.Debug("Templates loaded and parsed")
 	return nil
 }
 
@@ -155,15 +155,15 @@ func setupRouter() (pubR, admR *mux.Router) {
 	// admin POST interface
 	admR = mux.NewRouter()
 	admSubr := admR.PathPrefix(ppAdm).Subrouter().StrictSlash(false)
-	admSubr.HandleFunc(ppAdd + ppath(0), logInventoryMW(setGtagMW(addCountryHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel + ppath(0), logInventoryMW(delCountryHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd + ppath(1), logInventoryMW(setGtagMW(addCityHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel + ppath(1), logInventoryMW(delCityHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd + ppath(2), logInventoryMW(setGtagMW(addSiteHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel + ppath(2), logInventoryMW(delSiteHandler)).Methods(MDEL)
+	admSubr.HandleFunc(ppAdd+ppath(0), logInventoryMW(setGtagMW(addCountryHandler))).Methods(MPOST)
+	admSubr.HandleFunc(ppDel+ppath(0), logInventoryMW(delCountryHandler)).Methods(MDEL)
+	admSubr.HandleFunc(ppAdd+ppath(1), logInventoryMW(setGtagMW(addCityHandler))).Methods(MPOST)
+	admSubr.HandleFunc(ppDel+ppath(1), logInventoryMW(delCityHandler)).Methods(MDEL)
+	admSubr.HandleFunc(ppAdd+ppath(2), logInventoryMW(setGtagMW(addSiteHandler))).Methods(MPOST)
+	admSubr.HandleFunc(ppDel+ppath(2), logInventoryMW(delSiteHandler)).Methods(MDEL)
 
-//	r.HandleFunc("/getauth", createTokenHandler).Methods(MPOST)
-//	r.HandleFunc("/testauth", authMiddleWare(testCreatedTokenHandler)).Methods(MGET)
+	//	r.HandleFunc("/getauth", createTokenHandler).Methods(MPOST)
+	//	r.HandleFunc("/testauth", authMiddleWare(testCreatedTokenHandler)).Methods(MGET)
 
 	return
 }
@@ -250,22 +250,22 @@ func dumpHtml(w io.Writer) {
 }
 
 func addCountryHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering addCountryHandler...")
+	log.Debug("Entering addCountryHandler...")
 
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
-//	vars := mux.Vars(r)
-//
-//	countryID, found := vars[urlIds[0]]
-//	if !found {
-//		http.NotFound(w, r) // 404
-//		return
-//	}
-//	country := _site.ll.GetCountryById(countryID)
-//	if nil == country {
-//		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
-//		return
-//	}
+	//	vars := mux.Vars(r)
+	//
+	//	countryID, found := vars[urlIds[0]]
+	//	if !found {
+	//		http.NotFound(w, r) // 404
+	//		return
+	//	}
+	//	country := _site.ll.GetCountryById(countryID)
+	//	if nil == country {
+	//		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
+	//		return
+	//	}
 
 	newCountry, err := lunchdata.CountryFromJSON(r.Body)
 	if err != nil {
@@ -277,7 +277,7 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func delCountryHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering delCountryHandler...")
+	log.Debug("Entering delCountryHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -297,7 +297,7 @@ func delCountryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCityHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering addCityHandler...")
+	log.Debug("Entering addCityHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -320,7 +320,10 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if country.HasCity(cityID) {
-		log.Debugf("addCityHandler: %s already exists, overwriting", cityID)
+		log.WithFields(log.Fields{
+			"func":   "addCityHandler",
+			"cityID": cityID,
+		}).Debug("City already exists, overwriting")
 	}
 
 	city, err := lunchdata.CityFromJSON(r.Body)
@@ -333,7 +336,7 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func delCityHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering delCityHandler...")
+	log.Debug("Entering delCityHandler...")
 
 	vars := mux.Vars(r)
 
@@ -363,7 +366,7 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addSiteHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering addSiteHandler...")
+	log.Debug("Entering addSiteHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -397,7 +400,10 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if city.HasSite(siteID) {
-		log.Debugf("addSiteHandler: %s already exists, overwriting", siteID)
+		log.WithFields(log.Fields{
+			"func":   "addSiteHandler",
+			"siteID": siteID,
+		}).Debug("Site already exists, overwriting")
 	}
 
 	site, err := lunchdata.SiteFromJSON(r.Body)
@@ -408,22 +414,22 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 
 	city.AddSite(*site)
 
-//	sl := _site.ll.GetSiteLinkById(countryID, cityID, siteID)
-//	if nil != sl {
-//		token, err := getTokenForSiteLink(*sl)
-//		if nil == err {
-//			// We need to get a new reference to the site here
-//			site = _site.ll.GetSiteById(countryID, cityID, siteID)
-//			site.Key = token
-//			log.Debugf("addSiteHandler: Got key: %q", token)
-//		}
-//	} else {
-//		log.Debug("addSiteHandler: got no sitelink to generate key for")
-//	}
+	//	sl := _site.ll.GetSiteLinkById(countryID, cityID, siteID)
+	//	if nil != sl {
+	//		token, err := getTokenForSiteLink(*sl)
+	//		if nil == err {
+	//			// We need to get a new reference to the site here
+	//			site = _site.ll.GetSiteById(countryID, cityID, siteID)
+	//			site.Key = token
+	//			log.Debugf("addSiteHandler: Got key: %q", token)
+	//		}
+	//	} else {
+	//		log.Debug("addSiteHandler: got no sitelink to generate key for")
+	//	}
 }
 
 func delSiteHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("Entering delSiteHandler...")
+	log.Debug("Entering delSiteHandler...")
 
 	vars := mux.Vars(r)
 
@@ -507,10 +513,10 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	// If the keys match, continue.
 
 	// eg:
-//	if r.Header.Get("x-auth-token") != "admin" {
-//		w.WriteHeader(http.StatusUnauthorized)
-//		return
-//	}
+	//	if r.Header.Get("x-auth-token") != "admin" {
+	//		w.WriteHeader(http.StatusUnauthorized)
+	//		return
+	//	}
 
 	rs, err := lunchdata.RestaurantsFromJSON(r.Body)
 	if err != nil {
@@ -541,6 +547,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
 	}
 	return tokenString, nil
 }
+
 // JWT stuff modified from: https://www.thepolyglotdeveloper.com/2017/03/authenticate-a-golang-api-with-json-web-tokens/
 
 // simplistic and naive first version just to get going

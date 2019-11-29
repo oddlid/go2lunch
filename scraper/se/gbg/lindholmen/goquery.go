@@ -16,8 +16,8 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	log "github.com/sirupsen/logrus"
 	"github.com/oddlid/go2lunch/lunchdata"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -26,6 +26,10 @@ const (
 	COUNTRY_ID = "se"
 	CITY_ID    = "gbg"
 	SITE_ID    = "lindholmen"
+)
+
+var (
+	logger = log.WithField("ScraperName", TAG)
 )
 
 type LHScraper struct{} // only for having something to implement the SiteScraper interface
@@ -68,11 +72,9 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 		"div.table-list__column.table-list__column--price",
 	}
 
-	log.Infof(
-		"%s: Starting scrape of %q",
-		TAG,
-		URL,
-	)
+	logger.WithFields(log.Fields{
+		"URL": URL,
+	}).Info("Starting scrape")
 
 	rs := make(lunchdata.Restaurants, 0)
 	t_start := time.Now()
@@ -118,8 +120,13 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 			rs.Add(*r)
 		},
 	)
-	log.Infof("%s: Scrape done in %f seconds", TAG, time.Duration(time.Now().Sub(t_start)).Seconds())
-	log.Debugf("%s: Parsed %d restaurants with %d dishes in total", TAG, rs.Len(), rs.NumDishes())
+	logger.WithFields(log.Fields{
+		"Seconds": time.Duration(time.Now().Sub(t_start)).Seconds(),
+	}).Info("Scrape done")
+	logger.WithFields(log.Fields{
+		"Restaurants": rs.Len(),
+		"Dishes":      rs.NumDishes(),
+	}).Debug("Parse results")
 
 	return rs, nil
 }
