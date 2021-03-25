@@ -79,11 +79,13 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	rs := make(lunchdata.Restaurants, 0)
 	t_start := time.Now()
 
+	// Make HTTP call and get resulting document
 	doc, err := goquery.NewDocument(URL)
 	if err != nil {
 		return nil, err
 	}
 
+	// Parse
 	doc.Find(csel[0]).Each(
 		func(i int, sel1 *goquery.Selection) {
 
@@ -120,6 +122,8 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 			rs.Add(*r)
 		},
 	)
+
+	// Log some results and stats
 	logger.WithFields(log.Fields{
 		"Seconds": time.Duration(time.Now().Sub(t_start)).Seconds(),
 	}).Info("Scrape done")
