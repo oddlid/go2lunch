@@ -6,6 +6,7 @@ ARG BUILD_BIN
 # Setting TZ makes "make" build the correct time (at least for local builds) into the executable
 ARG ARG_TZ=Europe/Stockholm
 ENV TZ=${ARG_TZ}
+ENV GO111MODULE=off
 # Note that $GOPATH is set to /go from the parent image
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
