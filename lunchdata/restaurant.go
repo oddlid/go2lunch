@@ -2,7 +2,9 @@ package lunchdata
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"net/url"
 	"regexp"
 	"sync"
 	"time"
@@ -10,12 +12,13 @@ import (
 
 type Restaurant struct {
 	sync.RWMutex
-	Name   string    `json:"restaurant_name"`
-	ID     string    `json:"restaurant_id"`
-	Url    string    `json:"url,omitempty"`
-	Gtag   string    `json:"-"`
-	Parsed time.Time `json:"scrape_date"`
-	Dishes Dishes    `json:"dishes"`
+	Name    string    `json:"restaurant_name"`
+	ID      string    `json:"restaurant_id"`
+	Url     string    `json:"url,omitempty"`
+	Gtag    string    `json:"-"`
+	Address string    `json:"address"`
+	Parsed  time.Time `json:"scrape_date"`
+	Dishes  Dishes    `json:"dishes"`
 }
 
 type Restaurants []Restaurant
@@ -54,6 +57,14 @@ func (r *Restaurant) Len() int {
 
 func (r *Restaurant) SubItems() int {
 	return r.Len() // just a wrap here. We only have it for name consistency
+}
+
+// GetMapUrl returns empty string or .Address as a Google Maps URL
+func (r Restaurant) GetMapUrl() string {
+	if "" == r.Address {
+		return ""
+	}
+	return fmt.Sprintf("https://www.google.com/maps/search/?api=1&query=%s", url.QueryEscape(r.Address))
 }
 
 // ParsedRFC3339 returns the date in RFC3339 format

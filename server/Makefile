@@ -1,5 +1,5 @@
 BINARY := go2lunchsrv.bin
-VERSION := 2019-11-30
+VERSION := 2021-05-19
 UNAME := $(shell uname -s)
 SOURCES := $(wildcard *.go)
 COMMIT_ID := $(shell git describe --tags --always)

@@ -35,4 +35,4 @@ EXPOSE 20666 20667
 USER lunchsrv
 ENTRYPOINT ["tini", "-g", "--"]
 ENV LUNCHBIN=${BUILD_BIN}
-CMD ["/bin/sh", "-c", "${LUNCHBIN}", "-h"]
+CMD ${BUILD_BIN} -h

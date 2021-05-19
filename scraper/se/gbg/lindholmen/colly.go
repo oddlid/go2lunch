@@ -1,5 +1,3 @@
-// +build ignore
-
 package lindholmen
 
 /*
@@ -50,6 +48,33 @@ func (lhs LHScraper) GetCityID() string {
 
 func (lhs LHScraper) GetSiteID() string {
 	return SITE_ID
+}
+
+// helper func for parsing out address from maps url found on lindholmen.se
+func getAddress(mapUrl string) string {
+	// remove map url prefix
+	query := strings.Replace(
+		mapUrl,
+		"http://maps.google.com/?q=",
+		"",
+		1,
+	)
+	// remove encoded newlines
+	query = strings.Replace(
+		query,
+		"\n",
+		"",
+		-1,
+	)
+	// Remove leading and trailing '+'
+	query = strings.Trim(query, "+")
+	// Create plain text
+	tmp, err := url.QueryUnescape(query)
+	if nil == err {
+		query = tmp
+	}
+	// Might be empty
+	return query
 }
 
 /*
@@ -117,6 +142,16 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 			rmap[restaurantName] = restaurant
 		}
 
+		// Update @ 2021-05-19
+		// Babak Eghbali suggested it would be good to have a Google Maps link to each restaurant,
+		// so of course he will get that!
+		e.ForEachWithBreak("div.restaurant-facts > p > a.right-arrow", func(_ int, el *colly.HTMLElement) bool {
+			restaurant.Address = getAddress(el.Attr("href")) // might be empty
+			return false
+		})
+
+
+		// Fetch dishes
 		e.ForEach("div.node.node-dish", func(_ int, el *colly.HTMLElement) {
 			dishName := strings.TrimSpace(el.ChildText("span.dish-name > strong"))
 			// remove dish name from desc, so we don't get double up
