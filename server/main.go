@@ -34,7 +34,7 @@ import (
 	"time"
 
 	"github.com/oddlid/go2lunch/lunchdata"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
