@@ -5,6 +5,11 @@ package lindholmen
 Turns out this solution takes many times as long as the original single thread/page scraper.
 No doubt due to the many more http requests here. But I like the concept of colly, so I'm
 keeping this code only for reference, but excluding it from builds.
+
+2021-05-20 20:23
+This is now the scraper used, as the Google Maps link feature demands we scrape each
+restaurant page to get it, and thus this strategy fits the bill, even though it's
+slower, which doesn't really matter, as it happens in the background.
 */
 
 import (
