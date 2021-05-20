@@ -6,14 +6,13 @@ ARG BUILD_BIN
 # Setting TZ makes "make" build the correct time (at least for local builds) into the executable
 ARG ARG_TZ=Europe/Stockholm
 ENV TZ=${ARG_TZ}
-ENV GO111MODULE=off
 # Note that $GOPATH is set to /go from the parent image
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
-WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch
-RUN git checkout dev
+#WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch
+#RUN git checkout dev
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch/server
-RUN go get -d -v ./...
+#RUN go get -d -v ./...
 # This needs to be done in addition, for the binary rice. Will not get pulled in from the step above
 RUN go get -u -v github.com/GeertJohan/go.rice/rice
 RUN make BINARY=${BUILD_BIN}
@@ -35,5 +34,5 @@ RUN chown lunchsrv /usr/local/bin/${BUILD_BIN} && chmod 555 /usr/local/bin/${BUI
 EXPOSE 20666 20667
 USER lunchsrv
 ENTRYPOINT ["tini", "-g", "--"]
-ENV LUNCHBIN=${BUILD_BIN}
+#ENV LUNCHBIN=${BUILD_BIN}
 CMD ${BUILD_BIN} -h
