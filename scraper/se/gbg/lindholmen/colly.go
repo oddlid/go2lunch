@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gocolly/colly"
-	"github.com/gocolly/colly/queue"
+	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/queue"
 	"github.com/oddlid/go2lunch/lunchdata"
 	log "github.com/sirupsen/logrus"
 )
@@ -103,10 +103,13 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	)
 
 	// Create collector with callbacks for picking out links to each restaurant page from the overview page
-	lc := colly.NewCollector(colly.UserAgent(UA))
+	lc := colly.NewCollector(colly.UserAgent(UA)) // lc for LinkCollector
 	lc.OnHTML("h3.restaurant-name > a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
-		q.AddURL(link) // add to queue
+		err := q.AddURL(link) // add to queue
+		if err != nil {
+			logger.WithField("func", "Scrape->lc.OnHTML").Error(err)
+		}
 
 		restaurantName := strings.TrimSpace(e.Text)
 		_, found := rmap[restaurantName]
@@ -122,13 +125,19 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 
 	// This will block until done parsing, so we're sure to have all links before continuing
 	t_start := time.Now()
-	lc.Visit("https://www.lindholmen.se/omradet/restauranger")
+	err := lc.Visit("https://www.lindholmen.se/omradet/restauranger")
+	if err != nil {
+		logger.WithField("func", "Scrape").Error(err)
+	}
+
 	numLinks, err := q.Size()
 	if err != nil {
 		numLinks = -1
 	}
+
 	logger.WithFields(log.Fields{
-		"Seconds":            time.Duration(time.Now().Sub(t_start)).Seconds(),
+		"func":               "Scrape",
+		"Seconds":            time.Since(t_start).Seconds(), //time.Duration(time.Now().Sub(t_start)).Seconds(),
 		"NumRestaurantLinks": numLinks,
 	}).Debug("Time to parse overview page")
 
@@ -154,7 +163,6 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 			restaurant.Address = getAddress(el.Attr("href")) // might be empty
 			return false
 		})
-
 
 		// Fetch dishes
 		e.ForEach("div.node.node-dish", func(_ int, el *colly.HTMLElement) {
@@ -189,7 +197,7 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 			}
 
 			restaurant.AddDish(
-				lunchdata.Dish{
+				&lunchdata.Dish{
 					Name:  dishName,
 					Desc:  dishDesc,
 					Price: price,
@@ -199,18 +207,22 @@ func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
 
 	// start parsing all urls in the queue
 	t_start = time.Now()
-	q.Run(rc)
+	err = q.Run(rc)
+	if err != nil {
+		logger.WithField("func", "Scrape").Error(err)
+	}
 	t_end := time.Now()
 
 	// get a []Restaurant slice from our map, so we can use it for setting restaurants for a site
 	rs := make(lunchdata.Restaurants, 0, len(rmap))
 	for _, r := range rmap {
 		if r.HasDishes() {
-			rs.Add(*r)
+			rs.Add(r)
 		}
 	}
 
 	logger.WithFields(log.Fields{
+		"func":        "Scrape",
 		"Seconds":     time.Duration(t_end.Sub(t_start)).Seconds(),
 		"Restaurants": rs.Len(),
 		"Dishes":      rs.NumDishes(),

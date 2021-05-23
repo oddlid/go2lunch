@@ -16,9 +16,9 @@ type City struct {
 	Sites map[string]*Site `json:"sites"`
 }
 
-type Cities []City
+type Cities []*City
 
-func (cs *Cities) Add(c City) {
+func (cs *Cities) Add(c *City) {
 	*cs = append(*cs, c)
 }
 
@@ -60,9 +60,9 @@ func (c *City) PropagateGtag(tag string) *City {
 	return c
 }
 
-func (c *City) AddSite(s Site) *City {
+func (c *City) AddSite(s *Site) *City {
 	c.Lock()
-	c.Sites[s.ID] = &s
+	c.Sites[s.ID] = s
 	c.Unlock()
 	return c
 }

@@ -21,9 +21,9 @@ type Restaurant struct {
 	Dishes  Dishes    `json:"dishes"`
 }
 
-type Restaurants []Restaurant
+type Restaurants []*Restaurant
 
-func (rs *Restaurants) Add(r Restaurant) {
+func (rs *Restaurants) Add(r *Restaurant) {
 	*rs = append(*rs, r)
 }
 
@@ -60,7 +60,7 @@ func (r *Restaurant) SubItems() int {
 }
 
 // GetMapUrl returns empty string or .Address as a Google Maps URL
-func (r Restaurant) GetMapUrl() string {
+func (r *Restaurant) GetMapUrl() string {
 	if "" == r.Address {
 		return ""
 	}
@@ -68,12 +68,12 @@ func (r Restaurant) GetMapUrl() string {
 }
 
 // ParsedRFC3339 returns the date in RFC3339 format
-func (r Restaurant) ParsedRFC3339() string {
+func (r *Restaurant) ParsedRFC3339() string {
 	return r.Parsed.Format(time.RFC3339)
 }
 
 // ParsedHumanDate returns a more human readable date/time format, without too much detail
-func (r Restaurant) ParsedHumanDate() string {
+func (r *Restaurant) ParsedHumanDate() string {
 	return r.Parsed.Format(DATE_FORMAT)
 }
 
@@ -83,7 +83,7 @@ func (rs Restaurants) PropagateGtag(tag string) {
 	}
 }
 
-func (r Restaurant) PropagateGtag(tag string) {
+func (r *Restaurant) PropagateGtag(tag string) {
 	r.Lock()
 	defer r.Unlock()
 	r.Gtag = tag
@@ -92,7 +92,7 @@ func (r Restaurant) PropagateGtag(tag string) {
 	}
 }
 
-func (r *Restaurant) AddDish(d Dish) {
+func (r *Restaurant) AddDish(d *Dish) {
 	r.Lock()
 	r.Dishes = append(r.Dishes, d)
 	r.Unlock()
@@ -126,17 +126,17 @@ func (r *Restaurant) HasDishes() bool {
 	return r.NumDishes() > 0
 }
 
-func (r Restaurant) GetDishByIndex(idx int) *Dish {
+func (r *Restaurant) GetDishByIndex(idx int) *Dish {
 	if idx < 0 || idx >= len(r.Dishes) {
 		restaurantLog.WithField("Index", idx).Debug("Out of range")
 		return nil
 	}
 	r.Lock()
 	defer r.Unlock()
-	return &r.Dishes[idx]
+	return r.Dishes[idx]
 }
 
-func (r Restaurant) FilterDishesByName(pattern string) (Dishes, error) {
+func (r *Restaurant) FilterDishesByName(pattern string) (Dishes, error) {
 	var ds Dishes
 	rx, err := regexp.Compile(pattern)
 	if err != nil {
@@ -150,7 +150,7 @@ func (r Restaurant) FilterDishesByName(pattern string) (Dishes, error) {
 	return ds, nil
 }
 
-func (r Restaurant) FilterDishesByDesc(pattern string) (Dishes, error) {
+func (r *Restaurant) FilterDishesByDesc(pattern string) (Dishes, error) {
 	var ds Dishes
 	rx, err := regexp.Compile(pattern)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r Restaurant) FilterDishesByDesc(pattern string) (Dishes, error) {
 
 // Takes a function that receives the Dish Price as an argument
 // The provided function should return true if the price is considered matching, false if not
-func (r Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
+func (r *Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
 	var ds Dishes
 	for i := range r.Dishes {
 		if f(r.Dishes[i].Price) {
@@ -178,17 +178,17 @@ func (r Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
 
 // This should be a func that combines all other filter funcs as a convenience, but I'm not
 // sure how to best solve it atm
-func (r Restaurant) FilterDishes() Dishes {
+func (r *Restaurant) FilterDishes() Dishes {
 	restaurantLog.Debug("Not implemented yet")
 	return nil
 }
 
-func (rs Restaurant) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(rs)
+func (r *Restaurant) Encode(w io.Writer) error {
+	return json.NewEncoder(w).Encode(r)
 }
 
-func (rs Restaurant) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(rs)
+func (r *Restaurant) Decode(rdr io.Reader) error {
+	return json.NewDecoder(rdr).Decode(r)
 }
 
 func (rs *Restaurants) Encode(w io.Writer) error {

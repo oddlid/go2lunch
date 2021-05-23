@@ -1,30 +1,34 @@
+# This file can be used to build from a machine with Docker and internet access, without having the rest of
+# the source, as it will pull everything it needs from github.
+
 ARG BUILD_BIN=go2lunchsrv.bin
 
-FROM golang:stretch as builder
+FROM golang:latest as builder
 # Specifying the same ARG without value copies it into this FROM-scope, from the outside scoped ARG before FROM
 ARG BUILD_BIN
 # Setting TZ makes "make" build the correct time (at least for local builds) into the executable
 ARG ARG_TZ=Europe/Stockholm
 ENV TZ=${ARG_TZ}
 # Note that $GOPATH is set to /go from the parent image
+# We donät need to use GOPATH anymore after moving to Go modules,
+# but there's not harm in it either.
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
-#WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch
-#RUN git checkout dev
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch/server
+# go get is not needed anymore after moving to Go modules
 #RUN go get -d -v ./...
-# This needs to be done in addition, for the binary rice. Will not get pulled in from the step above
-RUN go get -u -v github.com/GeertJohan/go.rice/rice
 RUN make BINARY=${BUILD_BIN}
+# This needs to be done in addition, for the binary rice.
+RUN go get -u -v github.com/GeertJohan/go.rice/rice
 RUN ${GOPATH}/bin/rice append --exec ${BUILD_BIN}
 
-
-# We don't do anything about TZ in the image for running the app, as one would rather specify
-# that at runtime, and not have it baked into the image
 
 FROM alpine:latest
 LABEL maintainer="Odd E. Ebbesen <oddebb@gmail.com>"
 ARG BUILD_BIN
+ARG ARG_TZ=Europe/Stockholm
+ENV SRV_BIN=${BUILD_BIN}
+ENV TZ=${ARG_TZ}
 RUN apk add --no-cache --update tini ca-certificates \
 		&& \
 		rm -rf /var/cache/apk/*
@@ -34,5 +38,6 @@ RUN chown lunchsrv /usr/local/bin/${BUILD_BIN} && chmod 555 /usr/local/bin/${BUI
 EXPOSE 20666 20667
 USER lunchsrv
 ENTRYPOINT ["tini", "-g", "--"]
-#ENV LUNCHBIN=${BUILD_BIN}
-CMD ${BUILD_BIN} -h
+CMD ${SRV_BIN} -h
+
+# vim: set syntax=Dockerfile:

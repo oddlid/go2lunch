@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	htmpl "html/template"
-	"io"
+	//"io"
 	"net/http"
 	"strings"
 	ttmpl "text/template"
 
 	"github.com/GeertJohan/go.rice"
-	"github.com/dgrijalva/jwt-go"
+	//"github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 	//"github.com/gorilla/context"
 	"github.com/gorilla/mux"
@@ -20,10 +20,10 @@ import (
 
 const (
 	HDR_KEY_CT     = "Content-Type"
-	HDR_KEY_CE     = "Content-Encoding"
+	//HDR_KEY_CE     = "Content-Encoding"
 	HDR_KEY_ACCEPT = "Accept"
 	HDR_VAL_JSON   = "application/json; charset=UTF-8"
-	HDR_VAL_GZ     = "gzip"
+	//HDR_VAL_GZ     = "gzip"
 )
 
 var (
@@ -32,6 +32,7 @@ var (
 	htmlFiles     = []string{"lunchlist.html", "country.html", "city.html", "site.html", "default.html"} // virtual files
 	textFiles     = []string{"lunchlist.txt", "country.txt", "city.txt", "site.txt"}                     // virtual files
 	urlIds        = []string{"country_id", "city_id", "site_id", "restaurant_id"}
+	sLog          = log.WithField("component", "server")
 )
 
 //type WebUser struct {
@@ -48,7 +49,7 @@ var (
 //}
 
 func initTmpl() error {
-	log.Debug("Looking for template folder...")
+	sLog.Debug("Looking for template folder...")
 	tBox, err := rice.FindBox("tmpl")
 	if err != nil {
 		return err
@@ -72,7 +73,7 @@ func initTmpl() error {
 		return err
 	}
 
-	log.Debug("Templates loaded and parsed")
+	sLog.Debug("Templates loaded and parsed")
 	return nil
 }
 
@@ -169,7 +170,10 @@ func setupRouter() (pubR, admR *mux.Router) {
 }
 
 func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
-	htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList())
+	err := htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList())
+	if err != nil {
+		sLog.WithField("func", "htmlIndexHandler").Error(err)
+	}
 }
 
 func genericTmplHandler(
@@ -227,13 +231,19 @@ func genericTmplHandler(
 
 func textTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
-		textTemplates.ExecuteTemplate(wr, textFiles[tmplIdx], obj)
+		err := textTemplates.ExecuteTemplate(wr, textFiles[tmplIdx], obj)
+		if err != nil {
+			sLog.WithField("func", "textTmplHandler").Error(err)
+		}
 	})
 }
 
 func htmlTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
-		htmlTemplates.ExecuteTemplate(wr, htmlFiles[tmplIdx], obj)
+		err := htmlTemplates.ExecuteTemplate(wr, htmlFiles[tmplIdx], obj)
+		if err != nil {
+			sLog.WithField("func", "htmlTmplHandler").Error(err)
+		}
 	})
 }
 
@@ -241,16 +251,19 @@ func jsonApiHandler(w http.ResponseWriter, r *http.Request) {
 	// I think maybe it could be a good idea to add gzip to this reply
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
 		wr.Header().Set(HDR_KEY_CT, HDR_VAL_JSON)
-		json.NewEncoder(wr).Encode(obj)
+		err := json.NewEncoder(wr).Encode(obj)
+		if err != nil {
+			sLog.WithField("func", "jsonApiHandler").Error(err)
+		}
 	})
 }
 
 // TODO: implement this in a way that makes it easy to render html to stdout etc...
-func dumpHtml(w io.Writer) {
-}
+//func dumpHtml(w io.Writer) {
+//}
 
 func addCountryHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering addCountryHandler...")
+	sLog.Debug("Entering addCountryHandler...")
 
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
@@ -273,11 +286,11 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getLunchList().AddCountry(*newCountry)
+	getLunchList().AddCountry(newCountry)
 }
 
 func delCountryHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering delCountryHandler...")
+	sLog.WithField("func", "delCountryHandler").Debug("Entering delCountryHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -297,7 +310,8 @@ func delCountryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCityHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering addCityHandler...")
+	acLog := sLog.WithField("func", "addCityHandler")
+	acLog.Debug("Entering addCityHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -320,8 +334,7 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if country.HasCity(cityID) {
-		log.WithFields(log.Fields{
-			"func":   "addCityHandler",
+		acLog.WithFields(log.Fields{
 			"cityID": cityID,
 		}).Debug("City already exists, overwriting")
 	}
@@ -332,11 +345,11 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country.AddCity(*city)
+	country.AddCity(city)
 }
 
 func delCityHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering delCityHandler...")
+	sLog.WithField("func", "delCityHandler").Debug("Entering delCityHandler...")
 
 	vars := mux.Vars(r)
 
@@ -366,7 +379,8 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addSiteHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering addSiteHandler...")
+	asLog := sLog.WithField("func", "addSiteHandler")
+	asLog.Debug("Entering addSiteHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -400,8 +414,7 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if city.HasSite(siteID) {
-		log.WithFields(log.Fields{
-			"func":   "addSiteHandler",
+		asLog.WithFields(log.Fields{
 			"siteID": siteID,
 		}).Debug("Site already exists, overwriting")
 	}
@@ -412,7 +425,7 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	city.AddSite(*site)
+	city.AddSite(site)
 
 	//	sl := _site.ll.GetSiteLinkById(countryID, cityID, siteID)
 	//	if nil != sl {
@@ -421,15 +434,15 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 	//			// We need to get a new reference to the site here
 	//			site = _site.ll.GetSiteById(countryID, cityID, siteID)
 	//			site.Key = token
-	//			log.Debugf("addSiteHandler: Got key: %q", token)
+	//			sLog.Debugf("addSiteHandler: Got key: %q", token)
 	//		}
 	//	} else {
-	//		log.Debug("addSiteHandler: got no sitelink to generate key for")
+	//		sLog.Debug("addSiteHandler: got no sitelink to generate key for")
 	//	}
 }
 
 func delSiteHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Entering delSiteHandler...")
+	sLog.WithField("func", "delSiteHandler").Debug("Entering delSiteHandler...")
 
 	vars := mux.Vars(r)
 
@@ -469,84 +482,84 @@ func delSiteHandler(w http.ResponseWriter, r *http.Request) {
 	city.DeleteSite(siteID)
 }
 
-func updateHandler(w http.ResponseWriter, r *http.Request) {
-	// Thoughts...
-	// We should probably accept something like this:
-	// A full site posted to a /country/city/
-	// A restaurant posted to a /country/city/site/
-	// A dish posted to a /country/city/site/restaurant/ ? No, this is one step too far
+//func updateHandler(w http.ResponseWriter, r *http.Request) {
+//	// Thoughts...
+//	// We should probably accept something like this:
+//	// A full site posted to a /country/city/
+//	// A restaurant posted to a /country/city/site/
+//	// A dish posted to a /country/city/site/restaurant/ ? No, this is one step too far
+//
+//	// 2019-08-07 21:02:
+//	// We should only accept a json encoded instance of Restaurants that we will add to an existing Site.
+//	// This since the site needs to have a key for verification that the scraper is authorized.
+//	// Reading a whole site and replace it would make the key useless.
+//
+//	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
+//
+//	vars := mux.Vars(r)
+//
+//	countryID, found := vars[urlIds[0]]
+//	if !found {
+//		http.NotFound(w, r) // 404
+//		return
+//	}
+//	cityID, found := vars[urlIds[1]]
+//	if !found {
+//		http.NotFound(w, r) // 404
+//		return
+//	}
+//	siteID, found := vars[urlIds[2]]
+//	if !found {
+//		http.NotFound(w, r) // 404
+//		return
+//	}
+//
+//	site := getLunchList().GetSiteById(countryID, cityID, siteID)
+//	if nil == site {
+//		http.NotFound(w, r) // 404
+//		return
+//	}
+//
+//	// Get header with auth token here, and compare it to the key set for the site.
+//	// If there is no key for the site, return error.
+//	// If the keys don't match, return error.
+//	// If the keys match, continue.
+//
+//	// eg:
+//	//	if r.Header.Get("x-auth-token") != "admin" {
+//	//		w.WriteHeader(http.StatusUnauthorized)
+//	//		return
+//	//	}
+//
+//	rs, err := lunchdata.RestaurantsFromJSON(r.Body)
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//
+//	site.SetRestaurants(rs)
+//
+//	// return 201 created on success
+//}
 
-	// 2019-08-07 21:02:
-	// We should only accept a json encoded instance of Restaurants that we will add to an existing Site.
-	// This since the site needs to have a key for verification that the scraper is authorized.
-	// Reading a whole site and replace it would make the key useless.
-
-	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
-
-	vars := mux.Vars(r)
-
-	countryID, found := vars[urlIds[0]]
-	if !found {
-		http.NotFound(w, r) // 404
-		return
-	}
-	cityID, found := vars[urlIds[1]]
-	if !found {
-		http.NotFound(w, r) // 404
-		return
-	}
-	siteID, found := vars[urlIds[2]]
-	if !found {
-		http.NotFound(w, r) // 404
-		return
-	}
-
-	site := getLunchList().GetSiteById(countryID, cityID, siteID)
-	if nil == site {
-		http.NotFound(w, r) // 404
-		return
-	}
-
-	// Get header with auth token here, and compare it to the key set for the site.
-	// If there is no key for the site, return error.
-	// If the keys don't match, return error.
-	// If the keys match, continue.
-
-	// eg:
-	//	if r.Header.Get("x-auth-token") != "admin" {
-	//		w.WriteHeader(http.StatusUnauthorized)
-	//		return
-	//	}
-
-	rs, err := lunchdata.RestaurantsFromJSON(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	site.SetRestaurants(rs)
-
-	// return 201 created on success
-}
-
-func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"country_name": sl.CountryName,
-		"country_id":   sl.CountryID,
-		"city_name":    sl.CityName,
-		"city_id":      sl.CityID,
-		"site_name":    sl.SiteName,
-		"site_id":      sl.SiteID,
-		"comment":      sl.Comment,
-		"url":          sl.Url,
-	})
-	tokenString, err := token.SignedString([]byte(secret))
-	if err != nil {
-		log.Error(err.Error())
-		return "", err
-	}
-	return tokenString, nil
-}
+//func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
+//	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+//		"country_name": sl.CountryName,
+//		"country_id":   sl.CountryID,
+//		"city_name":    sl.CityName,
+//		"city_id":      sl.CityID,
+//		"site_name":    sl.SiteName,
+//		"site_id":      sl.SiteID,
+//		"comment":      sl.Comment,
+//		"url":          sl.Url,
+//	})
+//	tokenString, err := token.SignedString([]byte(secret))
+//	if err != nil {
+//		sLog.Error(err.Error())
+//		return "", err
+//	}
+//	return tokenString, nil
+//}
 
 // JWT stuff modified from: https://www.thepolyglotdeveloper.com/2017/03/authenticate-a-golang-api-with-json-web-tokens/
 
@@ -565,7 +578,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
 //	var wu WebUser
 //	err := json.NewDecoder(r.Body).Decode(&wu)
 //	if err != nil {
-//		log.Error(err.Error())
+//		sLog.Error(err.Error())
 //	}
 //
 //	// at this point we should validate credentials before proceeding
@@ -576,7 +589,7 @@ func getTokenForSiteLink(sl lunchdata.SiteLink, secret string) (string, error) {
 //	})
 //	tokenString, err := token.SignedString([]byte("secret"))
 //	if err != nil {
-//		log.Error(err.Error())
+//		sLog.Error(err.Error())
 //	}
 //
 //	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})

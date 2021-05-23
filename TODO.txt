@@ -1,0 +1,9 @@
+2021-05-20 21:55:50
+
+- [ ] Rename server/Dockerfile to server/Dockerfile.remote or something.
+- [ ] Create new Dockerfile that works well with Docker hub, and locally,
+      not pulling everything from github, but using the repo it resides in.
+- [ ] Restructure the repo. Maybe move server/* up to top level.
+- [ ] Find a better solution than staticlunchlist.go
+- [ ] Pass in GTag from cli or something, don't store in code
+- [x] Do some linting and clean up code

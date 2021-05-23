@@ -36,6 +36,7 @@ func getLunchList() *lunchdata.LunchList {
 		//_lunchList = lunchdata.NewLunchList()
 		ll, err := lunchdata.LunchListFromJSON(strings.NewReader(lldata))
 		if err != nil {
+			// Ok to panic here, because this should not be possible to get wrong
 			panic(err)
 		}
 		// If we load the LunchList from JSON, and we only have a top-level

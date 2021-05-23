@@ -36,23 +36,22 @@ import (
 	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 
 	// Internal scrapers
 	"github.com/oddlid/go2lunch/scraper/se/gbg/lindholmen"
 )
 
 const (
-	VERSION           string = "2021-05-20"
 	DEF_WEB_ADR       string = ":20666"
 	DEF_ADM_ADR       string = ":20667"
-	DEF_COUNTRY_ID    string = "se"
-	DEF_CITY_ID       string = "gbg"
-	DEF_SITE_ID       string = "lindholmen"
 	DEF_READ_TIMEOUT         = 5
 	DEF_WRITE_TIMEOUT        = 10
 	DEF_IDLE_TIMEOUT         = 15
 
+	//DEF_COUNTRY_ID    string = "se"
+	//DEF_CITY_ID       string = "gbg"
+	//DEF_SITE_ID       string = "lindholmen"
 	//GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - TODO: replace!
 	//DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
 	//DEF_COUNTRY_NAME  string = "Sweden"
@@ -77,6 +76,7 @@ const (
 )
 
 var (
+	VERSION    string
 	BUILD_DATE string
 	COMMIT_ID  string
 	_gtag      string
@@ -84,6 +84,14 @@ var (
 	_lunchList *lunchdata.LunchList
 )
 
+/*
+Since we call registerSiteScraper() here from init, getLunchList() will get called in staticlunchlist.go
+with _lunchlist being nil, resulting in initialization from the static JSON in that file.
+If we at a point after that load content from JSON via a file, site.Scraper will get overwritten to nil,
+and no further scraping will happen.
+For now, that is acceptable, but it's not very obvious and could lead to hard to find bugs later on.
+We should rather not use init() at all, but register scrapers at a later point.
+*/
 func init() {
 	lhs := lindholmen.LHScraper{}
 	registerSiteScraper(lhs.GetCountryID(), lhs.GetCityID(), lhs.GetSiteID(), lhs)
@@ -104,12 +112,12 @@ func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.Sit
 	lsite.Scraper = scraper
 }
 
-func lunchListFromJSON(filename string) error {
+func lunchListFromFile(filename string) error {
 	ll, err := lunchdata.LunchListFromFile(filename)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"ErrMSG": err.Error(),
-		}).Error("Unable to load site from JSON")
+		}).Error("Unable to load site from JSON file")
 		return err
 	}
 	// If we load the LunchList from JSON, and we only have a top-level
@@ -175,8 +183,10 @@ func setGtag(ctx *cli.Context) {
 }
 
 func entryPointServe(ctx *cli.Context) error {
+	pid := os.Getpid()
+
 	log.WithFields(log.Fields{
-		"PID": os.Getpid(),
+		"PID": pid,
 	}).Debug("Startup info")
 
 	pidfile := ctx.String("writepid")
@@ -186,10 +196,10 @@ func entryPointServe(ctx *cli.Context) error {
 		}).Debug("Got argument")
 		err := writePid(pidfile)
 		if err != nil {
-			return cli.NewExitError(err.Error(), E_WRITEPID)
+			return cli.Exit(err.Error(), E_WRITEPID)
 		}
 		log.WithFields(log.Fields{
-			"PID":     os.Getpid(),
+			"PID":     pid,
 			"PIDFile": pidfile,
 		}).Info("Wrote pidfile")
 	} else {
@@ -230,23 +240,31 @@ func entryPointServe(ctx *cli.Context) error {
 
 	err := initTmpl()
 	if err != nil {
-		return cli.NewExitError(err.Error(), E_INITTMPL)
+		return cli.Exit(err.Error(), E_INITTMPL)
 	}
+
+	// Loading the lunchlist from a JSON file is mostly useful for testing.
+	// As the entire structure is replaced, every Site's Scraper instance will be set to nil,
+	// and so no auto-scraping will happen, unless we re-register scrapers after JSON load.
+	// Unless testing scraping, one can load a copy of PROD data in a local instance like this:
+	//
+	// $ go run . -d serve --load <(curl -sS https://lunch.oddware.net/json/)
 
 	// handle "load" argument here before serving
 	jfile := ctx.String("load")
 	if jfile != "" {
-		err := lunchListFromJSON(jfile)
+		err := lunchListFromFile(jfile)
 		if err != nil {
-			return cli.NewExitError(err.Error(), E_READJSON)
+			return cli.Exit(err.Error(), E_READJSON)
 		}
 		log.WithFields(log.Fields{
 			"JSONFile": jfile,
-		}).Debug("Load site successful")
+		}).Info("Load lunch list from file successful")
+		log.Info("Auto-scraping is now disabled")
 		//_noScrape = true
 	}
 
-	// Important that this call comes after anything that sets content, like lunchListFromJSON above
+	// Important that this call comes after anything that sets content, like lunchListFromFile above
 	// We should probably make a hook that calls this after any update of content as well
 	// If we did load from JSON, this gives us the possibility to override the Gtag from CLI
 	setGtag(ctx)
@@ -379,12 +397,12 @@ func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.W
 //	if pidf != "" {
 //		pid, err := readPid(pidf)
 //		if err != nil {
-//			return cli.NewExitError(err.Error(), E_READPID)
+//			return cli.Exit(err.Error(), E_READPID)
 //		}
 //		if pid > 0 {
 //			err := notifyPid(pid)
 //			if err != nil {
-//				return cli.NewExitError(err.Error(), E_NOTIFYPID)
+//				return cli.Exit(err.Error(), E_NOTIFYPID)
 //			} else {
 //				log.Infof("Told PID %d to re-scrape", pid)
 //				return nil
@@ -395,7 +413,7 @@ func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.W
 //	// get content
 //	err := update()
 //	if err != nil {
-//		return cli.NewExitError(err.Error(), E_UPDATE)
+//		return cli.Exit(err.Error(), E_UPDATE)
 //	}
 //
 //	//	// write html output if requested, otherwise json
@@ -403,7 +421,7 @@ func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.W
 //	//	if dumpHtml {
 //	//		err := initTmpl() // does more than we need here, so maybe rewrite some time...
 //	//		if err != nil {
-//	//			return cli.NewExitError(err.Error(), E_INITTMPL)
+//	//			return cli.Exit(err.Error(), E_INITTMPL)
 //	//		}
 //	//		tmpl_lhlunch_html.Execute(os.Stdout, _site.getLHSite()) // TODO: Rethink and replace
 //	//		return nil // be sure to not proceed when done here
@@ -415,12 +433,12 @@ func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.W
 //	if outfile == "-" || outfile == "" {
 //		err := _site.ll.Encode(os.Stdout)
 //		if err != nil {
-//			return cli.NewExitError(err.Error(), E_WRITEJSON)
+//			return cli.Exit(err.Error(), E_WRITEJSON)
 //		}
 //	} else {
 //		err := _site.ll.SaveJSON(outfile)
 //		if err != nil {
-//			return cli.NewExitError(err.Error(), E_WRITEJSON)
+//			return cli.Exit(err.Error(), E_WRITEJSON)
 //		}
 //		log.Debugf("Wrote JSON result to %q", outfile)
 //	}
@@ -475,59 +493,62 @@ func main() {
 	app.Version = fmt.Sprintf("%s_%s", VERSION, COMMIT_ID)
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
 	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
-	app.Authors = []cli.Author{
-		cli.Author{
+	app.Authors = []*cli.Author{
+		&cli.Author{
 			Name:  "Odd E. Ebbesen",
 			Email: "oddebb@gmail.com",
 		},
 	}
 	app.Usage = "Serve lunch menus from configured sites"
+	app.EnableBashCompletion = true
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "serve",
 			Aliases: []string{"srv"},
 			Usage:   "Start server",
 			Action:  entryPointServe,
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "listen-adr, l",
-					Value: DEF_WEB_ADR,
-					Usage: "(hostname|IP):port to listen on for the regular/public site",
+				&cli.StringFlag{
+					Name:    "listen-adr",
+					Aliases: []string{"l"},
+					Value:   DEF_WEB_ADR,
+					Usage:   "[hostname|IP]:port to listen on for the regular/public site",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "listen-adm",
 					Value: DEF_ADM_ADR,
-					Usage: "(hostname|IP):port to listen on for the admin api site",
+					Usage: "[hostname|IP]:port to listen on for the admin api site",
 				},
-				cli.StringFlag{
-					Name:  "writepid, p",
-					Usage: "Write PID to `FILE`",
+				&cli.StringFlag{
+					Name:    "writepid",
+					Aliases: []string{"p"},
+					Usage:   "Write PID to `FILE`",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "cron",
 					Usage: "Specify intervals for re-scrape in cron format with `TIMESPEC`",
 					// what I had in regular cron: "0 0,30 08-12 * * 1-5"
 					// That is: on second 0 of minute 0 and 30 of hour 08-12 of weekday mon-fri on any day of month any month
 					// Update @ 2019-10-28: New version of cron-lib does not use second field
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "load",
 					Usage: "Load initial data from `JSONFILE`",
 				},
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "save-on-exit",
 					Usage: "If config was loaded from file, save it back to the same file on exit",
 				},
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "strip-menus-on-save",
 					Usage: "Do not save restaurants and their dishes when saving on exit. Only save structure.",
 				},
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "noscrape",
 					Usage: "Disable scraping",
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "gtag",
 					Usage: "GTAG for Google Analytics in generated pages",
 					//Value: GTAG_ID,
@@ -540,16 +561,16 @@ func main() {
 		//			Usage:   "Scrape source and output JSON or HTML, then exit",
 		//			Action:  entryPointScrape,
 		//			Flags: []cli.Flag{
-		//				cli.StringFlag{
+		//				&cli.StringFlag{
 		//					Name:  "outfile, o",
 		//					Usage: "Write JSON result to `FILE` ('-' for STDOUT)",
 		//					Value: "-",
 		//				},
-		//				//				cli.BoolFlag{
+		//				//				&cli.BoolFlag{
 		//				//					Name:  "html",
 		//				//					Usage: "Write HTML result to STDOUT",
 		//				//				},
-		//				cli.StringFlag{
+		//				&cli.StringFlag{
 		//					Name:  "notify-pid, p",
 		//					Usage: "Read PID from `FILE` and tell the process with that PID to re-scrape",
 		//				},
@@ -558,14 +579,16 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "log-level, l",
-			Value: "info",
-			Usage: "Log `level` (options: debug, info, warn, error, fatal, panic)",
+		&cli.StringFlag{
+			Name:    "log-level",
+			Aliases: []string{"l"},
+			Value:   "info",
+			Usage:   "Log `level` (options: debug, info, warn, error, fatal, panic)",
 		},
-		cli.BoolFlag{
-			Name:  "debug, d",
-			Usage: "Run in debug mode",
+		&cli.BoolFlag{
+			Name:    "debug",
+			Aliases: []string{"d"},
+			Usage:   "Run in debug mode",
 		},
 	}
 
@@ -586,5 +609,10 @@ func main() {
 		return nil
 	}
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Error(err)
+	}
+
+	os.Exit(E_OK)
 }

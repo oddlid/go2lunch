@@ -1,15 +1,21 @@
 # Dockerfile for local/test usage.
-# Here we don't build the package, we just create a runtime env for it.
+# Here we don't build the package, we just create a runtime env for a prebuilt binary
 
 FROM alpine:latest
 LABEL maintainer="Odd E. Ebbesen <oddebb@gmail.com>"
+ARG BIN=go2lunchsrv.bin
+ARG ARG_TZ=Europe/Stockholm
+ENV SRV_BIN=${BIN}
+ENV TZ=${ARG_TZ}
 RUN apk add --no-cache --update tini ca-certificates \
 		&& \
 		rm -rf /var/cache/apk/*
 RUN adduser -D -u 1000 lunchsrv
 EXPOSE 20666 20667
-COPY go2lunchsrv.bin /usr/local/bin/
-RUN chown lunchsrv /usr/local/bin/go2lunchsrv.bin && chmod 555 /usr/local/bin/go2lunchsrv.bin
+COPY ${BIN} /usr/local/bin/
+RUN chown lunchsrv /usr/local/bin/${BIN} && chmod 555 /usr/local/bin/${BIN}
 USER lunchsrv
-ENTRYPOINT ["tini", "-g", "--", "go2lunchsrv.bin"]
-CMD ["-h"]
+ENTRYPOINT ["tini", "-g", "--"]
+CMD ${SRV_BIN} -h
+
+# vim: set syntax=Dockerfile:

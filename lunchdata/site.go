@@ -22,9 +22,9 @@ type Site struct {
 	Scraper     SiteScraper            `json:"-"`
 }
 
-type Sites []Site
+type Sites []*Site
 
-func (ss *Sites) Add(s Site) {
+func (ss *Sites) Add(s *Site) {
 	*ss = append(*ss, s)
 }
 
@@ -90,9 +90,9 @@ func (s *Site) ParsedHumanDate() string {
 	return DATE_FORMAT
 }
 
-func (s *Site) AddRestaurant(r Restaurant) *Site {
+func (s *Site) AddRestaurant(r *Restaurant) *Site {
 	s.Lock()
-	s.Restaurants[r.ID] = &r
+	s.Restaurants[r.ID] = r
 	s.Unlock()
 	return s
 }
@@ -141,8 +141,8 @@ func (s *Site) SetRestaurants(rs Restaurants) *Site {
 	// And this made all the difference!
 	// Seems there is some black magic going on behind the scenes in regard to pointer dereferencing or
 	// something.
-	add := func(r Restaurant) { // just the same as AddRestaurant, but without locks
-		s.Restaurants[r.ID] = &r
+	add := func(r *Restaurant) { // just the same as AddRestaurant, but without locks
+		s.Restaurants[r.ID] = r
 	}
 	s.Lock()
 	s.Restaurants = make(map[string]*Restaurant) // just the same as ClearRestaurants, but without locks

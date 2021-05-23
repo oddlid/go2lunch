@@ -28,34 +28,34 @@ type SiteKeyLink struct {
 	SiteKey   string `json:"site_key"`
 }
 
-type SiteLinks []SiteLink
-type SiteKeyLinks []SiteKeyLink
+type SiteLinks []*SiteLink
+type SiteKeyLinks []*SiteKeyLink
 
-func (sls *SiteLinks) Add(sl SiteLink) {
+func (sls *SiteLinks) Add(sl *SiteLink) {
 	*sls = append(*sls, sl)
 }
 
-func (sks *SiteKeyLinks) Add(sk SiteKeyLink) {
+func (sks *SiteKeyLinks) Add(sk *SiteKeyLink) {
 	*sks = append(*sks, sk)
 }
 
-func (sls SiteLinks) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(&sls)
+func (sls *SiteLinks) Encode(w io.Writer) error {
+	return json.NewEncoder(w).Encode(sls)
 }
 
-func (sks SiteKeyLinks) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(&sks)
+func (sks *SiteKeyLinks) Encode(w io.Writer) error {
+	return json.NewEncoder(w).Encode(sks)
 }
 
-func (sls SiteLinks) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&sls)
+func (sls *SiteLinks) Decode(r io.Reader) error {
+	return json.NewDecoder(r).Decode(sls)
 }
 
-func (sks SiteKeyLinks) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&sks)
+func (sks *SiteKeyLinks) Decode(r io.Reader) error {
+	return json.NewDecoder(r).Decode(sks)
 }
 
-func (sls SiteLinks) SaveJSON(fileName string) error {
+func (sls *SiteLinks) SaveJSON(fileName string) error {
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (sls SiteLinks) SaveJSON(fileName string) error {
 	return nil
 }
 
-func (sks SiteKeyLinks) SaveJSON(fileName string) error {
+func (sks *SiteKeyLinks) SaveJSON(fileName string) error {
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
@@ -120,4 +120,3 @@ func SiteKeyLinksFromFile(fileName string) (SiteKeyLinks, error) {
 	r := bufio.NewReader(f)
 	return SiteKeyLinksFromJSON(r)
 }
-

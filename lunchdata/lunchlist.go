@@ -50,9 +50,9 @@ func (ll *LunchList) PropagateGtag(tag string) *LunchList {
 	return ll
 }
 
-func (ll *LunchList) AddCountry(c Country) *LunchList {
+func (ll *LunchList) AddCountry(c *Country) *LunchList {
 	ll.Lock()
-	ll.Countries[c.ID] = &c
+	ll.Countries[c.ID] = c
 	ll.Unlock()
 	return ll
 }
@@ -293,7 +293,7 @@ func (ll *LunchList) GetSiteLinks() SiteLinks {
 	for _, country := range ll.Countries {
 		for _, city := range country.Cities {
 			for _, site := range city.Sites {
-				sl = append(sl, SiteLink{
+				sl = append(sl, &SiteLink{
 					CountryName: country.Name,
 					CountryID:   country.ID,
 					CityName:    city.Name,
@@ -318,7 +318,7 @@ func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
 		for _, city := range country.Cities {
 			for _, site := range city.Sites {
 				//if site.Key != "" {
-				skls = append(skls, SiteKeyLink{
+				skls = append(skls, &SiteKeyLink{
 					CountryID: country.ID,
 					CityID:    city.ID,
 					SiteID:    site.ID,

@@ -24,5 +24,5 @@ var (
 	cityLog       = pkgLog.WithField(MOD, TAG_CITY)
 	siteLog       = pkgLog.WithField(MOD, TAG_SITE)
 	restaurantLog = pkgLog.WithField(MOD, TAG_RESTAURANT)
-	dishLog       = pkgLog.WithField(MOD, TAG_DISH)
+	//dishLog       = pkgLog.WithField(MOD, TAG_DISH)
 )
