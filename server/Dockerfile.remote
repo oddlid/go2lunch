@@ -29,7 +29,9 @@ ARG BUILD_BIN
 ARG ARG_TZ=Europe/Stockholm
 ENV SRV_BIN=${BUILD_BIN}
 ENV TZ=${ARG_TZ}
-RUN apk add --no-cache --update tini ca-certificates \
+RUN apk add --no-cache --update \
+		ca-certificates \
+		tzdata \
 		&& \
 		rm -rf /var/cache/apk/*
 RUN adduser -D -u 1000 lunchsrv

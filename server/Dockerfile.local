@@ -7,7 +7,9 @@ ARG BIN=go2lunchsrv.bin
 ARG ARG_TZ=Europe/Stockholm
 ENV SRV_BIN=${BIN}
 ENV TZ=${ARG_TZ}
-RUN apk add --no-cache --update tini ca-certificates \
+RUN apk add --no-cache --update \
+		ca-certificates \
+		tzdata \
 		&& \
 		rm -rf /var/cache/apk/*
 RUN adduser -D -u 1000 lunchsrv
