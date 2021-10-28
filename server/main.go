@@ -22,24 +22,18 @@ TODO:
 */
 
 import (
-	//"bytes"
 	"context"
 	"fmt"
-	//"io/ioutil"
 	"net/http"
 	"os"
-	//"strconv"
-	//"strings"
 	"sync"
 	"time"
 
 	"github.com/oddlid/go2lunch/lunchdata"
+	"github.com/oddlid/go2lunch/scraper/se/gbg/lindholmen"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-
-	// Internal scrapers
-	"github.com/oddlid/go2lunch/scraper/se/gbg/lindholmen"
 )
 
 const (
@@ -269,12 +263,11 @@ func entryPointServe(ctx *cli.Context) error {
 	// If we did load from JSON, this gives us the possibility to override the Gtag from CLI
 	setGtag(ctx)
 
-	numServers := 2
-	quit := make(chan bool, numServers)
+	quit := make(chan struct{})
 	// signal handling
 	// On windows this only logs a message about skipping signal handling
 	// See: signalhandling.go and signalhandling_windows.go
-	setupSignalHandling(quit, numServers)
+	setupSignalHandling(quit)
 	// END signal handling
 
 	listenAdr := ctx.String("listen-adr")
@@ -285,7 +278,7 @@ func entryPointServe(ctx *cli.Context) error {
 	admSrv := createServer(listenAdm, admR)
 
 	var wg sync.WaitGroup
-	wg.Add(numServers)
+	wg.Add(2) // 2 = number of servers to wait for
 	go gracefulShutdown("PubSRV", pubSrv, quit, &wg)
 	go gracefulShutdown("AdmSRV", admSrv, quit, &wg)
 	go func() {
@@ -295,6 +288,8 @@ func entryPointServe(ctx *cli.Context) error {
 		ctxlog.Info("Public server listening")
 		if err := pubSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			ctxlog.Error("Error starting public server")
+		} else {
+			ctxlog.WithField("err", err).Info("Server shut down cleanly")
 		}
 	}()
 	go func() {
@@ -304,6 +299,8 @@ func entryPointServe(ctx *cli.Context) error {
 		ctxlog.Info("Admin server listening")
 		if err := admSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			ctxlog.Error("Error starting admin server")
+		} else {
+			ctxlog.WithField("err", err).Info("Server shut down cleanly")
 		}
 	}()
 
@@ -324,6 +321,7 @@ func entryPointServe(ctx *cli.Context) error {
 	// Might be months until we reach the next line after this
 	// Given that thought, maybe this would be a good place to display some uptime stats or something...
 	wg.Wait()
+	log.Debug("All servers shutdown, save on exit if configured to do so...")
 
 	// If we did load contents from a file, let's save it back
 	saveOnExit := ctx.Bool("save-on-exit")
@@ -355,22 +353,27 @@ func createServer(addr string, hnd http.Handler) *http.Server {
 	}
 }
 
-func gracefulShutdown(tag string, srv *http.Server, quit <-chan bool, wg *sync.WaitGroup) {
-	defer wg.Done()
+func gracefulShutdown(tag string, srv *http.Server, quit <-chan struct{}, wg *sync.WaitGroup) {
 	<-quit
 	log.WithFields(log.Fields{
 		"Server": tag,
 	}).Debug("Shutting down server gracefully...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.WithFields(log.Fields{
 			"Server": tag,
 			"ErrMSG": err.Error(),
 		}).Error("Error shutting down server")
+	} else {
+		log.WithField(
+			"Server",
+			tag,
+		).Info("Shutdown() returned no error")
 	}
+	cancel()
+	wg.Done()
 }
 
 //func readPid(filename string) (int, error) {
@@ -494,7 +497,7 @@ func main() {
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
 	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
 	app.Authors = []*cli.Author{
-		&cli.Author{
+		{
 			Name:  "Odd E. Ebbesen",
 			Email: "oddebb@gmail.com",
 		},

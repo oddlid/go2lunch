@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func setupSignalHandling(_ chan<- bool, _ int) {
+func setupSignalHandling(_ chan<- struct{}) {
 	log.Info("Skipping setup of signal handling, as we are running on Windows")
 }
 

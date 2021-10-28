@@ -1,6 +1,7 @@
 // We have this in a separate file with build constraints excluding windows, as it doesn't
 // support the signals we're interested in.
 
+//go:build !windows
 // +build !windows
 
 package main
@@ -13,37 +14,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func setupSignalHandling(quit chan<- bool, numServers int) {
+func setupSignalHandling(quit chan<- struct{}) {
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan,
 		syscall.SIGUSR1,
 		syscall.SIGUSR2,
 		syscall.SIGINT,
 		syscall.SIGTERM,
+		syscall.SIGQUIT,
 	)
 	go func() {
 		for sig := range sig_chan {
 			switch sig {
-			//			case syscall.SIGUSR1: // re-scrape and update internal DB
-			//				err := update()
-			//				if err != nil {
-			//					log.Error(err.Error())
-			//				}
-			//			case syscall.SIGUSR2: // dump internal DB to stdout
-			//				log.Info("Dumping parsed contents as JSON to STDOUT:")
-			//				err := _site.ll.Encode(os.Stdout)
-			//				if err != nil {
-			//					log.Error(err.Error())
-			//				}
 			case syscall.SIGUSR1, syscall.SIGUSR2:
 				log.Debug("SIGUSR[1|2]: Deprecated signals")
-			case syscall.SIGINT, syscall.SIGTERM:
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
 				log.Debug("Got quit signal, notifying goroutines...")
-				//close(done)
-				// send signals, one for each goroutine with a server
-				for i := 0; i < numServers; i++ {
-					quit <- true
-				}
+				close(quit)
 			default:
 				log.Debug("Caught unhandled signal, exiting...")
 				os.Exit(255)
@@ -51,7 +38,3 @@ func setupSignalHandling(quit chan<- bool, numServers int) {
 		}
 	}()
 }
-
-//func notifyPid(pid int) error {
-//	return syscall.Kill(pid, syscall.SIGUSR1)
-//}

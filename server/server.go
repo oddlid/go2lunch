@@ -4,22 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	htmpl "html/template"
-	//"io"
 	"net/http"
 	"strings"
 	ttmpl "text/template"
 
-	"github.com/GeertJohan/go.rice"
-	//"github.com/dgrijalva/jwt-go"
-	log "github.com/sirupsen/logrus"
-	//"github.com/gorilla/context"
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
-	//"github.com/mitchellh/mapstructure"
 	"github.com/oddlid/go2lunch/lunchdata"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
-	HDR_KEY_CT     = "Content-Type"
+	HDR_KEY_CT = "Content-Type"
 	//HDR_KEY_CE     = "Content-Encoding"
 	HDR_KEY_ACCEPT = "Accept"
 	HDR_VAL_JSON   = "application/json; charset=UTF-8"
