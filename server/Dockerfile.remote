@@ -39,7 +39,7 @@ COPY --from=builder /go/src/github.com/oddlid/go2lunch/server/${BUILD_BIN} /usr/
 RUN chown lunchsrv /usr/local/bin/${BUILD_BIN} && chmod 555 /usr/local/bin/${BUILD_BIN}
 EXPOSE 20666 20667
 USER lunchsrv
-ENTRYPOINT ["tini", "-g", "--"]
+#ENTRYPOINT ["tini", "-g", "--"]
 CMD ${SRV_BIN} -h
 
 # vim: set syntax=Dockerfile:

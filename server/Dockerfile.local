@@ -17,7 +17,7 @@ EXPOSE 20666 20667
 COPY ${BIN} /usr/local/bin/
 RUN chown lunchsrv /usr/local/bin/${BIN} && chmod 555 /usr/local/bin/${BIN}
 USER lunchsrv
-ENTRYPOINT ["tini", "-g", "--"]
+#ENTRYPOINT ["tini", "-g", "--"]
 CMD ${SRV_BIN} -h
 
 # vim: set syntax=Dockerfile:
