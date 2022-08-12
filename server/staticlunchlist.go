@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+
 	"github.com/oddlid/go2lunch/lunchdata"
 )
 
@@ -32,8 +33,7 @@ var lldata string = `
 `
 
 func getLunchList() *lunchdata.LunchList {
-	if nil == _lunchList {
-		//_lunchList = lunchdata.NewLunchList()
+	if _lunchList == nil {
 		ll, err := lunchdata.LunchListFromJSON(strings.NewReader(lldata))
 		if err != nil {
 			// Ok to panic here, because this should not be possible to get wrong
@@ -48,5 +48,3 @@ func getLunchList() *lunchdata.LunchList {
 	}
 	return _lunchList
 }
-
-

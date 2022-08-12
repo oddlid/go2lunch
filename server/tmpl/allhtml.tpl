@@ -131,7 +131,7 @@
             <h2 class="name h6">
 				<a href="{{.Url}}">{{.Name}}</a>
 			{{- if .Address }}
-				- <a href="{{.GetMapUrl}}" target="_blank">{{.Address}}</a>
+				- <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
 			{{- end }}
 			</h2>
           </summary>

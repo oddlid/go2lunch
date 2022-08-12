@@ -14,17 +14,17 @@ type Dish struct {
 
 type Dishes []*Dish
 
-func (ds *Dishes) Add(d *Dish) {
-	*ds = append(*ds, d)
-}
+// func (ds Dishes) Add(d *Dish) {
+// 	ds = append(ds, d)
+// }
 
-func NewDish(name, desc string, price int) *Dish {
-	return &Dish{
-		Name:  name,
-		Desc:  desc,
-		Price: price,
-	}
-}
+// func NewDish(name, desc string, price int) *Dish {
+// 	return &Dish{
+// 		Name:  name,
+// 		Desc:  desc,
+// 		Price: price,
+// 	}
+// }
 
 func (d *Dish) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(d)

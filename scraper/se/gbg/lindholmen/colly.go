@@ -18,215 +18,212 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/queue"
 	"github.com/oddlid/go2lunch/lunchdata"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 )
 
 const (
-	UA         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
-	TAG        = "LHScraper"
-	COUNTRY_ID = "se"
-	CITY_ID    = "gbg"
-	SITE_ID    = "lindholmen"
+	userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
+	tag                 = `LHScraper`
+	countryID           = `se`
+	cityID              = `gbg`
+	siteID              = `lindholmen`
+	selectorViewContent = `div.view-content`
+	selectorContent     = `div.content`
+	selectorTitle       = `h3.title`
+	selectorDishRow     = `div.table-list__row`
+	selectorDish        = `span.dish-name`
+	selectorDishName    = `strong`
+	selectorPrice       = `div.table-list__column--price`
+	keyUrl              = `url`
+	keyRestaurant       = `restaurant`
+	keyNumRestaurants   = `numRestaurants`
+	keyDish             = `dish`
+	keyNumDishes        = `numDishes`
+	keyParsedTime       = `parsedTimeMS`
+	keyMapURL           = `mapURL`
+	keyAddr             = `addr`
+	keyLink             = `link`
 )
 
-var (
-	logger = log.WithField("ScraperName", TAG)
-)
-
-type LHScraper struct{}
+type LHScraper struct {
+	URL    string
+	Logger zerolog.Logger
+}
 
 // Encode ID field. Might find a better strategy for this later
 func getRestaurantID(name string) string {
 	return url.PathEscape(strings.ToLower(name))
 }
 
-func (lhs LHScraper) GetCountryID() string {
-	return COUNTRY_ID
+func (LHScraper) GetCountryID() string {
+	return countryID
 }
 
-func (lhs LHScraper) GetCityID() string {
-	return CITY_ID
+func (LHScraper) GetCityID() string {
+	return cityID
 }
 
-func (lhs LHScraper) GetSiteID() string {
-	return SITE_ID
+func (LHScraper) GetSiteID() string {
+	return siteID
 }
 
-// helper func for parsing out address from maps url found on lindholmen.se
-func getAddress(mapUrl string) string {
-	// remove map url prefix
-	query := strings.Replace(
-		mapUrl,
-		"http://maps.google.com/?q=",
-		"",
-		1,
-	)
-	// remove encoded newlines
-	query = strings.Replace(
-		query,
-		"\n",
-		"",
-		-1,
-	)
-	// Remove leading and trailing '+'
-	query = strings.Trim(query, "+")
-	// Create plain text
-	tmp, err := url.QueryUnescape(query)
-	if nil == err {
-		query = tmp
-	}
-	// Might be empty
-	return query
-}
+func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
+	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
+	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
+	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
 
-/*
-2019-10-23 21:37:
-This is very strange... I basically copied this code from collytest.go
-When I run collytest.go directly, it all works fine, but when I run this code included in
-the larger program, run via a goroutine, I only get the first restaurant with it's dishes,
-repeated for the number of restaurants that were actually parsed.
-This sounds just like the problems I've had with (not) using pointers in the lunchdata structures...
-Need to find out why this happens.
-2019-10-24 22:51
-Update: Turns out it was due to some obscure pointer dereferencing in Go I wasn't aware of. Not related
-to the code in this module at all.
-*/
-func (lhs LHScraper) Scrape() (lunchdata.Restaurants, error) {
-	rmap := make(map[string]*lunchdata.Restaurant)
-	// create a queue for holding links to each restaurant to parse
-	q, _ := queue.New(
-		4, // Number of consumer threads
-		&queue.InMemoryQueueStorage{MaxSize: 10000}, // Use default queue storage
-	)
+	restaurantMap := make(map[string]*lunchdata.Restaurant)
+	collector := colly.NewCollector(colly.UserAgent(userAgent))
 
-	// Create collector with callbacks for picking out links to each restaurant page from the overview page
-	lc := colly.NewCollector(colly.UserAgent(UA)) // lc for LinkCollector
-	lc.OnHTML("h3.restaurant-name > a[href]", func(e *colly.HTMLElement) {
-		link := e.Request.AbsoluteURL(e.Attr("href"))
-		err := q.AddURL(link) // add to queue
-		if err != nil {
-			logger.WithField("func", "Scrape->lc.OnHTML").Error(err)
-		}
+	collector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
+		e.ForEach(selectorTitle, func(i int, h *colly.HTMLElement) {
+			name := strings.TrimSpace(h.ChildText("a"))
+			// we only want the last part of the link, since the links on this page are not correct,
+			// so we need to reconstruct them ourselves later
+			link := strings.Replace(
+				h.ChildAttr("a", "href"),
+				"/restauranger/", "", 1,
+			)
 
-		restaurantName := strings.TrimSpace(e.Text)
-		_, found := rmap[restaurantName]
-		if !found {
-			rmap[restaurantName] = lunchdata.NewRestaurant(
-				restaurantName,
-				getRestaurantID(restaurantName),
-				link,
+			lhs.Logger.Trace().
+				Str(keyRestaurant, name).
+				Msg("Adding restaurant")
+
+			restaurant := lunchdata.NewRestaurant(
+				name,
+				getRestaurantID(name),
+				"https://www.lindholmen.se/sv/"+link, // fill in the correct prefix for the link
 				time.Now(),
 			)
-		}
+
+			h.DOM.NextFilteredUntil(selectorDishRow, selectorTitle).Each(func(i int, s *goquery.Selection) {
+				dishSelection := s.Find(selectorDish)
+				dishName := strings.TrimSpace(dishSelection.Find(selectorDishName).Text())
+				dishDesc := dishSelection.Text()
+				dishDesc = strings.TrimSpace(strings.Replace(dishDesc, dishName, "", 1))
+				dishDesc = strings.Join(strings.Fields(dishDesc), " ")
+				dishPrice := strings.TrimSpace(
+					// we only want the value, so it can be stored as an int
+					strings.Replace(
+						s.Find(selectorPrice).Text(),
+						"kr", "", 1,
+					),
+				)
+				price, err := strconv.Atoi(dishPrice)
+				if err != nil {
+					lhs.Logger.Error().
+						Err(err).
+						Msg("Failed to parse dish price")
+					price = -1
+				}
+				restaurant.AddDish(
+					&lunchdata.Dish{
+						Name:  dishName,
+						Desc:  dishDesc,
+						Price: price,
+					},
+				)
+				lhs.Logger.Trace().
+					Str(keyRestaurant, name).
+					Str(keyDish, dishName).
+					Send()
+			})
+			restaurantMap[restaurant.Url] = restaurant
+		})
 	})
 
-	// This will block until done parsing, so we're sure to have all links before continuing
-	t_start := time.Now()
-	err := lc.Visit("https://www.lindholmen.se/omradet/restauranger")
-	if err != nil {
-		logger.WithField("func", "Scrape").Error(err)
+	lhs.Logger.Debug().
+		Str(keyUrl, lhs.URL).
+		Msg("Start scraping menus")
+
+	startTimeMenus := time.Now()
+	if err := collector.Visit(lhs.URL); err != nil {
+		return nil, err
 	}
 
-	numLinks, err := q.Size()
-	if err != nil {
-		numLinks = -1
+	restaurants := make(lunchdata.Restaurants, 0, len(restaurantMap))
+	for _, restaurant := range restaurantMap {
+		restaurants = append(restaurants, restaurant)
 	}
 
-	logger.WithFields(log.Fields{
-		"func":               "Scrape",
-		"Seconds":            time.Since(t_start).Seconds(), //time.Duration(time.Now().Sub(t_start)).Seconds(),
-		"NumRestaurantLinks": numLinks,
-	}).Debug("Time to parse overview page")
+	lhs.Logger.Debug().
+		Str(keyUrl, lhs.URL).
+		Dur(keyParsedTime, time.Since(startTimeMenus)).
+		Int(keyNumRestaurants, restaurants.Len()).
+		Int(keyNumDishes, restaurants.NumDishes()).
+		Msg("Restaurants and menus parsed")
 
-	// Create collector with callbacks for parsing a restaurant detail page, and picking out dishes from it
-	rc := lc.Clone()
-	rc.OnHTML("div.node.node-restaurant.node-full", func(e *colly.HTMLElement) {
-		restaurantName := strings.TrimSpace(e.ChildText("h1.content__title.page-title.restaurant-name"))
-		restaurant, found := rmap[restaurantName]
+	addrCollector := collector.Clone()
+	addrCollector.Async = true
+
+	addrCollector.OnHTML(selectorContent, func(e *colly.HTMLElement) {
+		lhs.Logger.Trace().
+			Str(keyUrl, e.Request.URL.String()).
+			Msg("Looking for map link...")
+
+		restaurant, found := restaurantMap[e.Request.URL.String()]
 		if !found {
-			restaurant = lunchdata.NewRestaurant(
-				restaurantName,
-				getRestaurantID(restaurantName),
-				e.Request.URL.String(),
-				time.Now(),
-			)
-			rmap[restaurantName] = restaurant
+			lhs.Logger.Error().
+				Str(keyUrl, e.Request.URL.String()).
+				Msg("No restaurant entry for URL")
+			return
 		}
+		e.ForEachWithBreak("p > a", func(i int, h *colly.HTMLElement) bool {
+			link := h.Attr("href")
+			if strings.Contains(link, "maps.google.com") {
+				mapURL, err := url.Parse(link)
+				if err != nil {
+					lhs.Logger.Error().Err(err).Send()
+					return true
+				}
+				restaurant.MapURL = mapURL.String()
 
-		// Update @ 2021-05-19
-		// Babak Eghbali suggested it would be good to have a Google Maps link to each restaurant,
-		// so of course he will get that!
-		e.ForEachWithBreak("div.restaurant-facts > p > a.right-arrow", func(_ int, el *colly.HTMLElement) bool {
-			restaurant.Address = getAddress(el.Attr("href")) // might be empty
-			return false
-		})
+				query := mapURL.Query().Get("q")
+				address, err := url.QueryUnescape(query)
+				if err != nil {
+					lhs.Logger.Error().Err(err).Send()
+					return true
+				}
+				restaurant.Address = address
 
-		// Fetch dishes
-		e.ForEach("div.node.node-dish", func(_ int, el *colly.HTMLElement) {
-			dishName := strings.TrimSpace(el.ChildText("span.dish-name > strong"))
-			// remove dish name from desc, so we don't get double up
-			dishDesc := strings.TrimSpace(
-				strings.Replace(
-					el.ChildText("div.table-list__column.table-list__column--dish"),
-					dishName,
-					"",
-					1,
-				),
-			)
-			// replace redundant whitespace in desc, as we often get that from lindholmen.se
-			dishDesc = strings.Join(
-				strings.Fields(dishDesc), // split on any whitespace
-				" ",                      // replace with just one space
-			)
-			// remove "kr" from price, so we get a pure int
-			dishPrice := strings.TrimSpace(
-				strings.Replace(
-					el.ChildText("div.table-list__column.table-list__column--price"),
-					"kr",
-					"",
-					1,
-				),
-			)
+				lhs.Logger.Trace().
+					Str(keyUrl, e.Request.URL.String()).
+					Str(keyMapURL, restaurant.MapURL).
+					Str(keyAddr, address).
+					Str(keyRestaurant, restaurant.Name).
+					Msg("Parsed map URL and address")
 
-			price, err := strconv.Atoi(dishPrice)
-			if err != nil {
-				price = -1
+				return false
+			} else {
+				lhs.Logger.Trace().
+					Str(keyUrl, e.Request.URL.String()).
+					Str(keyLink, link).
+					Msg("Not a map link")
 			}
-
-			restaurant.AddDish(
-				&lunchdata.Dish{
-					Name:  dishName,
-					Desc:  dishDesc,
-					Price: price,
-				})
+			return true
 		})
 	})
 
-	// start parsing all urls in the queue
-	t_start = time.Now()
-	err = q.Run(rc)
-	if err != nil {
-		logger.WithField("func", "Scrape").Error(err)
-	}
-	t_end := time.Now()
-
-	// get a []Restaurant slice from our map, so we can use it for setting restaurants for a site
-	rs := make(lunchdata.Restaurants, 0, len(rmap))
-	for _, r := range rmap {
-		if r.HasDishes() {
-			rs.Add(r)
+	startTimeMapLinks := time.Now()
+	for url := range restaurantMap {
+		if err := addrCollector.Visit(url); err != nil {
+			lhs.Logger.Error().Err(err).Send()
 		}
 	}
+	addrCollector.Wait()
 
-	logger.WithFields(log.Fields{
-		"func":        "Scrape",
-		"Seconds":     time.Duration(t_end.Sub(t_start)).Seconds(),
-		"Restaurants": rs.Len(),
-		"Dishes":      rs.NumDishes(),
-	}).Debug("Parse results")
+	lhs.Logger.Debug().
+		Str(keyUrl, lhs.URL).
+		Dur(keyParsedTime, time.Since(startTimeMapLinks)).
+		Msg("Map links parsed")
 
-	return rs, nil
+	lhs.Logger.Debug().
+		Str(keyUrl, lhs.URL).
+		Dur(keyParsedTime, time.Since(startTimeMenus)).
+		Msg("Site parsed")
+
+	return restaurants, nil
 }

@@ -1,6 +1,5 @@
-// +build ignore
+package lindholmen
 
-//package lindholmen
 //
 ///*
 //This is almost exactly the same scraper that has been for years, just adopted for

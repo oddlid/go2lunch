@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 	"sync"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type Site struct {
@@ -24,12 +22,12 @@ type Site struct {
 
 type Sites []*Site
 
-func (ss *Sites) Add(s *Site) {
-	*ss = append(*ss, s)
-}
+// func (ss Sites) Add(s *Site) {
+// 	ss = append(ss, s)
+// }
 
-func (ss *Sites) Len() int {
-	return len(*ss)
+func (ss Sites) Len() int {
+	return len(ss)
 }
 
 func NewSite(name, id, comment string) *Site {
@@ -59,9 +57,9 @@ func (s *Site) SubItems() int {
 
 // Reminder of sort of what I think I want...
 // A Site instance should be able to calculate its key, given the signing key.
-func (s *Site) CalcKey(signKey string) string {
-	return ""
-}
+// func (s *Site) CalcKey(signKey string) string {
+// 	return ""
+// }
 
 // Just deliver the first restaurant we find.
 // Convenience method for inheriting timestamp
@@ -171,15 +169,8 @@ func (s *Site) ClearDishes() *Site {
 
 func (s *Site) GetRestaurantById(id string) *Restaurant {
 	s.RLock()
-	r, found := s.Restaurants[id]
-	s.RUnlock()
-	if !found {
-		siteLog.WithFields(log.Fields{
-			"func": "GetRestaurantById",
-			"id":   id,
-		}).Debug("Not found")
-	}
-	return r
+	defer s.RUnlock()
+	return s.Restaurants[id]
 }
 
 func (s *Site) NumRestaurants() int {
@@ -231,17 +222,17 @@ func SiteFromJSON(r io.Reader) (*Site, error) {
 
 func (s *Site) RunScraper(wg *sync.WaitGroup) {
 	defer wg.Done()
-	rsLog := siteLog.WithFields(log.Fields{
-		"func":   "RunScraper",
-		"SiteID": s.ID,
-	})
-	if nil == s.Scraper {
-		rsLog.Debug("No scraper instance configured, returning")
+	// rsLog := siteLog.WithFields(log.Fields{
+	// 	"func":   "RunScraper",
+	// 	"SiteID": s.ID,
+	// })
+	if s.Scraper == nil {
+		// rsLog.Debug("No scraper instance configured, returning")
 		return
 	}
 	rs, err := s.Scraper.Scrape()
 	if nil != err {
-		rsLog.WithField("ErrMSG", err.Error()).Error("Error running scraper")
+		// rsLog.WithField("ErrMSG", err.Error()).Error("Error running scraper")
 		return
 	}
 	s.SetRestaurants(rs)

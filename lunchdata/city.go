@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"sync"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type City struct {
@@ -18,9 +16,9 @@ type City struct {
 
 type Cities []*City
 
-func (cs *Cities) Add(c *City) {
-	*cs = append(*cs, c)
-}
+// func (cs Cities) Add(c *City) {
+// 	cs = append(cs, c)
+// }
 
 func (cs *Cities) Len() int {
 	return len(*cs)
@@ -122,20 +120,13 @@ func (c *City) ClearDishes() *City {
 
 func (c *City) GetSiteById(id string) *Site {
 	c.RLock()
-	s, found := c.Sites[id]
-	c.RUnlock()
-	if !found {
-		cityLog.WithFields(log.Fields{
-			"func": "GetSiteById",
-			"id":   id,
-		}).Debug("Not found")
-	}
-	return s
+	defer c.RUnlock()
+	return c.Sites[id]
 }
 
 func (c *City) GetRestaurantById(siteID, restaurantID string) *Restaurant {
 	s := c.GetSiteById(siteID)
-	if nil == s {
+	if s == nil {
 		return nil
 	}
 	return s.GetRestaurantById(restaurantID)

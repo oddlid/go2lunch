@@ -2,9 +2,7 @@ package lunchdata
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
-	"net/url"
 	"regexp"
 	"sync"
 	"time"
@@ -17,23 +15,24 @@ type Restaurant struct {
 	Url     string    `json:"url,omitempty"`
 	Gtag    string    `json:"-"`
 	Address string    `json:"address"`
+	MapURL  string    `json:"map_url"`
 	Parsed  time.Time `json:"scrape_date"`
 	Dishes  Dishes    `json:"dishes"`
 }
 
 type Restaurants []*Restaurant
 
-func (rs *Restaurants) Add(r *Restaurant) {
-	*rs = append(*rs, r)
+// func (rs *Restaurants) Add(r *Restaurant) {
+// 	rs = append(rs, r)
+// }
+
+func (rs Restaurants) Len() int {
+	return len(rs)
 }
 
-func (rs *Restaurants) Len() int {
-	return len(*rs)
-}
-
-func (rs *Restaurants) NumDishes() int {
+func (rs Restaurants) NumDishes() int {
 	total := 0
-	for _, r := range *rs {
+	for _, r := range rs {
 		total += r.NumDishes()
 	}
 	return total
@@ -60,20 +59,26 @@ func (r *Restaurant) SubItems() int {
 }
 
 // GetMapUrl returns empty string or .Address as a Google Maps URL
-func (r *Restaurant) GetMapUrl() string {
-	if "" == r.Address {
-		return ""
-	}
-	return fmt.Sprintf("https://www.google.com/maps/search/?api=1&query=%s", url.QueryEscape(r.Address))
-}
+// func (r *Restaurant) GetMapUrl() string {
+// 	r.RLock()
+// 	defer r.RUnlock()
+// 	if r.Address == "" {
+// 		return ""
+// 	}
+// 	return fmt.Sprintf("https://www.google.com/maps/search/?api=1&query=%s", url.QueryEscape(r.Address))
+// }
 
 // ParsedRFC3339 returns the date in RFC3339 format
 func (r *Restaurant) ParsedRFC3339() string {
+	r.RLock()
+	defer r.RUnlock()
 	return r.Parsed.Format(time.RFC3339)
 }
 
 // ParsedHumanDate returns a more human readable date/time format, without too much detail
 func (r *Restaurant) ParsedHumanDate() string {
+	r.RLock()
+	defer r.RUnlock()
 	return r.Parsed.Format(DATE_FORMAT)
 }
 
@@ -128,12 +133,12 @@ func (r *Restaurant) HasDishes() bool {
 
 func (r *Restaurant) GetDishByIndex(idx int) *Dish {
 	if idx < 0 || idx >= len(r.Dishes) {
-		restaurantLog.WithField("Index", idx).Debug("Out of range")
 		return nil
 	}
 	r.Lock()
-	defer r.Unlock()
-	return r.Dishes[idx]
+	dish := r.Dishes[idx]
+	r.Unlock()
+	return dish
 }
 
 func (r *Restaurant) FilterDishesByName(pattern string) (Dishes, error) {
@@ -144,7 +149,7 @@ func (r *Restaurant) FilterDishesByName(pattern string) (Dishes, error) {
 	}
 	for i := range r.Dishes {
 		if rx.MatchString(r.Dishes[i].Name) {
-			ds.Add(r.Dishes[i])
+			ds = append(ds, r.Dishes[i])
 		}
 	}
 	return ds, nil
@@ -158,7 +163,7 @@ func (r *Restaurant) FilterDishesByDesc(pattern string) (Dishes, error) {
 	}
 	for i := range r.Dishes {
 		if rx.MatchString(r.Dishes[i].Desc) {
-			ds.Add(r.Dishes[i])
+			ds = append(ds, r.Dishes[i])
 		}
 	}
 	return ds, nil
@@ -170,7 +175,7 @@ func (r *Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
 	var ds Dishes
 	for i := range r.Dishes {
 		if f(r.Dishes[i].Price) {
-			ds.Add(r.Dishes[i])
+			ds = append(ds, r.Dishes[i])
 		}
 	}
 	return ds
@@ -179,7 +184,7 @@ func (r *Restaurant) FilterDishesByPrice(f func(int) bool) Dishes {
 // This should be a func that combines all other filter funcs as a convenience, but I'm not
 // sure how to best solve it atm
 func (r *Restaurant) FilterDishes() Dishes {
-	restaurantLog.Debug("Not implemented yet")
+	// restaurantLog.Debug("Not implemented yet")
 	return nil
 }
 

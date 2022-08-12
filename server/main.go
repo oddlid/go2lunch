@@ -26,53 +26,42 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/oddlid/go2lunch/scraper/se/gbg/lindholmen"
 	"github.com/robfig/cron/v3"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
 const (
-	DEF_WEB_ADR       string = ":20666"
-	DEF_ADM_ADR       string = ":20667"
-	DEF_READ_TIMEOUT         = 5
-	DEF_WRITE_TIMEOUT        = 10
-	DEF_IDLE_TIMEOUT         = 15
-
-	//DEF_COUNTRY_ID    string = "se"
-	//DEF_CITY_ID       string = "gbg"
-	//DEF_SITE_ID       string = "lindholmen"
-	//GTAG_ID           string = "UA-126840341-2" // used for Google Analytics in generated pages - TODO: replace!
-	//DEF_URL           string = "https://www.lindholmen.se/pa-omradet/dagens-lunch"
-	//DEF_COUNTRY_NAME  string = "Sweden"
-	//DEF_CITY_NAME     string = "Gothenburg"
-	//DEF_SITE_NAME     string = "Lindholmen"
-	//DEF_ID            string = "se/gbg/lindholmen"
-	//DEF_COMMENT       string = "Gruvan"
-	//JWT_TOKEN_SECRET  string = "this secret should not be part of the code"
+	logTimeStampLayout  = `2006-01-02T15:04:05.999-07:00`
+	defaultPubAddr      = ":20666"
+	defaultAdmAddr      = ":20667"
+	defaultReadTimeout  = 5
+	defaultWriteTimeout = 10
+	defaultIdleTimeout  = 15
 )
 
 // exit codes
 const (
 	E_OK int = iota
-	//E_UPDATE
-	//E_READPID
+	E_CRON
 	E_WRITEPID
-	//E_NOTIFYPID
-	//E_WRITEJSON
 	E_READJSON
+	E_WRITEJSON
 	E_INITTMPL
-	//E_WRITEHTML
 )
 
 var (
-	VERSION    string
-	BUILD_DATE string
-	COMMIT_ID  string
+	Version    string
+	BuildDate  string
+	CommitID   string
 	_gtag      string
 	_noScrape  bool
 	_lunchList *lunchdata.LunchList
@@ -87,20 +76,24 @@ For now, that is acceptable, but it's not very obvious and could lead to hard to
 We should rather not use init() at all, but register scrapers at a later point.
 */
 func init() {
-	lhs := lindholmen.LHScraper{}
-	registerSiteScraper(lhs.GetCountryID(), lhs.GetCityID(), lhs.GetSiteID(), lhs)
+	lhs := lindholmen.LHScraper{
+		Logger: zerolog.New(os.Stdout),
+		URL:    "https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe",
+		// URL: "http://localhost:8080",
+	}
+	registerSiteScraper(lhs.GetCountryID(), lhs.GetCityID(), lhs.GetSiteID(), &lhs)
 }
 
 // I'd like to find a more flexible and dynamic way of including scrapers, but for now
 // we'll use this
 func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
 	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
-	if nil == lsite {
-		log.WithFields(log.Fields{
-			"countryID": countryID,
-			"cityID":    cityID,
-			"siteID":    siteID,
-		}).Warn("Could not find site")
+	if lsite == nil {
+		log.Error().
+			Str("countryID", countryID).
+			Str("cityID", cityID).
+			Str("siteID", siteID).
+			Msg("Site not found")
 		return
 	}
 	lsite.Scraper = scraper
@@ -109,9 +102,6 @@ func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.Sit
 func lunchListFromFile(filename string) error {
 	ll, err := lunchdata.LunchListFromFile(filename)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"ErrMSG": err.Error(),
-		}).Error("Unable to load site from JSON file")
 		return err
 	}
 	// If we load the LunchList from JSON, and we only have a top-level
@@ -145,95 +135,50 @@ func logInventory() {
 
 	//log.Debug(b.String())
 
-	log.WithFields(log.Fields{
-		"Total subitems": getLunchList().SubItems(),
-		"Countries":      getLunchList().NumCountries(),
-		"Cities":         getLunchList().NumCities(),
-		"Sites":          getLunchList().NumSites(),
-		"Restaurants":    getLunchList().NumRestaurants(),
-		"Dishes":         getLunchList().NumDishes(),
-	}).Debug("Inventory")
+	// log.WithFields(log.Fields{
+	// 	"Total subitems": getLunchList().SubItems(),
+	// 	"Countries":      getLunchList().NumCountries(),
+	// 	"Cities":         getLunchList().NumCities(),
+	// 	"Sites":          getLunchList().NumSites(),
+	// 	"Restaurants":    getLunchList().NumRestaurants(),
+	// 	"Dishes":         getLunchList().NumDishes(),
+	// }).Debug("Inventory")
 }
 
-// This might not be needed anymore when on next level
-func writePid(filename string) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "%d", os.Getpid())
-
-	return nil
-}
-
-func setGtag(ctx *cli.Context) {
-	gtag := ctx.String("gtag")
+func setGtag(cCtx *cli.Context) {
+	gtag := cCtx.String(optGTag)
 	if gtag != "" {
 		_gtag = gtag
 		getLunchList().PropagateGtag(_gtag)
 	}
 }
 
-func entryPointServe(ctx *cli.Context) error {
-	pid := os.Getpid()
-
-	log.WithFields(log.Fields{
-		"PID": pid,
-	}).Debug("Startup info")
-
-	pidfile := ctx.String("writepid")
-	if pidfile != "" {
-		log.WithFields(log.Fields{
-			"pidfile": pidfile,
-		}).Debug("Got argument")
-		err := writePid(pidfile)
-		if err != nil {
-			return cli.Exit(err.Error(), E_WRITEPID)
-		}
-		log.WithFields(log.Fields{
-			"PID":     pid,
-			"PIDFile": pidfile,
-		}).Info("Wrote pidfile")
-	} else {
-		log.Debug("No PIDfile given")
-	}
-
+func entryPointServe(cCtx *cli.Context) error {
 	// cron-like scheduling.
-	// Turns out app/docker hangs sometimes, when triggering scrape from regular cron with "docker exec" (even with timeout),
-	// so trying to use an internal solution instead
 	// When post updates is fully ready, this should be removed..?
-	cronspec := ctx.String("cron")
+	cronspec := cCtx.String(optCron)
 	if cronspec != "" {
-		log.WithFields(log.Fields{
-			"cronspec": cronspec,
-		}).Info("Auto-updating via built-in cron")
-		cr := cron.New()
+		log.Info().
+			Str("cronspec", cronspec).
+			Msg("Auto-updating via built-in cron")
 
-		_, err := cr.AddFunc(cronspec, func() {
-			log.Info("Re-scraping on request from internal cron...")
-			var wg sync.WaitGroup
+		cr := cron.New()
+		if _, err := cr.AddFunc(cronspec, func() {
+			log.Debug().Msg("Re-scraping on request from internal cron...")
+			wg := sync.WaitGroup{}
 			getLunchList().RunSiteScrapers(&wg)
 			wg.Wait()
 			// we don't need to propagate _gtag here, as SiteScrapers can only set new Restaurants
 			// for an already configured Site, so a given Gtag will not be removed by scraping
 			logInventory()
-		})
-
-		if err != nil {
-			log.WithFields(log.Fields{
-				"ErrMSG": err.Error(),
-			}).Error("Failed to add cronjob")
-		} else {
-			cr.Start()
-			log.Info("Built-in cron started")
+		}); err != nil {
+			return cli.Exit(err.Error(), E_CRON)
 		}
+		cr.Start()
+		log.Info().Msg("Built-in cron started")
 	}
-	// END cron
 
-	err := initTmpl()
-	if err != nil {
+	if err := initTmpl(); err != nil {
 		return cli.Exit(err.Error(), E_INITTMPL)
 	}
 
@@ -245,74 +190,63 @@ func entryPointServe(ctx *cli.Context) error {
 	// $ go run . -d serve --load <(curl -sS https://lunch.oddware.net/json/)
 
 	// handle "load" argument here before serving
-	jfile := ctx.String("load")
+	jfile := cCtx.String(optLoad)
 	if jfile != "" {
-		err := lunchListFromFile(jfile)
-		if err != nil {
+		if err := lunchListFromFile(jfile); err != nil {
 			return cli.Exit(err.Error(), E_READJSON)
 		}
-		log.WithFields(log.Fields{
-			"JSONFile": jfile,
-		}).Info("Load lunch list from file successful")
-		log.Info("Auto-scraping is now disabled")
-		//_noScrape = true
+		log.Info().
+			Str("file", jfile).
+			Msg("Lunch list loaded from file. Scraping is now disabled")
+		_noScrape = true
 	}
 
 	// Important that this call comes after anything that sets content, like lunchListFromFile above
 	// We should probably make a hook that calls this after any update of content as well
 	// If we did load from JSON, this gives us the possibility to override the Gtag from CLI
-	setGtag(ctx)
+	setGtag(cCtx)
 
-	quit := make(chan struct{})
-	// signal handling
-	// On windows this only logs a message about skipping signal handling
-	// See: signalhandling.go and signalhandling_windows.go
-	setupSignalHandling(quit)
-	// END signal handling
+	listenAdr := cCtx.String(optListenAdr)
+	listenAdm := cCtx.String(optListenAdm)
 
-	listenAdr := ctx.String("listen-adr")
-	listenAdm := ctx.String("listen-adm")
+	pubRouter, admRouter := setupRouter()
+	pubSrv := createServer(listenAdr, pubRouter)
+	admSrv := createServer(listenAdm, admRouter)
 
-	pubR, admR := setupRouter()
-	pubSrv := createServer(listenAdr, pubR)
-	admSrv := createServer(listenAdm, admR)
-
-	var wg sync.WaitGroup
-	wg.Add(2) // 2 = number of servers to wait for
-	go gracefulShutdown("PubSRV", pubSrv, quit, &wg)
-	go gracefulShutdown("AdmSRV", admSrv, quit, &wg)
+	serverWG := sync.WaitGroup{}
+	serverWG.Add(2) // 2 = number of servers to wait for
+	go gracefulShutdown(cCtx.Context, "PubSRV", pubSrv, &serverWG)
+	go gracefulShutdown(cCtx.Context, "AdmSRV", admSrv, &serverWG)
 	go func() {
-		ctxlog := log.WithFields(log.Fields{
-			"Port": listenAdr,
-		})
-		ctxlog.Info("Public server listening")
+		log.Info().
+			Str("addr", listenAdr).
+			Msg("Starting public http server")
 		if err := pubSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			ctxlog.Error("Error starting public server")
+			log.Fatal().Err(err).Msg("Failed to start public http server")
 		} else {
-			ctxlog.WithField("err", err).Info("Server shut down cleanly")
+			log.Info().Msg("Public http server shut down cleanly")
 		}
 	}()
 	go func() {
-		ctxlog := log.WithFields(log.Fields{
-			"Port": listenAdm,
-		})
-		ctxlog.Info("Admin server listening")
+		log.Info().
+			Str("addr", listenAdm).
+			Msg("Starting admin http server")
 		if err := admSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			ctxlog.Error("Error starting admin server")
+			log.Fatal().Err(err).Msg("Failed to start admin http server")
 		} else {
-			ctxlog.WithField("err", err).Info("Server shut down cleanly")
+			log.Info().Msg("Admin http server shut down cleanly")
 		}
 	}()
 
 	// now, run registered scrapers
 	// By running 2 levels of goroutines and using waitgroups, we can do all scraping in the background,
 	// and still wait until all are done before displaying updated stats
-	_noScrape = ctx.Bool("noscrape")
+	_noScrape = cCtx.Bool(optNoScrape)
 	if !_noScrape {
 		go func() {
-			var wg2 sync.WaitGroup
-			getLunchList().RunSiteScrapers(&wg2) // each scraper runs in its own goroutine, incrementing wg2
-			wg2.Wait()
+			wg := sync.WaitGroup{}
+			getLunchList().RunSiteScrapers(&wg)
+			wg.Wait()
 			logInventory()
 		}()
 	}
@@ -320,73 +254,50 @@ func entryPointServe(ctx *cli.Context) error {
 	// Here we block until we get a signal to quit
 	// Might be months until we reach the next line after this
 	// Given that thought, maybe this would be a good place to display some uptime stats or something...
-	wg.Wait()
-	log.Debug("All servers shutdown, save on exit if configured to do so...")
+	serverWG.Wait()
 
 	// If we did load contents from a file, let's save it back
-	saveOnExit := ctx.Bool("save-on-exit")
-	stripOnSave := ctx.Bool("strip-menus-on-save")
+	saveOnExit := cCtx.Bool(optSaveOnExit)
+	stripOnSave := cCtx.Bool(optStripMenusOnSave)
 	if saveOnExit && jfile != "" {
 		if stripOnSave {
 			getLunchList().ClearRestaurants()
 		}
-		err := getLunchList().SaveJSON(jfile)
-		if err != nil {
-			log.Error(err.Error())
-			return err
+		if err := getLunchList().SaveJSON(jfile); err != nil {
+			return cli.Exit(err.Error(), E_WRITEJSON)
 		}
-		log.WithFields(log.Fields{
-			"JSONFile": jfile,
-		}).Info("Wrote config")
+		log.Info().
+			Str("file", jfile).
+			Msg("Config saved")
 	}
 
 	return nil
 }
 
-func createServer(addr string, hnd http.Handler) *http.Server {
+func createServer(addr string, handler http.Handler) *http.Server {
 	return &http.Server{
 		Addr:         addr,
-		Handler:      hnd,
-		ReadTimeout:  DEF_READ_TIMEOUT * time.Second,
-		WriteTimeout: DEF_WRITE_TIMEOUT * time.Second,
-		IdleTimeout:  DEF_IDLE_TIMEOUT * time.Second,
+		Handler:      handler,
+		ReadTimeout:  defaultReadTimeout * time.Second,
+		WriteTimeout: defaultWriteTimeout * time.Second,
+		IdleTimeout:  defaultIdleTimeout * time.Second,
 	}
 }
 
-func gracefulShutdown(tag string, srv *http.Server, quit <-chan struct{}, wg *sync.WaitGroup) {
-	<-quit
-	log.WithFields(log.Fields{
-		"Server": tag,
-	}).Debug("Shutting down server gracefully...")
+func gracefulShutdown(ctx context.Context, tag string, srv *http.Server, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	<-ctx.Done()
+	log.Debug().Str("server", tag).Msg("Shutting down server")
 
-	if err := srv.Shutdown(ctx); err != nil {
-		log.WithFields(log.Fields{
-			"Server": tag,
-			"ErrMSG": err.Error(),
-		}).Error("Error shutting down server")
-	} else {
-		log.WithField(
-			"Server",
-			tag,
-		).Info("Shutdown() returned no error")
+	// need a new context here, since if we'd inherit from the passed in context, the shutdown would be immediate and not graceful
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Error().Str("server", tag).Err(err).Msg("Failed to shutdown server cleanly")
 	}
-	cancel()
-	wg.Done()
 }
-
-//func readPid(filename string) (int, error) {
-//	b, err := ioutil.ReadFile(filename)
-//	if err != nil {
-//		return -1, err
-//	}
-//	pid, err := strconv.Atoi(string(bytes.TrimSpace(b)))
-//	if err != nil {
-//		return -1, fmt.Errorf("Error parsing PID from %q: %s", filename, err.Error())
-//	}
-//	return pid, nil
-//}
 
 //func entryPointScrape(ctx *cli.Context) error {
 //	log.Debugf("Scrape sub-command deprecated, exiting")
@@ -493,9 +404,9 @@ func main() {
 	setCustomAppHelpTmpl()
 	app := cli.NewApp()
 	app.Name = "go2lunch server"
-	app.Version = fmt.Sprintf("%s_%s", VERSION, COMMIT_ID)
+	app.Version = fmt.Sprintf("%s_%s", Version, CommitID)
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
-	app.Compiled, _ = time.Parse(time.RFC3339, BUILD_DATE)
+	app.Compiled, _ = time.Parse(time.RFC3339, BuildDate)
 	app.Authors = []*cli.Author{
 		{
 			Name:  "Odd E. Ebbesen",
@@ -513,46 +424,46 @@ func main() {
 			Action:  entryPointServe,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:    "listen-adr",
+					Name:    optListenAdr,
 					Aliases: []string{"l"},
-					Value:   DEF_WEB_ADR,
+					Value:   defaultPubAddr,
 					Usage:   "[hostname|IP]:port to listen on for the regular/public site",
 				},
 				&cli.StringFlag{
-					Name:  "listen-adm",
-					Value: DEF_ADM_ADR,
+					Name:  optListenAdm,
+					Value: defaultAdmAddr,
 					Usage: "[hostname|IP]:port to listen on for the admin api site",
 				},
 				&cli.StringFlag{
-					Name:    "writepid",
+					Name:    optWritePid,
 					Aliases: []string{"p"},
 					Usage:   "Write PID to `FILE`",
 				},
 				&cli.StringFlag{
-					Name:  "cron",
+					Name:  optCron,
 					Usage: "Specify intervals for re-scrape in cron format with `TIMESPEC`",
 					// what I had in regular cron: "0 0,30 08-12 * * 1-5"
 					// That is: on second 0 of minute 0 and 30 of hour 08-12 of weekday mon-fri on any day of month any month
 					// Update @ 2019-10-28: New version of cron-lib does not use second field
 				},
 				&cli.StringFlag{
-					Name:  "load",
+					Name:  optLoad,
 					Usage: "Load initial data from `JSONFILE`",
 				},
 				&cli.BoolFlag{
-					Name:  "save-on-exit",
+					Name:  optSaveOnExit,
 					Usage: "If config was loaded from file, save it back to the same file on exit",
 				},
 				&cli.BoolFlag{
-					Name:  "strip-menus-on-save",
+					Name:  optStripMenusOnSave,
 					Usage: "Do not save restaurants and their dishes when saving on exit. Only save structure.",
 				},
 				&cli.BoolFlag{
-					Name:  "noscrape",
+					Name:  optNoScrape,
 					Usage: "Disable scraping",
 				},
 				&cli.StringFlag{
-					Name:  "gtag",
+					Name:  optGTag,
 					Usage: "GTAG for Google Analytics in generated pages",
 					//Value: GTAG_ID,
 				},
@@ -583,39 +494,40 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:    "log-level",
+			Name:    optLogLevel,
 			Aliases: []string{"l"},
-			Value:   "info",
-			Usage:   "Log `level` (options: debug, info, warn, error, fatal, panic)",
+			Value:   zerolog.InfoLevel.String(),
+			Usage:   "Log `level` (options: trace, debug, info, warn, error, panic, fatal)",
 		},
 		&cli.BoolFlag{
-			Name:    "debug",
+			Name:    optDebug,
 			Aliases: []string{"d"},
-			Usage:   "Run in debug mode",
+			Usage:   "Set log level to debug",
 		},
 	}
 
 	app.Before = func(c *cli.Context) error {
-		log.SetOutput(os.Stderr)
-		level, err := log.ParseLevel(c.String("log-level"))
-		if err != nil {
-			log.Fatal(err.Error())
+		zerolog.TimeFieldFormat = logTimeStampLayout
+		if c.Bool(optDebug) {
+			zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		} else if c.IsSet(c.String(optLogLevel)) {
+			level, err := zerolog.ParseLevel(c.String(optLogLevel))
+			if err != nil {
+				return err
+			}
+			zerolog.SetGlobalLevel(level)
+		} else {
+			zerolog.SetGlobalLevel(zerolog.InfoLevel)
 		}
-		log.SetLevel(level)
-		if !c.IsSet("log-level") && !c.IsSet("l") && c.Bool("debug") {
-			log.SetLevel(log.DebugLevel)
-		}
-		log.SetFormatter(&log.TextFormatter{
-			DisableTimestamp: false,
-			FullTimestamp:    true,
-		})
 		return nil
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Error(err)
-	}
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
 
-	os.Exit(E_OK)
+	if err := app.RunContext(ctx, os.Args); err != nil {
+		cancel()
+		log.Fatal().Err(err).Msg("Execution failed")
+	}
+	// log.Info().Msg("All done")
 }

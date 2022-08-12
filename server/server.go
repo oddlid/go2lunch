@@ -11,7 +11,7 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
 	"github.com/oddlid/go2lunch/lunchdata"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -28,7 +28,7 @@ var (
 	htmlFiles     = []string{"lunchlist.html", "country.html", "city.html", "site.html", "default.html"} // virtual files
 	textFiles     = []string{"lunchlist.txt", "country.txt", "city.txt", "site.txt"}                     // virtual files
 	urlIds        = []string{"country_id", "city_id", "site_id", "restaurant_id"}
-	sLog          = log.WithField("component", "server")
+	// sLog          = log.WithField("component", "server")
 )
 
 //type WebUser struct {
@@ -45,13 +45,13 @@ var (
 //}
 
 func initTmpl() error {
-	sLog.Debug("Looking for template folder...")
+	log.Debug().Msg("Looking for template folder...")
 	tBox, err := rice.FindBox("tmpl")
 	if err != nil {
 		return err
 	}
 
-	htmplStr, err := tBox.String("allhtml.tmpl")
+	htmplStr, err := tBox.String("allhtml.tpl")
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func initTmpl() error {
 		return err
 	}
 
-	ttmplStr, err := tBox.String("alltext.tmpl")
+	ttmplStr, err := tBox.String("alltext.tpl")
 	if err != nil {
 		return err
 	}
@@ -69,15 +69,15 @@ func initTmpl() error {
 		return err
 	}
 
-	sLog.Debug("Templates loaded and parsed")
+	log.Debug().Msg("Templates loaded and parsed")
 	return nil
 }
 
 func setupRouter() (pubR, admR *mux.Router) {
 	const (
-		MGET   = "GET"
-		MPOST  = "POST"
-		MDEL   = "DELETE"
+		mGET   = "GET"
+		mPOST  = "POST"
+		mDEL   = "DELETE"
 		ppStat = "/static/"
 		ppJson = "/json/"
 		ppHtml = "/html/"
@@ -102,29 +102,29 @@ func setupRouter() (pubR, admR *mux.Router) {
 
 	pubR = mux.NewRouter()
 	pubR.PathPrefix(ppStat).Handler(http.StripPrefix(ppStat, http.FileServer(box.HTTPBox())))
-	pubR.HandleFunc(slash, htmlIndexHandler).Methods(MGET)
+	pubR.HandleFunc(slash, htmlIndexHandler).Methods(mGET)
 
 	// json/api GET routes
 	jsubr := pubR.PathPrefix(ppJson).Subrouter().StrictSlash(true)
-	jsubr.HandleFunc(slash, jsonApiHandler).Methods(MGET)
-	jsubr.HandleFunc(ppath(0), jsonApiHandler).Methods(MGET)
-	jsubr.HandleFunc(ppath(1), jsonApiHandler).Methods(MGET)
-	jsubr.HandleFunc(ppath(2), jsonApiHandler).Methods(MGET)
+	jsubr.HandleFunc(slash, jsonApiHandler).Methods(mGET)
+	jsubr.HandleFunc(ppath(0), jsonApiHandler).Methods(mGET)
+	jsubr.HandleFunc(ppath(1), jsonApiHandler).Methods(mGET)
+	jsubr.HandleFunc(ppath(2), jsonApiHandler).Methods(mGET)
 	//jsubr.HandleFunc(ppath(3), jsonApiHandler).Methods(MGET)
 
 	// regular HTML GET routes
 	hsubr := pubR.PathPrefix(ppHtml).Subrouter().StrictSlash(true)
-	hsubr.HandleFunc(slash, htmlTmplHandler).Methods(MGET)
-	hsubr.HandleFunc(ppath(0), htmlTmplHandler).Methods(MGET)
-	hsubr.HandleFunc(ppath(1), htmlTmplHandler).Methods(MGET)
-	hsubr.HandleFunc(ppath(2), htmlTmplHandler).Methods(MGET)
+	hsubr.HandleFunc(slash, htmlTmplHandler).Methods(mGET)
+	hsubr.HandleFunc(ppath(0), htmlTmplHandler).Methods(mGET)
+	hsubr.HandleFunc(ppath(1), htmlTmplHandler).Methods(mGET)
+	hsubr.HandleFunc(ppath(2), htmlTmplHandler).Methods(mGET)
 
 	// text/plain GET routes
 	tsubr := pubR.PathPrefix(ppText).Subrouter().StrictSlash(true)
-	tsubr.HandleFunc(slash, textTmplHandler).Methods(MGET)
-	tsubr.HandleFunc(ppath(0), textTmplHandler).Methods(MGET)
-	tsubr.HandleFunc(ppath(1), textTmplHandler).Methods(MGET)
-	tsubr.HandleFunc(ppath(2), textTmplHandler).Methods(MGET)
+	tsubr.HandleFunc(slash, textTmplHandler).Methods(mGET)
+	tsubr.HandleFunc(ppath(0), textTmplHandler).Methods(mGET)
+	tsubr.HandleFunc(ppath(1), textTmplHandler).Methods(mGET)
+	tsubr.HandleFunc(ppath(2), textTmplHandler).Methods(mGET)
 
 	// 2019-10-29 16:50: Disabling registration of update routes temporarily,
 	// so I can build a docker image and try to run this newer version in prod
@@ -138,26 +138,26 @@ func setupRouter() (pubR, admR *mux.Router) {
 	// Redirects just to not break old urls
 	pubR.HandleFunc("/lindholmen.html", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "html/se/gbg/lindholmen", http.StatusMovedPermanently)
-	}).Methods(MGET)
+	}).Methods(mGET)
 	pubR.HandleFunc("/lindholmen", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "html/se/gbg/lindholmen", http.StatusMovedPermanently)
-	}).Methods(MGET)
+	}).Methods(mGET)
 	pubR.HandleFunc("/lindholmen.json", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "json/se/gbg/lindholmen", http.StatusMovedPermanently)
-	}).Methods(MGET)
+	}).Methods(mGET)
 	pubR.HandleFunc("/lindholmen.txt", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "text/se/gbg/lindholmen", http.StatusMovedPermanently)
-	}).Methods(MGET)
+	}).Methods(mGET)
 
 	// admin POST interface
 	admR = mux.NewRouter()
 	admSubr := admR.PathPrefix(ppAdm).Subrouter().StrictSlash(false)
-	admSubr.HandleFunc(ppAdd+ppath(0), logInventoryMW(setGtagMW(addCountryHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel+ppath(0), logInventoryMW(delCountryHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd+ppath(1), logInventoryMW(setGtagMW(addCityHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel+ppath(1), logInventoryMW(delCityHandler)).Methods(MDEL)
-	admSubr.HandleFunc(ppAdd+ppath(2), logInventoryMW(setGtagMW(addSiteHandler))).Methods(MPOST)
-	admSubr.HandleFunc(ppDel+ppath(2), logInventoryMW(delSiteHandler)).Methods(MDEL)
+	admSubr.HandleFunc(ppAdd+ppath(0), logInventoryMW(setGtagMW(addCountryHandler))).Methods(mPOST)
+	admSubr.HandleFunc(ppDel+ppath(0), logInventoryMW(delCountryHandler)).Methods(mDEL)
+	admSubr.HandleFunc(ppAdd+ppath(1), logInventoryMW(setGtagMW(addCityHandler))).Methods(mPOST)
+	admSubr.HandleFunc(ppDel+ppath(1), logInventoryMW(delCityHandler)).Methods(mDEL)
+	admSubr.HandleFunc(ppAdd+ppath(2), logInventoryMW(setGtagMW(addSiteHandler))).Methods(mPOST)
+	admSubr.HandleFunc(ppDel+ppath(2), logInventoryMW(delSiteHandler)).Methods(mDEL)
 
 	//	r.HandleFunc("/getauth", createTokenHandler).Methods(MPOST)
 	//	r.HandleFunc("/testauth", authMiddleWare(testCreatedTokenHandler)).Methods(MGET)
@@ -166,9 +166,8 @@ func setupRouter() (pubR, admR *mux.Router) {
 }
 
 func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
-	err := htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList())
-	if err != nil {
-		sLog.WithField("func", "htmlIndexHandler").Error(err)
+	if err := htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList()); err != nil {
+		log.Error().Err(err).Str("func", "htmlIndexHandler").Send()
 	}
 }
 
@@ -190,7 +189,7 @@ func genericTmplHandler(
 		return
 	}
 	country = getLunchList().GetCountryById(countryID)
-	if nil == country {
+	if country == nil {
 		http.NotFound(w, r) // 404
 		return
 	}
@@ -202,7 +201,7 @@ func genericTmplHandler(
 		return
 	}
 	city = country.GetCityById(cityID)
-	if nil == city {
+	if city == nil {
 		http.NotFound(w, r) // 404
 		return
 	}
@@ -214,7 +213,7 @@ func genericTmplHandler(
 		return
 	}
 	site = city.GetSiteById(siteID)
-	if nil == site {
+	if site == nil {
 		http.NotFound(w, r) // 404
 		return
 	}
@@ -227,18 +226,16 @@ func genericTmplHandler(
 
 func textTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
-		err := textTemplates.ExecuteTemplate(wr, textFiles[tmplIdx], obj)
-		if err != nil {
-			sLog.WithField("func", "textTmplHandler").Error(err)
+		if err := textTemplates.ExecuteTemplate(wr, textFiles[tmplIdx], obj); err != nil {
+			log.Error().Err(err).Str("func", "textTmplHandler").Send()
 		}
 	})
 }
 
 func htmlTmplHandler(w http.ResponseWriter, r *http.Request) {
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
-		err := htmlTemplates.ExecuteTemplate(wr, htmlFiles[tmplIdx], obj)
-		if err != nil {
-			sLog.WithField("func", "htmlTmplHandler").Error(err)
+		if err := htmlTemplates.ExecuteTemplate(wr, htmlFiles[tmplIdx], obj); err != nil {
+			log.Error().Err(err).Str("func", "htmlTmplHandler").Send()
 		}
 	})
 }
@@ -247,9 +244,8 @@ func jsonApiHandler(w http.ResponseWriter, r *http.Request) {
 	// I think maybe it could be a good idea to add gzip to this reply
 	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
 		wr.Header().Set(HDR_KEY_CT, HDR_VAL_JSON)
-		err := json.NewEncoder(wr).Encode(obj)
-		if err != nil {
-			sLog.WithField("func", "jsonApiHandler").Error(err)
+		if err := json.NewEncoder(wr).Encode(obj); err != nil {
+			log.Error().Err(err).Str("func", "jsonApiHandler").Send()
 		}
 	})
 }
@@ -259,7 +255,7 @@ func jsonApiHandler(w http.ResponseWriter, r *http.Request) {
 //}
 
 func addCountryHandler(w http.ResponseWriter, r *http.Request) {
-	sLog.Debug("Entering addCountryHandler...")
+	// sLog.Debug("Entering addCountryHandler...")
 
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
@@ -271,7 +267,7 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 	//		return
 	//	}
 	//	country := _site.ll.GetCountryById(countryID)
-	//	if nil == country {
+	//	if country == nil {
 	//		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 	//		return
 	//	}
@@ -286,7 +282,7 @@ func addCountryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func delCountryHandler(w http.ResponseWriter, r *http.Request) {
-	sLog.WithField("func", "delCountryHandler").Debug("Entering delCountryHandler...")
+	// sLog.WithField("func", "delCountryHandler").Debug("Entering delCountryHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -306,8 +302,8 @@ func delCountryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCityHandler(w http.ResponseWriter, r *http.Request) {
-	acLog := sLog.WithField("func", "addCityHandler")
-	acLog.Debug("Entering addCityHandler...")
+	// acLog := sLog.WithField("func", "addCityHandler")
+	// acLog.Debug("Entering addCityHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -324,15 +320,13 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country := getLunchList().GetCountryById(countryID)
-	if nil == country {
+	if country == nil {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
 	}
 
 	if country.HasCity(cityID) {
-		acLog.WithFields(log.Fields{
-			"cityID": cityID,
-		}).Debug("City already exists, overwriting")
+		log.Debug().Str("cityID", cityID).Msg("City already exists, overwriting")
 	}
 
 	city, err := lunchdata.CityFromJSON(r.Body)
@@ -345,7 +339,7 @@ func addCityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func delCityHandler(w http.ResponseWriter, r *http.Request) {
-	sLog.WithField("func", "delCityHandler").Debug("Entering delCityHandler...")
+	// sLog.WithField("func", "delCityHandler").Debug("Entering delCityHandler...")
 
 	vars := mux.Vars(r)
 
@@ -361,7 +355,7 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country := getLunchList().GetCountryById(countryID)
-	if nil == country {
+	if country == nil {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
 	}
@@ -375,8 +369,8 @@ func delCityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addSiteHandler(w http.ResponseWriter, r *http.Request) {
-	asLog := sLog.WithField("func", "addSiteHandler")
-	asLog.Debug("Entering addSiteHandler...")
+	// asLog := sLog.WithField("func", "addSiteHandler")
+	// asLog.Debug("Entering addSiteHandler...")
 	w.Header().Set(HDR_KEY_ACCEPT, HDR_VAL_JSON)
 
 	vars := mux.Vars(r)
@@ -398,21 +392,19 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country := getLunchList().GetCountryById(countryID)
-	if nil == country {
+	if country == nil {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
 	}
 
 	city := country.GetCityById(cityID)
-	if nil == city {
+	if city == nil {
 		http.Error(w, "Non-existent city code", http.StatusInternalServerError)
 		return
 	}
 
 	if city.HasSite(siteID) {
-		asLog.WithFields(log.Fields{
-			"siteID": siteID,
-		}).Debug("Site already exists, overwriting")
+		log.Debug().Str("siteID", siteID).Msg("Site already exists, overwriting")
 	}
 
 	site, err := lunchdata.SiteFromJSON(r.Body)
@@ -426,7 +418,7 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 	//	sl := _site.ll.GetSiteLinkById(countryID, cityID, siteID)
 	//	if nil != sl {
 	//		token, err := getTokenForSiteLink(*sl)
-	//		if nil == err {
+	//		if err == nil {
 	//			// We need to get a new reference to the site here
 	//			site = _site.ll.GetSiteById(countryID, cityID, siteID)
 	//			site.Key = token
@@ -438,7 +430,7 @@ func addSiteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func delSiteHandler(w http.ResponseWriter, r *http.Request) {
-	sLog.WithField("func", "delSiteHandler").Debug("Entering delSiteHandler...")
+	// sLog.WithField("func", "delSiteHandler").Debug("Entering delSiteHandler...")
 
 	vars := mux.Vars(r)
 
@@ -459,13 +451,13 @@ func delSiteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	country := getLunchList().GetCountryById(countryID)
-	if nil == country {
+	if country == nil {
 		http.Error(w, "Non-existent country code", http.StatusInternalServerError)
 		return
 	}
 
 	city := country.GetCityById(cityID)
-	if nil == city {
+	if city == nil {
 		http.Error(w, "Non-existent city code", http.StatusInternalServerError)
 		return
 	}
@@ -511,7 +503,7 @@ func delSiteHandler(w http.ResponseWriter, r *http.Request) {
 //	}
 //
 //	site := getLunchList().GetSiteById(countryID, cityID, siteID)
-//	if nil == site {
+//	if site == nil {
 //		http.NotFound(w, r) // 404
 //		return
 //	}

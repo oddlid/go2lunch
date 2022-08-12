@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"sync"
-
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 )
 
 type Country struct {
@@ -137,20 +136,13 @@ func (c *Country) ClearDishes() *Country {
 
 func (c *Country) GetCityById(id string) *City {
 	c.RLock()
-	city, found := c.Cities[id]
-	c.RUnlock()
-	if !found {
-		countryLog.WithFields(log.Fields{
-			"func": "GetCityById",
-			"id":   id,
-		}).Debug("Not found")
-	}
-	return city
+	defer c.RUnlock()
+	return c.Cities[id]
 }
 
 func (c *Country) GetSiteById(cityID, siteID string) *Site {
 	city := c.GetCityById(cityID)
-	if nil == city {
+	if city == nil {
 		return nil
 	}
 	return city.GetSiteById(siteID)
@@ -158,7 +150,7 @@ func (c *Country) GetSiteById(cityID, siteID string) *Site {
 
 func (c *Country) GetRestaurantById(cityID, siteID, restaurantID string) *Restaurant {
 	city := c.GetCityById(cityID)
-	if nil == city {
+	if city == nil {
 		return nil
 	}
 	return city.GetRestaurantById(siteID, restaurantID)

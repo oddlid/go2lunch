@@ -3,12 +3,9 @@ package lunchdata
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"sync"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // A giant list of everything
@@ -143,20 +140,13 @@ func (ll *LunchList) ClearDishes() *LunchList {
 
 func (ll *LunchList) GetCountryById(id string) *Country {
 	ll.RLock()
-	c, found := ll.Countries[id]
-	ll.RUnlock()
-	if !found {
-		llLog.WithFields(log.Fields{
-			"func": "GetCountryById",
-			"id":   id,
-		}).Debug("Not found")
-	}
-	return c
+	defer ll.RUnlock()
+	return ll.Countries[id]
 }
 
 func (ll *LunchList) GetCityById(countryID, cityID string) *City {
 	c := ll.GetCountryById(countryID)
-	if nil == c {
+	if c == nil {
 		return nil
 	}
 	return c.GetCityById(cityID)
@@ -164,7 +154,7 @@ func (ll *LunchList) GetCityById(countryID, cityID string) *City {
 
 func (ll *LunchList) GetSiteById(countryID, cityID, siteID string) *Site {
 	c := ll.GetCountryById(countryID)
-	if nil == c {
+	if c == nil {
 		return nil
 	}
 	return c.GetSiteById(cityID, siteID)
@@ -176,7 +166,7 @@ func (ll *LunchList) GetSiteByLink(sl SiteLink) *Site {
 
 func (ll *LunchList) GetRestaurantById(countryID, cityID, siteID, restaurantID string) *Restaurant {
 	c := ll.GetCountryById(countryID)
-	if nil == c {
+	if c == nil {
 		return nil
 	}
 	return c.GetRestaurantById(cityID, siteID, restaurantID)
@@ -254,6 +244,7 @@ func (ll *LunchList) Decode(r io.Reader) error {
 }
 
 func (ll *LunchList) SaveJSON(fileName string) error {
+	// TODO: re-implment, better
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
@@ -269,11 +260,11 @@ func (ll *LunchList) SaveJSON(fileName string) error {
 }
 
 func LunchListFromJSON(r io.Reader) (*LunchList, error) {
-	ll := &LunchList{}
+	ll := LunchList{}
 	if err := ll.Decode(r); err != nil {
 		return nil, err
 	}
-	return ll, nil
+	return &ll, nil
 }
 
 func LunchListFromFile(fileName string) (*LunchList, error) {
@@ -287,50 +278,50 @@ func LunchListFromFile(fileName string) (*LunchList, error) {
 }
 
 // GetSiteLinks returns a SiteLinks slice for all configured sites
-func (ll *LunchList) GetSiteLinks() SiteLinks {
-	sl := make(SiteLinks, 0)
+// func (ll *LunchList) GetSiteLinks() SiteLinks {
+// 	sl := make(SiteLinks, 0)
 
-	for _, country := range ll.Countries {
-		for _, city := range country.Cities {
-			for _, site := range city.Sites {
-				sl = append(sl, &SiteLink{
-					CountryName: country.Name,
-					CountryID:   country.ID,
-					CityName:    city.Name,
-					CityID:      city.ID,
-					SiteName:    site.Name,
-					SiteID:      site.ID,
-					//SiteKey:     site.Key,
-					Url:     fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
-					Comment: fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
-				})
-			}
-		}
-	}
+// 	for _, country := range ll.Countries {
+// 		for _, city := range country.Cities {
+// 			for _, site := range city.Sites {
+// 				sl = append(sl, &SiteLink{
+// 					CountryName: country.Name,
+// 					CountryID:   country.ID,
+// 					CityName:    city.Name,
+// 					CityID:      city.ID,
+// 					SiteName:    site.Name,
+// 					SiteID:      site.ID,
+// 					//SiteKey:     site.Key,
+// 					Url:     fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
+// 					Comment: fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
+// 				})
+// 			}
+// 		}
+// 	}
 
-	return sl
-}
+// 	return sl
+// }
 
-func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
-	skls := make(SiteKeyLinks, 0)
+// func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
+// 	skls := make(SiteKeyLinks, 0)
 
-	for _, country := range ll.Countries {
-		for _, city := range country.Cities {
-			for _, site := range city.Sites {
-				//if site.Key != "" {
-				skls = append(skls, &SiteKeyLink{
-					CountryID: country.ID,
-					CityID:    city.ID,
-					SiteID:    site.ID,
-					SiteKey:   site.Key,
-				})
-				//}
-			}
-		}
-	}
+// 	for _, country := range ll.Countries {
+// 		for _, city := range country.Cities {
+// 			for _, site := range city.Sites {
+// 				//if site.Key != "" {
+// 				skls = append(skls, &SiteKeyLink{
+// 					CountryID: country.ID,
+// 					CityID:    city.ID,
+// 					SiteID:    site.ID,
+// 					SiteKey:   site.Key,
+// 				})
+// 				//}
+// 			}
+// 		}
+// 	}
 
-	return skls
-}
+// 	return skls
+// }
 
 // really usable...?
 //func (ll *LunchList) SetSiteKeys(skls SiteKeyLinks) {
@@ -344,29 +335,29 @@ func (ll *LunchList) GetSiteKeyLinks() SiteKeyLinks {
 //	}
 //}
 
-func (ll *LunchList) GetSiteLinkById(countryID, cityID, siteID string) *SiteLink {
-	country := ll.GetCountryById(countryID)
-	if nil == country {
-		return nil
-	}
-	city := country.GetCityById(cityID)
-	if nil == city {
-		return nil
-	}
-	site := city.GetSiteById(siteID)
-	if nil == site {
-		return nil
-	}
+// func (ll *LunchList) GetSiteLinkById(countryID, cityID, siteID string) *SiteLink {
+// 	country := ll.GetCountryById(countryID)
+// 	if country == nil {
+// 		return nil
+// 	}
+// 	city := country.GetCityById(cityID)
+// 	if city == nil {
+// 		return nil
+// 	}
+// 	site := city.GetSiteById(siteID)
+// 	if site == nil {
+// 		return nil
+// 	}
 
-	return &SiteLink{
-		CountryName: country.Name,
-		CountryID:   country.ID,
-		CityName:    city.Name,
-		CityID:      city.ID,
-		SiteName:    site.Name,
-		SiteID:      site.ID,
-		SiteKey:     site.Key,
-		Url:         fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
-		Comment:     fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
-	}
-}
+// 	return &SiteLink{
+// 		CountryName: country.Name,
+// 		CountryID:   country.ID,
+// 		CityName:    city.Name,
+// 		CityID:      city.ID,
+// 		SiteName:    site.Name,
+// 		SiteID:      site.ID,
+// 		SiteKey:     site.Key,
+// 		Url:         fmt.Sprintf("%s/%s/%s/", country.ID, city.ID, site.ID),
+// 		Comment:     fmt.Sprintf("%s / %s / %s", country.Name, city.Name, site.Name),
+// 	}
+// }
