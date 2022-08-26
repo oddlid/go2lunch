@@ -1,8 +1,6 @@
 package lunchdata
 
 import (
-	"encoding/json"
-	"io"
 	"sync"
 )
 
@@ -15,10 +13,6 @@ type City struct {
 }
 
 type Cities []*City
-
-// func (cs Cities) Add(c *City) {
-// 	cs = append(cs, c)
-// }
 
 func (cs *Cities) Len() int {
 	return len(*cs)
@@ -156,20 +150,4 @@ func (c *City) NumDishes() int {
 	}
 	c.RUnlock()
 	return total
-}
-
-func (c *City) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(c)
-}
-
-func (c *City) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(c)
-}
-
-func CityFromJSON(r io.Reader) (*City, error) {
-	c := &City{}
-	if err := c.Decode(r); err != nil {
-		return nil, err
-	}
-	return c, nil
 }

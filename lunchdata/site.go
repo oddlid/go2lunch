@@ -1,10 +1,6 @@
 package lunchdata
 
 import (
-	"bufio"
-	"encoding/json"
-	"io"
-	"os"
 	"sync"
 )
 
@@ -21,10 +17,6 @@ type Site struct {
 }
 
 type Sites []*Site
-
-// func (ss Sites) Add(s *Site) {
-// 	ss = append(ss, s)
-// }
 
 func (ss Sites) Len() int {
 	return len(ss)
@@ -49,17 +41,11 @@ func (s *Site) SubItems() int {
 	total := 0
 	s.RLock()
 	for k := range s.Restaurants {
-		total += s.Restaurants[k].SubItems() + 1 // +1 to count the restaurant itself as well
+		total += s.Restaurants[k].Len() + 1 // +1 to count the restaurant itself as well
 	}
 	s.RUnlock()
 	return total
 }
-
-// Reminder of sort of what I think I want...
-// A Site instance should be able to calculate its key, given the signing key.
-// func (s *Site) CalcKey(signKey string) string {
-// 	return ""
-// }
 
 // Just deliver the first restaurant we find.
 // Convenience method for inheriting timestamp
@@ -189,50 +175,13 @@ func (s *Site) NumDishes() int {
 	return total
 }
 
-func (s *Site) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(s)
-}
-
-func (s *Site) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(s)
-}
-
-func (s *Site) SaveJSON(fileName string) error {
-	f, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	w := bufio.NewWriter(f)
-	err = s.Encode(w)
-	if err != nil {
-		return err
-	}
-	w.Flush()
-	return nil
-}
-
-func SiteFromJSON(r io.Reader) (*Site, error) {
-	s := &Site{}
-	if err := s.Decode(r); err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
 func (s *Site) RunScraper(wg *sync.WaitGroup) {
 	defer wg.Done()
-	// rsLog := siteLog.WithFields(log.Fields{
-	// 	"func":   "RunScraper",
-	// 	"SiteID": s.ID,
-	// })
 	if s.Scraper == nil {
-		// rsLog.Debug("No scraper instance configured, returning")
 		return
 	}
 	rs, err := s.Scraper.Scrape()
 	if err != nil {
-		// rsLog.WithField("ErrMSG", err.Error()).Error("Error running scraper")
 		return
 	}
 	s.SetRestaurants(rs)

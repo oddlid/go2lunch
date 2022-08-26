@@ -1,8 +1,6 @@
 package lunchdata
 
 import (
-	"encoding/json"
-	"io"
 	"sync"
 	// log "github.com/sirupsen/logrus"
 )
@@ -190,20 +188,4 @@ func (c *Country) NumDishes() int {
 	}
 	c.RUnlock()
 	return total
-}
-
-func (c *Country) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(c)
-}
-
-func (c *Country) Decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(c)
-}
-
-func CountryFromJSON(r io.Reader) (*Country, error) {
-	c := &Country{}
-	if err := c.Decode(r); err != nil {
-		return nil, err
-	}
-	return c, nil
 }
