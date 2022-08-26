@@ -10,7 +10,7 @@ import (
 type Country struct {
 	sync.RWMutex
 	Name   string           `json:"country_name"`
-	ID     string           `json:"country_id"` // preferrably international country code, like "se", "no", and so on
+	ID     string           `json:"country_id"` // preferably international country code, like "se", "no", and so on
 	Gtag   string           `json:"-"`
 	Cities map[string]*City `json:"cities"`
 }
@@ -90,14 +90,14 @@ func (c *Country) HasSite(cityID, siteID string) bool {
 	if !c.HasCity(cityID) {
 		return false
 	}
-	return c.GetCityById(cityID).HasSite(siteID)
+	return c.GetCityByID(cityID).HasSite(siteID)
 }
 
 func (c *Country) HasRestaurant(cityID, siteID, restaurantID string) bool {
 	if !c.HasSite(cityID, siteID) {
 		return false
 	}
-	return c.GetSiteById(cityID, siteID).HasRestaurant(restaurantID)
+	return c.GetSiteByID(cityID, siteID).HasRestaurant(restaurantID)
 }
 
 func (c *Country) ClearCities() *Country {
@@ -134,26 +134,26 @@ func (c *Country) ClearDishes() *Country {
 	return c
 }
 
-func (c *Country) GetCityById(id string) *City {
+func (c *Country) GetCityByID(id string) *City {
 	c.RLock()
 	defer c.RUnlock()
 	return c.Cities[id]
 }
 
-func (c *Country) GetSiteById(cityID, siteID string) *Site {
-	city := c.GetCityById(cityID)
+func (c *Country) GetSiteByID(cityID, siteID string) *Site {
+	city := c.GetCityByID(cityID)
 	if city == nil {
 		return nil
 	}
-	return city.GetSiteById(siteID)
+	return city.GetSiteByID(siteID)
 }
 
-func (c *Country) GetRestaurantById(cityID, siteID, restaurantID string) *Restaurant {
-	city := c.GetCityById(cityID)
+func (c *Country) GetRestaurantByID(cityID, siteID, restaurantID string) *Restaurant {
+	city := c.GetCityByID(cityID)
 	if city == nil {
 		return nil
 	}
-	return city.GetRestaurantById(siteID, restaurantID)
+	return city.GetRestaurantByID(siteID, restaurantID)
 }
 
 func (c *Country) NumCities() int {

@@ -26,7 +26,6 @@ import (
 
 const (
 	userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
-	tag                 = `LHScraper`
 	countryID           = `se`
 	cityID              = `gbg`
 	siteID              = `lindholmen`
@@ -37,7 +36,7 @@ const (
 	selectorDish        = `span.dish-name`
 	selectorDishName    = `strong`
 	selectorPrice       = `div.table-list__column--price`
-	keyUrl              = `url`
+	keyURL              = `url`
 	keyRestaurant       = `restaurant`
 	keyNumRestaurants   = `numRestaurants`
 	keyDish             = `dish`
@@ -131,12 +130,12 @@ func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
 					Str(keyDish, dishName).
 					Send()
 			})
-			restaurantMap[restaurant.Url] = restaurant
+			restaurantMap[restaurant.URL] = restaurant
 		})
 	})
 
 	lhs.Logger.Debug().
-		Str(keyUrl, lhs.URL).
+		Str(keyURL, lhs.URL).
 		Msg("Start scraping menus")
 
 	startTimeMenus := time.Now()
@@ -150,7 +149,7 @@ func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	}
 
 	lhs.Logger.Debug().
-		Str(keyUrl, lhs.URL).
+		Str(keyURL, lhs.URL).
 		Dur(keyParsedTime, time.Since(startTimeMenus)).
 		Int(keyNumRestaurants, restaurants.Len()).
 		Int(keyNumDishes, restaurants.NumDishes()).
@@ -161,13 +160,13 @@ func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
 
 	addrCollector.OnHTML(selectorContent, func(e *colly.HTMLElement) {
 		lhs.Logger.Trace().
-			Str(keyUrl, e.Request.URL.String()).
+			Str(keyURL, e.Request.URL.String()).
 			Msg("Looking for map link...")
 
 		restaurant, found := restaurantMap[e.Request.URL.String()]
 		if !found {
 			lhs.Logger.Error().
-				Str(keyUrl, e.Request.URL.String()).
+				Str(keyURL, e.Request.URL.String()).
 				Msg("No restaurant entry for URL")
 			return
 		}
@@ -190,19 +189,18 @@ func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
 				restaurant.Address = address
 
 				lhs.Logger.Trace().
-					Str(keyUrl, e.Request.URL.String()).
+					Str(keyURL, e.Request.URL.String()).
 					Str(keyMapURL, restaurant.MapURL).
 					Str(keyAddr, address).
 					Str(keyRestaurant, restaurant.Name).
 					Msg("Parsed map URL and address")
 
 				return false
-			} else {
-				lhs.Logger.Trace().
-					Str(keyUrl, e.Request.URL.String()).
-					Str(keyLink, link).
-					Msg("Not a map link")
 			}
+			lhs.Logger.Trace().
+				Str(keyURL, e.Request.URL.String()).
+				Str(keyLink, link).
+				Msg("Not a map link")
 			return true
 		})
 	})
@@ -216,12 +214,12 @@ func (lhs *LHScraper) Scrape() (lunchdata.Restaurants, error) {
 	addrCollector.Wait()
 
 	lhs.Logger.Debug().
-		Str(keyUrl, lhs.URL).
+		Str(keyURL, lhs.URL).
 		Dur(keyParsedTime, time.Since(startTimeMapLinks)).
 		Msg("Map links parsed")
 
 	lhs.Logger.Debug().
-		Str(keyUrl, lhs.URL).
+		Str(keyURL, lhs.URL).
 		Dur(keyParsedTime, time.Since(startTimeMenus)).
 		Msg("Site parsed")
 

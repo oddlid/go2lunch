@@ -13,7 +13,7 @@ type Site struct {
 	Name        string                 `json:"site_name"`
 	ID          string                 `json:"site_id"` // something unique within the parent city
 	Comment     string                 `json:"site_comment,omitempty"`
-	Url         string                 `json:"url,omitempty"`
+	URL         string                 `json:"url,omitempty"`
 	Gtag        string                 `json:"-"`
 	Key         string                 `json:"-"` // validation against submitting scrapers
 	Restaurants map[string]*Restaurant `json:"restaurants"`
@@ -85,7 +85,7 @@ func (s *Site) ParsedHumanDate() string {
 	if r != nil {
 		return r.ParsedHumanDate()
 	}
-	return DATE_FORMAT
+	return dateFormat
 }
 
 func (s *Site) AddRestaurant(r *Restaurant) *Site {
@@ -167,7 +167,7 @@ func (s *Site) ClearDishes() *Site {
 	return s
 }
 
-func (s *Site) GetRestaurantById(id string) *Restaurant {
+func (s *Site) GetRestaurantByID(id string) *Restaurant {
 	s.RLock()
 	defer s.RUnlock()
 	return s.Restaurants[id]
@@ -231,7 +231,7 @@ func (s *Site) RunScraper(wg *sync.WaitGroup) {
 		return
 	}
 	rs, err := s.Scraper.Scrape()
-	if nil != err {
+	if err != nil {
 		// rsLog.WithField("ErrMSG", err.Error()).Error("Error running scraper")
 		return
 	}

@@ -78,21 +78,21 @@ func (ll *LunchList) HasCity(countryID, cityID string) bool {
 	if !ll.HasCountry(countryID) {
 		return false
 	}
-	return ll.GetCountryById(countryID).HasCity(cityID)
+	return ll.GetCountryByID(countryID).HasCity(cityID)
 }
 
 func (ll *LunchList) HasSite(countryID, cityID, siteID string) bool {
 	if !ll.HasCity(countryID, cityID) {
 		return false
 	}
-	return ll.GetCityById(countryID, cityID).HasSite(siteID)
+	return ll.GetCityByID(countryID, cityID).HasSite(siteID)
 }
 
 func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID string) bool {
 	if !ll.HasSite(countryID, cityID, siteID) {
 		return false
 	}
-	return ll.GetSiteById(countryID, cityID, siteID).HasRestaurant(restaurantID)
+	return ll.GetSiteByID(countryID, cityID, siteID).HasRestaurant(restaurantID)
 }
 
 func (ll *LunchList) ClearCountries() *LunchList {
@@ -138,38 +138,38 @@ func (ll *LunchList) ClearDishes() *LunchList {
 	return ll
 }
 
-func (ll *LunchList) GetCountryById(id string) *Country {
+func (ll *LunchList) GetCountryByID(id string) *Country {
 	ll.RLock()
 	defer ll.RUnlock()
 	return ll.Countries[id]
 }
 
-func (ll *LunchList) GetCityById(countryID, cityID string) *City {
-	c := ll.GetCountryById(countryID)
+func (ll *LunchList) GetCityByID(countryID, cityID string) *City {
+	c := ll.GetCountryByID(countryID)
 	if c == nil {
 		return nil
 	}
-	return c.GetCityById(cityID)
+	return c.GetCityByID(cityID)
 }
 
-func (ll *LunchList) GetSiteById(countryID, cityID, siteID string) *Site {
-	c := ll.GetCountryById(countryID)
+func (ll *LunchList) GetSiteByID(countryID, cityID, siteID string) *Site {
+	c := ll.GetCountryByID(countryID)
 	if c == nil {
 		return nil
 	}
-	return c.GetSiteById(cityID, siteID)
+	return c.GetSiteByID(cityID, siteID)
 }
 
 func (ll *LunchList) GetSiteByLink(sl SiteLink) *Site {
-	return ll.GetSiteById(sl.CountryID, sl.CityID, sl.SiteID)
+	return ll.GetSiteByID(sl.CountryID, sl.CityID, sl.SiteID)
 }
 
-func (ll *LunchList) GetRestaurantById(countryID, cityID, siteID, restaurantID string) *Restaurant {
-	c := ll.GetCountryById(countryID)
+func (ll *LunchList) GetRestaurantByID(countryID, cityID, siteID, restaurantID string) *Restaurant {
+	c := ll.GetCountryByID(countryID)
 	if c == nil {
 		return nil
 	}
-	return c.GetRestaurantById(cityID, siteID, restaurantID)
+	return c.GetRestaurantByID(cityID, siteID, restaurantID)
 }
 
 func (ll *LunchList) NumCountries() int {
@@ -327,7 +327,7 @@ func LunchListFromFile(fileName string) (*LunchList, error) {
 //func (ll *LunchList) SetSiteKeys(skls SiteKeyLinks) {
 //	for _, skl := range skls {
 //		site := ll.GetSiteById(skl.CountryID, skl.CityID, skl.SiteID)
-//		if nil != site {
+//		if site != nil {
 //			site.Lock()
 //			site.Key = skl.SiteKey
 //			site.Unlock()

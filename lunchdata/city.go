@@ -90,7 +90,7 @@ func (c *City) HasRestaurant(siteID, restaurantID string) bool {
 		return false
 	}
 	// We should only get here if there is a Site with siteID, so this should not crash
-	return c.GetSiteById(siteID).HasRestaurant(restaurantID)
+	return c.GetSiteByID(siteID).HasRestaurant(restaurantID)
 }
 
 func (c *City) ClearSites() *City {
@@ -118,18 +118,18 @@ func (c *City) ClearDishes() *City {
 	return c
 }
 
-func (c *City) GetSiteById(id string) *Site {
+func (c *City) GetSiteByID(id string) *Site {
 	c.RLock()
 	defer c.RUnlock()
 	return c.Sites[id]
 }
 
-func (c *City) GetRestaurantById(siteID, restaurantID string) *Restaurant {
-	s := c.GetSiteById(siteID)
+func (c *City) GetRestaurantByID(siteID, restaurantID string) *Restaurant {
+	s := c.GetSiteByID(siteID)
 	if s == nil {
 		return nil
 	}
-	return s.GetRestaurantById(restaurantID)
+	return s.GetRestaurantByID(restaurantID)
 }
 
 func (c *City) NumSites() int {

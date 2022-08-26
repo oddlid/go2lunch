@@ -10,7 +10,7 @@ TODO:
 	  are to be built in to the binary, so that the engine doesn't need to know anything about
 		the scrapers except which site a scraper is for, and an API to run a scrape.
 		Internal / built-in scrapers should run asynchronously, delivering results via channels.
-		Internal / built-in scrapers should be able to register themselves with the engine, preferrably
+		Internal / built-in scrapers should be able to register themselves with the engine, preferably
 		without the engine having to know anything about it, other than being able to tell all registered
 		scrapers to run at given intervals, and then collect their results. Look at go-chat-bot for how
 		to solve this.
@@ -50,12 +50,10 @@ const (
 
 // exit codes
 const (
-	E_OK int = iota
-	E_CRON
-	E_WRITEPID
-	E_READJSON
-	E_WRITEJSON
-	E_INITTMPL
+	exitCron int = iota
+	exitReadJSON
+	exitWriteJSON
+	exitInitTemplate
 )
 
 var (
@@ -87,7 +85,7 @@ func init() {
 // I'd like to find a more flexible and dynamic way of including scrapers, but for now
 // we'll use this
 func registerSiteScraper(countryID, cityID, siteID string, scraper lunchdata.SiteScraper) {
-	lsite := getLunchList().GetSiteById(countryID, cityID, siteID)
+	lsite := getLunchList().GetSiteByID(countryID, cityID, siteID)
 	if lsite == nil {
 		log.Error().
 			Str("countryID", countryID).
@@ -172,14 +170,14 @@ func entryPointServe(cCtx *cli.Context) error {
 			// for an already configured Site, so a given Gtag will not be removed by scraping
 			logInventory()
 		}); err != nil {
-			return cli.Exit(err.Error(), E_CRON)
+			return cli.Exit(err.Error(), exitCron)
 		}
 		cr.Start()
 		log.Info().Msg("Built-in cron started")
 	}
 
 	if err := initTmpl(); err != nil {
-		return cli.Exit(err.Error(), E_INITTMPL)
+		return cli.Exit(err.Error(), exitInitTemplate)
 	}
 
 	// Loading the lunchlist from a JSON file is mostly useful for testing.
@@ -193,7 +191,7 @@ func entryPointServe(cCtx *cli.Context) error {
 	jfile := cCtx.String(optLoad)
 	if jfile != "" {
 		if err := lunchListFromFile(jfile); err != nil {
-			return cli.Exit(err.Error(), E_READJSON)
+			return cli.Exit(err.Error(), exitReadJSON)
 		}
 		log.Info().
 			Str("file", jfile).
@@ -264,7 +262,7 @@ func entryPointServe(cCtx *cli.Context) error {
 			getLunchList().ClearRestaurants()
 		}
 		if err := getLunchList().SaveJSON(jfile); err != nil {
-			return cli.Exit(err.Error(), E_WRITEJSON)
+			return cli.Exit(err.Error(), exitWriteJSON)
 		}
 		log.Info().
 			Str("file", jfile).
@@ -400,13 +398,21 @@ COPYRIGHT:
 `
 }
 
+func setCompileTime(app *cli.App) {
+	ts, err := time.Parse(time.RFC3339, BuildDate)
+	if err != nil {
+		return
+	}
+	app.Compiled = ts
+}
+
 func main() {
 	setCustomAppHelpTmpl()
 	app := cli.NewApp()
+	setCompileTime(app)
 	app.Name = "go2lunch server"
 	app.Version = fmt.Sprintf("%s_%s", Version, CommitID)
 	app.Copyright = "(c) 2017 Odd Eivind Ebbesen"
-	app.Compiled, _ = time.Parse(time.RFC3339, BuildDate)
 	app.Authors = []*cli.Author{
 		{
 			Name:  "Odd E. Ebbesen",
@@ -529,5 +535,4 @@ func main() {
 		cancel()
 		log.Fatal().Err(err).Msg("Execution failed")
 	}
-	// log.Info().Msg("All done")
 }

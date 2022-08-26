@@ -6,7 +6,7 @@ import (
 	"github.com/oddlid/go2lunch/lunchdata"
 )
 
-var lldata string = `
+var lldata = `
 {
 	"gtag": "UA-126840341-2",
   "countries": {

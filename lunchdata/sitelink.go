@@ -17,7 +17,7 @@ type SiteLink struct {
 	SiteID      string `json:"site_id"`
 	SiteKey     string `json:"site_key"`
 	Comment     string `json:"comment,omitempty"`
-	Url         string `json:"url"`
+	URL         string `json:"url"`
 }
 
 // Stripped down struct only for linking to the correct site, for saving/loading keys

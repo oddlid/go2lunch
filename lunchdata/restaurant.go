@@ -12,7 +12,7 @@ type Restaurant struct {
 	sync.RWMutex
 	Name    string    `json:"restaurant_name"`
 	ID      string    `json:"restaurant_id"`
-	Url     string    `json:"url,omitempty"`
+	URL     string    `json:"url,omitempty"`
 	Gtag    string    `json:"-"`
 	Address string    `json:"address"`
 	MapURL  string    `json:"map_url"`
@@ -42,7 +42,7 @@ func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 	return &Restaurant{
 		Name:   name,
 		ID:     id,
-		Url:    url,
+		URL:    url,
 		Parsed: parsed,
 		Dishes: make(Dishes, 0),
 	}
@@ -79,7 +79,7 @@ func (r *Restaurant) ParsedRFC3339() string {
 func (r *Restaurant) ParsedHumanDate() string {
 	r.RLock()
 	defer r.RUnlock()
-	return r.Parsed.Format(DATE_FORMAT)
+	return r.Parsed.Format(dateFormat)
 }
 
 func (rs Restaurants) PropagateGtag(tag string) {
