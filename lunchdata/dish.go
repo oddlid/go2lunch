@@ -8,3 +8,11 @@ type Dish struct {
 }
 
 type Dishes []*Dish
+
+func (ds Dishes) Len() int {
+	return len(ds)
+}
+
+func (d Dish) String() string {
+	return d.Name + " " + d.Desc
+}

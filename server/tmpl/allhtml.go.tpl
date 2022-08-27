@@ -12,14 +12,17 @@
     <title>{{.}}</title>
 {{- end }}
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
 {{- define "pgHdrScript" }}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{.}}"></script>
-    <script type="text/javascript" src="/static/lhlunch.js"></script>
-    <script>
-      gtag('js', new Date());
-      gtag('config', '{{.}}');
-    </script>
+      <script type="text/javascript" src="/static/lhlunch.js"></script>
+      {{- if . }}
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{.}}"></script>
+      <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '{{.}}');
+      </script>
+      {{- end }}
 {{- end }}
 
 {{- define "pgHdrEnd" }}
@@ -129,11 +132,11 @@
         <details open class="pb-3">
           <summary>
             <h2 class="name h6">
-				<a href="{{.URL}}">{{.Name}}</a>
-			{{- if .Address }}
-				- <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
-			{{- end }}
-			</h2>
+			<a href="{{.Url}}">{{.Name}}</a>
+		{{- if .Address }}
+			- <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
+		{{- end }}
+		</h2>
           </summary>
           <div class="dishes ml-2 p-2 shadow rounded">
             {{- range .Dishes }}

@@ -214,8 +214,7 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 						Msg("Failed to parse dish price")
 					price = -1
 				}
-				restaurant.Dishes = append(
-					restaurant.Dishes,
+				restaurant.AddDishes(
 					&lunchdata.Dish{
 						Name:  dishName,
 						Desc:  dishDesc,
