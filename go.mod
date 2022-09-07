@@ -3,8 +3,10 @@ module github.com/oddlid/go2lunch
 go 1.18
 
 require (
+	github.com/GeertJohan/go.rice v1.0.2
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/gocolly/colly/v2 v2.1.0
+	github.com/gorilla/mux v1.8.0
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0
 )
@@ -14,6 +16,7 @@ require (
 	github.com/antchfx/htmlquery v1.2.5 // indirect
 	github.com/antchfx/xmlquery v1.3.12 // indirect
 	github.com/antchfx/xpath v1.2.1 // indirect
+	github.com/daaku/go.zipexe v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect

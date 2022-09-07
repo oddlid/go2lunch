@@ -132,11 +132,11 @@
         <details open class="pb-3">
           <summary>
             <h2 class="name h6">
-			<a href="{{.Url}}">{{.Name}}</a>
-		{{- if .Address }}
-			- <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
-		{{- end }}
-		</h2>
+              <a href="{{.Url}}">{{.Name}}</a>
+              {{- if .Address }}
+              - <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
+              {{- end }}
+            </h2>
           </summary>
           <div class="dishes ml-2 p-2 shadow rounded">
             {{- range .Dishes }}

@@ -12,12 +12,15 @@ The URL paths to serve should be these:
 
 The virtual files to serve should be these:
 
+default.{html,txt,json}
 lunchlist.{html,txt,json}
 country.{html,txt,json}
 city.{html,txt,json}
 site.{html,txt,json}
 restaurant.{html,txt,json}
 dish.{html,txt,json}
+
+NOTE: For paths and files, we currently don't support restaurant and dish, but we might later on
 
 It would have been more clear to type all of the above out verbatim where they're used,
 but in order to minimize the risk of typos and subtle bugs, I've gone for this not so
@@ -36,8 +39,9 @@ type outputFormat uint8
 
 const (
 	slash            = `/`
-	htmlTemplateFile = `allhtml.go.tpl`
-	textTemplateFile = `alltext.go.tpl`
+	htmlTemplateFile = `allhtml.go.tpl` // rice doesn't support constants, so this might get removed
+	textTemplateFile = `alltext.go.tpl` // rice doesn't support constants, so this might get removed
+	home             = `default`
 	lunchList        = `lunchlist`
 	country          = `country`
 	city             = `city`
@@ -70,6 +74,8 @@ const (
 func (id urlID) fileName(format outputFormat) string {
 	var base string
 	switch id {
+	case idRoot:
+		base = home
 	case idLunchList:
 		base = lunchList
 	case idCountry:
@@ -123,4 +129,8 @@ func (id urlID) routerPath() string {
 	default:
 		return slash
 	}
+}
+
+func slashWrap(str string) string {
+	return fmt.Sprintf("%s%s%s", slash, str, slash)
 }
