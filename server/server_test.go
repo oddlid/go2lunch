@@ -9,8 +9,8 @@ import (
 func TestServer_logging(t *testing.T) {
 	s := LunchServer{}
 	// Test that unset/zero value logger works as no-op
-	s.log.Info().Msg("This should not show up in the logs, and neither cause any problems")
+	s.Log.Info().Msg("This should not show up in the logs, and neither cause any problems")
 
-	s.log = zerolog.New(zerolog.NewTestWriter(t))
-	s.log.Info().Msg("But this should absolutely show up!")
+	s.Log = zerolog.New(zerolog.NewTestWriter(t))
+	s.Log.Info().Msg("But this should absolutely show up!")
 }

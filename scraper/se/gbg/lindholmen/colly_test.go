@@ -2,20 +2,19 @@ package lindholmen
 
 import (
 	"testing"
-
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_Scrape(t *testing.T) {
-	l := zerolog.New(zerolog.NewTestWriter(t))
-	lhs := Scraper{
-		Logger: l,
-		URL:    "http://localhost:8080", // start a local webserver to test this
-	}
-	rs, err := lhs.Scrape()
-	assert.NoError(t, err)
-	assert.NotNil(t, rs)
+	// Content is commented out, since this should only be tested manually against a local webserver
+
+	// l := zerolog.New(zerolog.NewTestWriter(t))
+	// lhs := Scraper{
+	// 	Logger: l,
+	// 	URL:    "http://localhost:8080", // start a local webserver to test this
+	// }
+	// rs, err := lhs.Scrape()
+	// assert.NoError(t, err)
+	// assert.NotNil(t, rs)
 
 	// l.Debug().Int("numRestaurants", len(rs)).Send()
 	// for _, restaurant := range rs {
