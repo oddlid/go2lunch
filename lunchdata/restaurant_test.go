@@ -7,6 +7,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewRestaurant(t *testing.T) {
+	name := "Bistrot"
+	id := "id"
+	url := "url"
+	parsed := time.Now()
+
+	r := NewRestaurant(name, id, url, parsed)
+	assert.NotNil(t, r)
+	assert.IsType(t, (*Restaurant)(nil), r)
+	assert.Equal(t, name, r.Name)
+	assert.Equal(t, id, r.ID)
+	assert.Equal(t, url, r.URL)
+	assert.NotNil(t, r.Dishes)
+	assert.Len(t, r.Dishes, 0)
+}
 func TestRestaurants_Len_whenNil(t *testing.T) {
 	var rs Restaurants
 	assert.Equal(t, 0, rs.Len())
@@ -143,4 +158,49 @@ func TestRestaurant_ParsedHumanDate(t *testing.T) {
 	now := time.Now()
 	r := Restaurant{Parsed: now}
 	assert.Equal(t, now.Format(dateFormat), r.ParsedHumanDate())
+}
+
+func TestRestaurant_PropagateGtag(t *testing.T) {
+	var nilRestaurant *Restaurant
+	assert.NotPanics(t, func() { nilRestaurant.PropagateGtag("") })
+
+	gtag := "sometag"
+	r := Restaurant{
+		Dishes: Dishes{
+			{Name: "Middag"},
+			{Name: "Lunch"},
+		},
+	}
+	r.PropagateGtag(gtag)
+	for _, dish := range r.Dishes {
+		assert.Equal(t, gtag, dish.Gtag)
+	}
+	assert.Equal(t, gtag, r.Gtag)
+}
+
+func TestRestaurants_PropagateGtag(t *testing.T) {
+	gtag := "sometag"
+	rs := Restaurants{
+		{
+			Name: "Bistrot",
+			Dishes: Dishes{
+				{Name: "Köttbullar"},
+				{Name: "Pasta"},
+			},
+		},
+		{
+			Name: "Kooperativet",
+			Dishes: Dishes{
+				{Name: "Kyckling"},
+				{Name: "Fisk"},
+			},
+		},
+	}
+	rs.PropagateGtag(gtag)
+	for _, r := range rs {
+		assert.Equal(t, gtag, r.Gtag)
+		for _, d := range r.Dishes {
+			assert.Equal(t, gtag, d.Gtag)
+		}
+	}
 }

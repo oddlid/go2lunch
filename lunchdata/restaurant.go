@@ -57,11 +57,11 @@ func (r *Restaurant) PropagateGtag(tag string) {
 		return
 	}
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	r.Gtag = tag
 	for i := range r.Dishes {
 		r.Dishes[i].Gtag = tag
 	}
+	r.mu.Unlock()
 }
 
 func (r *Restaurant) AddDishes(ds ...*Dish) {
