@@ -6,67 +6,67 @@ import (
 
 // A giant list of everything
 type LunchList struct {
-	sync.RWMutex
-	Countries map[string]*Country `json:"countries"`
-	Gtag      string              `json:"gtag,omitempty"`
+	Countries CountryMap `json:"countries"`
+	Gtag      string     `json:"gtag,omitempty"`
+	mu        sync.RWMutex
 }
 
 func NewLunchList() *LunchList {
 	return &LunchList{
-		Countries: make(map[string]*Country),
+		Countries: make(CountryMap),
 	}
 }
 
 func (ll *LunchList) Len() int {
-	ll.RLock()
-	defer ll.RUnlock()
+	ll.mu.RLock()
+	defer ll.mu.RUnlock()
 	return len(ll.Countries)
 }
 
 func (ll *LunchList) SubItems() int {
 	total := 0
-	ll.RLock()
+	ll.mu.RLock()
 	for k := range ll.Countries {
 		total += ll.Countries[k].SubItems() + 1 // +1 to count the Country itself as well
 	}
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return total
 }
 
 func (ll *LunchList) PropagateGtag(tag string) *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	ll.Gtag = tag
 	for k := range ll.Countries {
 		ll.Countries[k].PropagateGtag(tag)
 	}
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) AddCountry(c *Country) *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	ll.Countries[c.ID] = c
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) DeleteCountry(id string) *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	delete(ll.Countries, id)
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) HasCountries() bool {
-	ll.RLock()
-	defer ll.RUnlock()
+	ll.mu.RLock()
+	defer ll.mu.RUnlock()
 	return len(ll.Countries) > 0
 }
 
 func (ll *LunchList) HasCountry(countryID string) bool {
-	ll.RLock()
+	ll.mu.RLock()
 	_, found := ll.Countries[countryID]
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return found
 }
 
@@ -92,51 +92,51 @@ func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID strin
 }
 
 func (ll *LunchList) ClearCountries() *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	ll.Countries = make(map[string]*Country)
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) ClearCities() *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	for k := range ll.Countries {
 		ll.Countries[k].ClearCities()
 	}
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) ClearSites() *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	for k := range ll.Countries {
 		ll.Countries[k].ClearSites()
 	}
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) ClearRestaurants() *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	for k := range ll.Countries {
 		ll.Countries[k].ClearRestaurants()
 	}
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) ClearDishes() *LunchList {
-	ll.Lock()
+	ll.mu.Lock()
 	for k := range ll.Countries {
 		ll.Countries[k].ClearDishes()
 	}
-	ll.Unlock()
+	ll.mu.Unlock()
 	return ll
 }
 
 func (ll *LunchList) GetCountryByID(id string) *Country {
-	ll.RLock()
-	defer ll.RUnlock()
+	ll.mu.RLock()
+	defer ll.mu.RUnlock()
 	return ll.Countries[id]
 }
 
@@ -169,48 +169,48 @@ func (ll *LunchList) GetRestaurantByID(countryID, cityID, siteID, restaurantID s
 }
 
 func (ll *LunchList) NumCountries() int {
-	ll.RLock()
-	defer ll.RUnlock()
+	ll.mu.RLock()
+	defer ll.mu.RUnlock()
 	return len(ll.Countries)
 }
 
 func (ll *LunchList) NumCities() int {
 	total := 0
-	ll.RLock()
+	ll.mu.RLock()
 	for k := range ll.Countries {
 		total += ll.Countries[k].NumCities()
 	}
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return total
 }
 
 func (ll *LunchList) NumSites() int {
 	total := 0
-	ll.RLock()
+	ll.mu.RLock()
 	for k := range ll.Countries {
 		total += ll.Countries[k].NumSites()
 	}
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return total
 }
 
 func (ll *LunchList) NumRestaurants() int {
 	total := 0
-	ll.RLock()
+	ll.mu.RLock()
 	for k := range ll.Countries {
 		total += ll.Countries[k].NumRestaurants()
 	}
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return total
 }
 
 func (ll *LunchList) NumDishes() int {
 	total := 0
-	ll.RLock()
+	ll.mu.RLock()
 	for k := range ll.Countries {
 		total += ll.Countries[k].NumDishes()
 	}
-	ll.RUnlock()
+	ll.mu.RUnlock()
 	return total
 }
 

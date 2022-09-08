@@ -2,18 +2,18 @@ package lunchdata
 
 import (
 	"sync"
-	// log "github.com/sirupsen/logrus"
 )
 
 type Country struct {
-	sync.RWMutex
-	Name   string           `json:"country_name"`
-	ID     string           `json:"country_id"` // preferably international country code, like "se", "no", and so on
-	Gtag   string           `json:"-"`
-	Cities map[string]*City `json:"cities"`
+	Cities CityMap `json:"cities"`
+	Name   string  `json:"country_name"`
+	ID     string  `json:"country_id"` // preferably international country code, like "se", "no", and so on
+	Gtag   string  `json:"-"`
+	mu     sync.RWMutex
 }
 
 type Countries []*Country
+type CountryMap map[string]*Country
 
 func (cs *Countries) Add(c *Country) {
 	*cs = append(*cs, c)
@@ -27,60 +27,60 @@ func NewCountry(name, id string) *Country {
 	return &Country{
 		Name:   name,
 		ID:     id,
-		Cities: make(map[string]*City),
+		Cities: make(CityMap),
 	}
 }
 
 func (c *Country) Len() int {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Cities)
 }
 
 func (c *Country) SubItems() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].SubItems() + 1 // +1 to count the City itself as well
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }
 
 func (c *Country) PropagateGtag(tag string) *Country {
-	c.Lock()
+	c.mu.Lock()
 	c.Gtag = tag
 	for k := range c.Cities {
 		c.Cities[k].PropagateGtag(tag)
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) AddCity(city *City) *Country {
-	c.Lock()
+	c.mu.Lock()
 	c.Cities[city.ID] = city
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) DeleteCity(id string) *Country {
-	c.Lock()
+	c.mu.Lock()
 	delete(c.Cities, id)
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) HasCities() bool {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Cities) > 0
 }
 
 func (c *Country) HasCity(cityID string) bool {
-	c.RLock()
+	c.mu.RLock()
 	_, found := c.Cities[cityID]
-	c.RUnlock()
+	c.mu.RUnlock()
 	return found
 }
 
@@ -99,42 +99,42 @@ func (c *Country) HasRestaurant(cityID, siteID, restaurantID string) bool {
 }
 
 func (c *Country) ClearCities() *Country {
-	c.Lock()
+	c.mu.Lock()
 	c.Cities = make(map[string]*City)
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) ClearSites() *Country {
-	c.Lock()
+	c.mu.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearSites()
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) ClearRestaurants() *Country {
-	c.Lock()
+	c.mu.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearRestaurants()
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) ClearDishes() *Country {
-	c.Lock()
+	c.mu.Lock()
 	for k := range c.Cities {
 		c.Cities[k].ClearDishes()
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *Country) GetCityByID(id string) *City {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.Cities[id]
 }
 
@@ -155,37 +155,37 @@ func (c *Country) GetRestaurantByID(cityID, siteID, restaurantID string) *Restau
 }
 
 func (c *Country) NumCities() int {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Cities)
 }
 
 func (c *Country) NumSites() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumSites()
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }
 
 func (c *Country) NumRestaurants() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumRestaurants()
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }
 
 func (c *Country) NumDishes() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Cities {
 		total += c.Cities[k].NumDishes()
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }

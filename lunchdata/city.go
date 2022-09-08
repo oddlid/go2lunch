@@ -5,14 +5,15 @@ import (
 )
 
 type City struct {
-	sync.RWMutex
-	Name  string           `json:"city_name"`
-	ID    string           `json:"city_id"` // e.g. osl, gbg or something like the airlines use
-	Gtag  string           `json:"-"`
-	Sites map[string]*Site `json:"sites"`
+	Sites SiteMap `json:"sites"`
+	Name  string  `json:"city_name"`
+	ID    string  `json:"city_id"` // e.g. osl, gbg or something like the airlines use
+	Gtag  string  `json:"-"`
+	mu    sync.RWMutex
 }
 
 type Cities []*City
+type CityMap map[string]*City
 
 func (cs *Cities) Len() int {
 	return len(*cs)
@@ -22,60 +23,60 @@ func NewCity(name, id string) *City {
 	return &City{
 		Name:  name,
 		ID:    id,
-		Sites: make(map[string]*Site),
+		Sites: make(SiteMap),
 	}
 }
 
 func (c *City) Len() int {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Sites)
 }
 
 func (c *City) SubItems() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Sites {
 		total += c.Sites[k].SubItems() + 1 // +1 to count the Site itself as well
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }
 
 func (c *City) PropagateGtag(tag string) *City {
-	c.Lock()
+	c.mu.Lock()
 	c.Gtag = tag
 	for k := range c.Sites {
 		c.Sites[k].PropagateGtag(tag)
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) AddSite(s *Site) *City {
-	c.Lock()
+	c.mu.Lock()
 	c.Sites[s.ID] = s
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) DeleteSite(id string) *City {
-	c.Lock()
+	c.mu.Lock()
 	delete(c.Sites, id)
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) HasSites() bool {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Sites) > 0
 }
 
 func (c *City) HasSite(siteID string) bool {
-	c.RLock()
+	c.mu.RLock()
 	_, found := c.Sites[siteID]
-	c.RUnlock()
+	c.mu.RUnlock()
 	return found
 }
 
@@ -88,33 +89,33 @@ func (c *City) HasRestaurant(siteID, restaurantID string) bool {
 }
 
 func (c *City) ClearSites() *City {
-	c.Lock()
+	c.mu.Lock()
 	c.Sites = make(map[string]*Site)
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) ClearRestaurants() *City {
-	c.Lock()
+	c.mu.Lock()
 	for k := range c.Sites {
 		c.Sites[k].ClearRestaurants()
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) ClearDishes() *City {
-	c.Lock()
+	c.mu.Lock()
 	for k := range c.Sites {
 		c.Sites[k].ClearDishes()
 	}
-	c.Unlock()
+	c.mu.Unlock()
 	return c
 }
 
 func (c *City) GetSiteByID(id string) *Site {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.Sites[id]
 }
 
@@ -127,27 +128,27 @@ func (c *City) GetRestaurantByID(siteID, restaurantID string) *Restaurant {
 }
 
 func (c *City) NumSites() int {
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return len(c.Sites)
 }
 
 func (c *City) NumRestaurants() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Sites {
 		total += c.Sites[k].NumRestaurants()
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }
 
 func (c *City) NumDishes() int {
 	total := 0
-	c.RLock()
+	c.mu.RLock()
 	for k := range c.Sites {
 		total += c.Sites[k].NumDishes()
 	}
-	c.RUnlock()
+	c.mu.RUnlock()
 	return total
 }

@@ -29,7 +29,7 @@ import (
 
 const (
 	DefaultScrapeURL    = `https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe`
-	defaultDomainGlob   = `*.lindholmen.se`
+	userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
 	countryID           = `se`
 	cityID              = `gbg`
 	siteID              = `lindholmen`
@@ -53,26 +53,9 @@ const (
 	urlPrefix           = `https://www.lindholmen.se/sv/`
 )
 
-var (
-	restaurantNameReplacer = strings.NewReplacer(
-		"ä", "a",
-		"å", "a",
-		"è", "e,",
-		"é", "e",
-		"ê", "e",
-		"ö", "o",
-		"&", "",
-		" ", "-",
-		"´", "",
-		"/", "",
-	)
-	hyphenRX = regexp.MustCompile(`-+`)
-)
-
 type Scraper struct {
-	URL        string
-	DomainGlob string
-	Logger     zerolog.Logger
+	URL    string
+	Logger zerolog.Logger
 }
 
 // Encode ID field. Might find a better strategy for this later
@@ -105,7 +88,7 @@ func (Scraper) GetSiteID() string {
 	return siteID
 }
 
-func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
+func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
 	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
 	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
@@ -113,9 +96,9 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	if lhs.URL == "" {
 		lhs.URL = DefaultScrapeURL
 	}
-	if lhs.DomainGlob == "" {
-		lhs.DomainGlob = defaultDomainGlob
-	}
+
+	restaurantMap := make(lunchdata.RestaurantMap)
+	collector := colly.NewCollector(colly.UserAgent(userAgent))
 
 	restaurantMap := make(map[string]*lunchdata.Restaurant)
 	menuCollector := colly.NewCollector()

@@ -6,7 +6,6 @@ import (
 )
 
 type Restaurant struct {
-	mu      sync.RWMutex
 	Name    string    `json:"restaurant_name"`
 	ID      string    `json:"restaurant_id"`
 	URL     string    `json:"url,omitempty"`
@@ -15,6 +14,7 @@ type Restaurant struct {
 	MapURL  string    `json:"map_url"`
 	Parsed  time.Time `json:"scrape_date"`
 	Dishes  Dishes    `json:"dishes"`
+	mu      sync.RWMutex
 }
 
 type Restaurants []*Restaurant
