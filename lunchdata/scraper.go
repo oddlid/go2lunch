@@ -7,10 +7,6 @@ Scrapers that deliver their results via HTTP POST can be implemented in any way 
 any language, as long as they provide the proper JSON to the proper URL.
 */
 
-// A site instance could have a field for a SiteScraper
-// If not nil, it would be able to run and update the site contents.
-// So, should the scraper return a full site instance, or just a slice of Restaurants?
-// 2019-08-21 21:45: A slice of Restaurant is the answer
 type SiteScraper interface {
 	Scrape() (Restaurants, error)
 	GetCountryID() string

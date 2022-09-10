@@ -9,7 +9,7 @@ type Restaurant struct {
 	Name    string    `json:"restaurant_name"`
 	ID      string    `json:"restaurant_id"`
 	URL     string    `json:"url,omitempty"`
-	Gtag    string    `json:"-"`
+	GTag    string    `json:"-"`
 	Address string    `json:"address"`
 	MapURL  string    `json:"map_url"`
 	Parsed  time.Time `json:"scrape_date"`
@@ -32,6 +32,19 @@ func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 	}
 }
 
+func (r *Restaurant) NumDishes() int {
+	if r == nil {
+		return 0
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.Dishes.Len()
+}
+
+func (r *Restaurant) Empty() bool {
+	return r.NumDishes() == 0
+}
+
 // ParsedRFC3339 returns the date in RFC3339 format
 func (r *Restaurant) ParsedRFC3339() string {
 	if r == nil {
@@ -52,49 +65,52 @@ func (r *Restaurant) ParsedHumanDate() string {
 	return r.Parsed.Format(dateFormat)
 }
 
-func (r *Restaurant) PropagateGtag(tag string) {
+func (r *Restaurant) SetGTag(tag string) *Restaurant {
 	if r == nil {
-		return
+		return nil
 	}
 	r.mu.Lock()
-	r.Gtag = tag
-	for i := range r.Dishes {
-		r.Dishes[i].Gtag = tag
-	}
+	r.GTag = tag
+	r.Dishes.SetGTag(tag)
 	r.mu.Unlock()
+	return r
 }
 
-func (r *Restaurant) AddDishes(ds ...*Dish) {
-	if r == nil || len(ds) == 0 {
-		return
+func (r *Restaurant) AddDishes(dishes ...*Dish) *Restaurant {
+	if r == nil {
+		return nil
+	}
+	if len(dishes) == 0 {
+		return r
 	}
 	r.mu.Lock()
-	r.Dishes = append(r.Dishes, ds...)
+	for _, dish := range dishes {
+		if dish != nil {
+			r.Dishes = append(r.Dishes, dish)
+		}
+	}
 	r.mu.Unlock()
+	return r
 }
 
-func (r *Restaurant) SetDishes(ds Dishes) {
+func (r *Restaurant) SetDishes(ds Dishes) *Restaurant {
 	if r == nil {
-		return
+		return nil
 	}
 	r.mu.Lock()
 	r.Dishes = ds
 	r.mu.Unlock()
-}
-
-func (r *Restaurant) NumDishes() int {
-	if r == nil {
-		return 0
-	}
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.Dishes.Len()
+	return r
 }
 
 /*** funcs for Restaurants ***/
 
 func (rs Restaurants) Len() int {
 	return len(rs)
+}
+
+func (rs Restaurants) Empty() bool {
+	return rs.Len() == 0
 }
 
 func (rs Restaurants) NumDishes() int {
@@ -105,17 +121,19 @@ func (rs Restaurants) NumDishes() int {
 	return total
 }
 
-func (rs Restaurants) PropagateGtag(tag string) {
-	for i := range rs {
-		rs[i].PropagateGtag(tag)
+func (rs Restaurants) Total() int {
+	return rs.Len() + rs.NumDishes()
+}
+
+func (rs Restaurants) SetGTag(tag string) {
+	for _, r := range rs {
+		r.SetGTag(tag)
 	}
 }
 
 func (rs Restaurants) AsMap() RestaurantMap {
 	rMap := make(RestaurantMap)
-	for i := range rs {
-		rMap.Add(rs[i])
-	}
+	rMap.Add(rs...)
 	return rMap
 }
 
@@ -125,13 +143,41 @@ func (rm RestaurantMap) Len() int {
 	return len(rm)
 }
 
-func (rm RestaurantMap) Add(r *Restaurant) {
-	if rm == nil || r == nil {
-		return
-	}
-	rm[r.ID] = r
+func (rm RestaurantMap) Empty() bool {
+	return rm.Len() == 0
 }
 
-func (rm RestaurantMap) Delete(id string) {
-	delete(rm, id)
+func (rm RestaurantMap) NumDishes() int {
+	total := 0
+	for _, r := range rm {
+		total += r.NumDishes()
+	}
+	return total
+}
+
+func (rm RestaurantMap) Total() int {
+	return rm.Len() + rm.NumDishes()
+}
+
+func (rm RestaurantMap) Add(restaurants ...*Restaurant) {
+	if rm == nil {
+		return
+	}
+	for _, r := range restaurants {
+		if r != nil {
+			rm[r.ID] = r
+		}
+	}
+}
+
+func (rm RestaurantMap) Delete(ids ...string) {
+	for _, id := range ids {
+		delete(rm, id)
+	}
+}
+
+func (rm RestaurantMap) SetGTag(tag string) {
+	for _, r := range rm {
+		r.SetGTag(tag)
+	}
 }

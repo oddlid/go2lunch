@@ -34,17 +34,8 @@ func TestRestaurants_Len(t *testing.T) {
 
 func TestRestaurants_NumDishes(t *testing.T) {
 	rs := Restaurants{
-		{
-			Dishes: Dishes{
-				{},
-				{},
-			},
-		},
-		{
-			Dishes: Dishes{
-				{},
-			},
-		},
+		{Dishes: Dishes{{}, {}}},
+		{Dishes: Dishes{{}}},
 		{},
 	}
 	assert.Equal(t, 3, rs.NumDishes())
@@ -122,9 +113,13 @@ func TestRestaurant_SetDishes(t *testing.T) {
 	assert.Nil(t, r.Dishes)
 
 	ds := Dishes{}
-	r.SetDishes(ds)
+	ret := r.SetDishes(ds)
+	assert.Same(t, &r, ret)
 	assert.NotNil(t, r.Dishes)
 	assert.Equal(t, ds, r.Dishes)
+
+	r.SetDishes(nil)
+	assert.Nil(t, r.Dishes)
 }
 
 func TestRestaurant_AddDishes(t *testing.T) {
@@ -134,11 +129,16 @@ func TestRestaurant_AddDishes(t *testing.T) {
 	})
 
 	r := Restaurant{}
+	ret := r.AddDishes()
+	assert.Same(t, &r, ret)
 	assert.Nil(t, r.Dishes)
-
 	ds := Dishes{{}, {}}
-	r.AddDishes(ds...)
+	ret = r.AddDishes(ds...)
+	assert.Same(t, &r, ret)
 	assert.NotNil(t, r.Dishes)
+	assert.Equal(t, len(ds), len(r.Dishes))
+	ret = r.AddDishes(nil, nil, nil)
+	assert.Same(t, &r, ret)
 	assert.Equal(t, len(ds), len(r.Dishes))
 }
 
@@ -160,9 +160,9 @@ func TestRestaurant_ParsedHumanDate(t *testing.T) {
 	assert.Equal(t, now.Format(dateFormat), r.ParsedHumanDate())
 }
 
-func TestRestaurant_PropagateGtag(t *testing.T) {
+func TestRestaurant_SetGTag(t *testing.T) {
 	var nilRestaurant *Restaurant
-	assert.NotPanics(t, func() { nilRestaurant.PropagateGtag("") })
+	assert.Nil(t, nilRestaurant.SetGTag(""))
 
 	gtag := "sometag"
 	r := Restaurant{
@@ -171,14 +171,15 @@ func TestRestaurant_PropagateGtag(t *testing.T) {
 			{Name: "Lunch"},
 		},
 	}
-	r.PropagateGtag(gtag)
+	ret := r.SetGTag(gtag)
+	assert.Same(t, &r, ret)
 	for _, dish := range r.Dishes {
-		assert.Equal(t, gtag, dish.Gtag)
+		assert.Equal(t, gtag, dish.GTag)
 	}
-	assert.Equal(t, gtag, r.Gtag)
+	assert.Equal(t, gtag, r.GTag)
 }
 
-func TestRestaurants_PropagateGtag(t *testing.T) {
+func TestRestaurants_SetGTag(t *testing.T) {
 	gtag := "sometag"
 	rs := Restaurants{
 		{
@@ -196,11 +197,11 @@ func TestRestaurants_PropagateGtag(t *testing.T) {
 			},
 		},
 	}
-	rs.PropagateGtag(gtag)
+	rs.SetGTag(gtag)
 	for _, r := range rs {
-		assert.Equal(t, gtag, r.Gtag)
+		assert.Equal(t, gtag, r.GTag)
 		for _, d := range r.Dishes {
-			assert.Equal(t, gtag, d.Gtag)
+			assert.Equal(t, gtag, d.GTag)
 		}
 	}
 }

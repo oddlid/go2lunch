@@ -23,21 +23,21 @@ func (ll *LunchList) Len() int {
 	return len(ll.Countries)
 }
 
-func (ll *LunchList) SubItems() int {
-	total := 0
-	ll.mu.RLock()
-	for k := range ll.Countries {
-		total += ll.Countries[k].SubItems() + 1 // +1 to count the Country itself as well
-	}
-	ll.mu.RUnlock()
-	return total
-}
+// func (ll *LunchList) SubItems() int {
+// 	total := 0
+// 	ll.mu.RLock()
+// 	for k := range ll.Countries {
+// 		total += ll.Countries[k].SubItems() + 1 // +1 to count the Country itself as well
+// 	}
+// 	ll.mu.RUnlock()
+// 	return total
+// }
 
 func (ll *LunchList) PropagateGtag(tag string) *LunchList {
 	ll.mu.Lock()
 	ll.Gtag = tag
 	for k := range ll.Countries {
-		ll.Countries[k].PropagateGtag(tag)
+		ll.Countries[k].SetGTag(tag)
 	}
 	ll.mu.Unlock()
 	return ll
@@ -84,12 +84,12 @@ func (ll *LunchList) HasSite(countryID, cityID, siteID string) bool {
 	return ll.GetCityByID(countryID, cityID).HasSite(siteID)
 }
 
-func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID string) bool {
-	if !ll.HasSite(countryID, cityID, siteID) {
-		return false
-	}
-	return ll.GetSiteByID(countryID, cityID, siteID).HasRestaurant(restaurantID)
-}
+// func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID string) bool {
+// 	if !ll.HasSite(countryID, cityID, siteID) {
+// 		return false
+// 	}
+// 	return ll.GetSiteByID(countryID, cityID, siteID).HasRestaurant(restaurantID)
+// }
 
 func (ll *LunchList) ClearCountries() *LunchList {
 	ll.mu.Lock()
@@ -107,32 +107,32 @@ func (ll *LunchList) ClearCities() *LunchList {
 	return ll
 }
 
-func (ll *LunchList) ClearSites() *LunchList {
-	ll.mu.Lock()
-	for k := range ll.Countries {
-		ll.Countries[k].ClearSites()
-	}
-	ll.mu.Unlock()
-	return ll
-}
+// func (ll *LunchList) ClearSites() *LunchList {
+// 	ll.mu.Lock()
+// 	for k := range ll.Countries {
+// 		ll.Countries[k].ClearSites()
+// 	}
+// 	ll.mu.Unlock()
+// 	return ll
+// }
 
-func (ll *LunchList) ClearRestaurants() *LunchList {
-	ll.mu.Lock()
-	for k := range ll.Countries {
-		ll.Countries[k].ClearRestaurants()
-	}
-	ll.mu.Unlock()
-	return ll
-}
+// func (ll *LunchList) ClearRestaurants() *LunchList {
+// 	ll.mu.Lock()
+// 	for k := range ll.Countries {
+// 		ll.Countries[k].ClearRestaurants()
+// 	}
+// 	ll.mu.Unlock()
+// 	return ll
+// }
 
-func (ll *LunchList) ClearDishes() *LunchList {
-	ll.mu.Lock()
-	for k := range ll.Countries {
-		ll.Countries[k].ClearDishes()
-	}
-	ll.mu.Unlock()
-	return ll
-}
+// func (ll *LunchList) ClearDishes() *LunchList {
+// 	ll.mu.Lock()
+// 	for k := range ll.Countries {
+// 		ll.Countries[k].ClearDishes()
+// 	}
+// 	ll.mu.Unlock()
+// 	return ll
+// }
 
 func (ll *LunchList) GetCountryByID(id string) *Country {
 	ll.mu.RLock()
@@ -160,13 +160,13 @@ func (ll *LunchList) GetSiteByLink(sl SiteLink) *Site {
 	return ll.GetSiteByID(sl.CountryID, sl.CityID, sl.SiteID)
 }
 
-func (ll *LunchList) GetRestaurantByID(countryID, cityID, siteID, restaurantID string) *Restaurant {
-	c := ll.GetCountryByID(countryID)
-	if c == nil {
-		return nil
-	}
-	return c.GetRestaurantByID(cityID, siteID, restaurantID)
-}
+// func (ll *LunchList) GetRestaurantByID(countryID, cityID, siteID, restaurantID string) *Restaurant {
+// 	c := ll.GetCountryByID(countryID)
+// 	if c == nil {
+// 		return nil
+// 	}
+// 	return c.GetRestaurantByID(cityID, siteID, restaurantID)
+// }
 
 func (ll *LunchList) NumCountries() int {
 	ll.mu.RLock()
@@ -194,15 +194,15 @@ func (ll *LunchList) NumSites() int {
 	return total
 }
 
-func (ll *LunchList) NumRestaurants() int {
-	total := 0
-	ll.mu.RLock()
-	for k := range ll.Countries {
-		total += ll.Countries[k].NumRestaurants()
-	}
-	ll.mu.RUnlock()
-	return total
-}
+// func (ll *LunchList) NumRestaurants() int {
+// 	total := 0
+// 	ll.mu.RLock()
+// 	for k := range ll.Countries {
+// 		total += ll.Countries[k].NumRestaurants()
+// 	}
+// 	ll.mu.RUnlock()
+// 	return total
+// }
 
 func (ll *LunchList) NumDishes() int {
 	total := 0

@@ -1,6 +1,8 @@
 package lunchdata
 
 import (
+	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -11,17 +13,19 @@ type Site struct {
 	ID          string        `json:"site_id"` // something unique within the parent city
 	Comment     string        `json:"site_comment,omitempty"`
 	URL         string        `json:"url,omitempty"`
-	Gtag        string        `json:"-"`
-	Key         string        `json:"-"` // validation against submitting scrapers
+	GTag        string        `json:"-"`
 	mu          sync.RWMutex
 }
 
 type Sites []*Site
 type SiteMap map[string]*Site
 
-func (ss Sites) Len() int {
-	return len(ss)
-}
+var (
+	errNilSite            = errors.New("site is nil")
+	errNoScraper          = errors.New("no scraper set for site")
+	errRestaurantNotFound = errors.New("restaurant not found")
+	errNilWaitGroup       = errors.New("passed sync.WaitGroup is nil")
+)
 
 func NewSite(name, id, comment string) *Site {
 	return &Site{
@@ -32,133 +36,240 @@ func NewSite(name, id, comment string) *Site {
 	}
 }
 
-func (s *Site) Len() int {
+func (s *Site) NumRestaurants() int {
+	if s == nil {
+		return 0
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return len(s.Restaurants)
+	return s.Restaurants.Len()
 }
 
-func (s *Site) SubItems() int {
-	total := 0
-	s.mu.RLock()
-	for k := range s.Restaurants {
-		total += s.Restaurants[k].NumDishes() + 1 // +1 to count the restaurant itself as well
-	}
-	s.mu.RUnlock()
-	return total
+func (s *Site) Empty() bool {
+	return s.NumRestaurants() == 0
 }
+
+func (s *Site) NumDishes() int {
+	if s == nil {
+		return 0
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.Restaurants.NumDishes()
+}
+
+// Total returns the number of restaurants and all their dishes
+// func (s *Site) Total() int {
+// 	if s == nil {
+// 		return 0
+// 	}
+// 	s.mu.RLock()
+// 	defer s.mu.RUnlock()
+// 	return s.Restaurants.Total()
+// }
 
 // Just deliver the first restaurant we find.
 // Convenience method for inheriting timestamp
 func (s *Site) getRndRestaurant() *Restaurant {
+	if s == nil {
+		return nil
+	}
 	for _, v := range s.Restaurants {
 		return v
 	}
 	return nil
 }
 
-func (s *Site) PropagateGtag(tag string) *Site {
-	s.mu.Lock()
-	s.Gtag = tag
-	for k := range s.Restaurants {
-		s.Restaurants[k].PropagateGtag(tag)
+func (s *Site) SetGTag(tag string) *Site {
+	if s == nil {
+		return nil
 	}
+	s.mu.Lock()
+	s.GTag = tag
+	s.Restaurants.SetGTag(tag)
 	s.mu.Unlock()
 	return s
 }
 
 func (s *Site) ParsedHumanDate() string {
-	r := s.getRndRestaurant()
+	r := s.getRndRestaurant() // safe to call on nil receiver
 	if r != nil {
 		return r.ParsedHumanDate()
 	}
 	return dateFormat
 }
 
-func (s *Site) AddRestaurant(r *Restaurant) *Site {
+func (s *Site) AddRestaurants(restaurants ...*Restaurant) *Site {
+	if s == nil {
+		return nil
+	}
 	s.mu.Lock()
-	s.Restaurants[r.ID] = r
+	if s.Restaurants == nil {
+		s.Restaurants = make(RestaurantMap)
+	}
+	s.Restaurants.Add(restaurants...)
 	s.mu.Unlock()
 	return s
 }
 
-func (s *Site) DeleteRestaurant(id string) *Site {
+func (s *Site) DeleteRestaurants(ids ...string) *Site {
+	if s == nil {
+		return nil
+	}
 	s.mu.Lock()
-	delete(s.Restaurants, id)
+	s.Restaurants.Delete(ids...)
 	s.mu.Unlock()
 	return s
 }
 
-func (s *Site) HasRestaurants() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.Restaurants) > 0
-}
-
-func (s *Site) HasRestaurant(restaurantID string) bool {
-	s.mu.RLock()
-	_, found := s.Restaurants[restaurantID]
-	s.mu.RUnlock()
-	return found
-}
-
-// Replace existing restaurants with these new given ones
 func (s *Site) SetRestaurants(rs Restaurants) *Site {
-	s.mu.Lock()
-	s.Restaurants = make(RestaurantMap)
-	for i := range rs {
-		s.Restaurants[rs[i].ID] = rs[i]
+	if s == nil {
+		return nil
 	}
+	s.mu.Lock()
+	s.Restaurants = rs.AsMap()
 	s.mu.Unlock()
 	return s
 }
 
-func (s *Site) ClearRestaurants() *Site {
-	s.mu.Lock()
-	s.Restaurants = make(RestaurantMap)
-	s.mu.Unlock()
-	return s
-}
-
-func (s *Site) ClearDishes() *Site {
-	s.mu.Lock()
-	for k := range s.Restaurants {
-		s.Restaurants[k].SetDishes(nil)
+func (s *Site) GetRestaurantByID(id string) (*Restaurant, error) {
+	if s == nil {
+		return nil, errNilSite
 	}
-	s.mu.Unlock()
-	return s
-}
-
-func (s *Site) GetRestaurantByID(id string) *Restaurant {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.Restaurants[id]
-}
-
-func (s *Site) NumRestaurants() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.Restaurants)
-}
-
-func (s *Site) NumDishes() int {
-	total := 0
-	s.mu.RLock()
-	for k := range s.Restaurants {
-		total += s.Restaurants[k].NumDishes()
-	}
+	r, found := s.Restaurants[id]
 	s.mu.RUnlock()
-	return total
+	if !found {
+		return nil, fmt.Errorf("%w: key=%s", errRestaurantNotFound, id)
+	}
+	return r, nil
 }
 
-func (s *Site) RunScraper(wg *sync.WaitGroup) {
+func (s *Site) SetScraper(scraper SiteScraper) *Site {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	s.Scraper = scraper
+	s.mu.Unlock()
+	return s
+}
+
+func (s *Site) RunScraper(wg *sync.WaitGroup) error {
+	if s == nil {
+		return errNilSite
+	}
+	if wg == nil {
+		return errNilWaitGroup
+	}
 	defer wg.Done()
 	if s.Scraper == nil {
-		return
+		return errNoScraper
 	}
 	rs, err := s.Scraper.Scrape()
 	if err != nil {
-		return
+		return err
 	}
 	s.SetRestaurants(rs)
+
+	return nil
+}
+
+/*** funcs for Sites ***/
+
+func (ss Sites) Len() int {
+	return len(ss)
+}
+
+func (ss Sites) Empty() bool {
+	return ss.Len() == 0
+}
+
+func (ss Sites) NumRestaurants() int {
+	total := 0
+	for _, site := range ss {
+		total += site.NumRestaurants()
+	}
+	return total
+}
+
+func (ss Sites) NumDishes() int {
+	total := 0
+	for _, s := range ss {
+		total += s.NumDishes()
+	}
+	return total
+}
+
+func (ss Sites) Total() int {
+	total := 0
+	for _, s := range ss {
+		total += s.Restaurants.Total()
+	}
+	return total + ss.Len()
+}
+
+func (ss Sites) SetGTag(tag string) {
+	for _, s := range ss {
+		s.SetGTag(tag)
+	}
+}
+
+func (ss Sites) AsMap() SiteMap {
+	sMap := make(SiteMap)
+	sMap.Add(ss...)
+	return sMap
+}
+
+/*** funcs for SiteMap ***/
+
+func (sm SiteMap) Len() int {
+	return len(sm)
+}
+
+func (sm SiteMap) Empty() bool {
+	return sm.Len() == 0
+}
+
+func (sm SiteMap) NumRestaurants() int {
+	total := 0
+	for _, s := range sm {
+		total += s.NumRestaurants()
+	}
+	return total
+}
+
+func (sm SiteMap) NumDishes() int {
+	total := 0
+	for _, s := range sm {
+		total += s.NumDishes()
+	}
+	return total
+}
+
+func (sm SiteMap) Total() int {
+	total := 0
+	for _, s := range sm {
+		total += s.Restaurants.Total()
+	}
+	return total + sm.Len()
+}
+
+func (sm SiteMap) Add(sites ...*Site) {
+	for _, site := range sites {
+		if site != nil {
+			sm[site.ID] = site
+		}
+	}
+}
+func (sm SiteMap) Delete(ids ...string) {
+	for _, id := range ids {
+		delete(sm, id)
+	}
+}
+
+func (sm SiteMap) SetGTag(tag string) {
+	for _, s := range sm {
+		s.SetGTag(tag)
+	}
 }
