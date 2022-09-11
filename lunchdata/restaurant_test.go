@@ -33,6 +33,16 @@ func TestRestaurant_NumDishes(t *testing.T) {
 	assert.Equal(t, 2, r.NumDishes())
 }
 
+func TestRestaurant_Empty(t *testing.T) {
+	var nilRestaurant *Restaurant
+	assert.True(t, nilRestaurant.Empty())
+
+	r := Restaurant{
+		Dishes: Dishes{{}, {}},
+	}
+	assert.False(t, r.Empty())
+}
+
 func TestRestaurant_SetDishes(t *testing.T) {
 	var nilRestaurant *Restaurant
 	assert.NotPanics(t, func() {

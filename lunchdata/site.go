@@ -55,16 +55,6 @@ func (s *Site) NumDishes() int {
 	return s.Restaurants.NumDishes()
 }
 
-// Total returns the number of restaurants and all their dishes
-// func (s *Site) Total() int {
-// 	if s == nil {
-// 		return 0
-// 	}
-// 	s.mu.RLock()
-// 	defer s.mu.RUnlock()
-// 	return s.Restaurants.Total()
-// }
-
 // Just deliver the first restaurant we find.
 // Convenience method for inheriting timestamp
 func (s *Site) getRndRestaurant() *Restaurant {

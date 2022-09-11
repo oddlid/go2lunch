@@ -70,19 +70,19 @@ func (ll *LunchList) HasCountry(countryID string) bool {
 	return found
 }
 
-func (ll *LunchList) HasCity(countryID, cityID string) bool {
-	if !ll.HasCountry(countryID) {
-		return false
-	}
-	return ll.GetCountryByID(countryID).HasCity(cityID)
-}
+// func (ll *LunchList) HasCity(countryID, cityID string) bool {
+// 	if !ll.HasCountry(countryID) {
+// 		return false
+// 	}
+// 	return ll.GetCountryByID(countryID).HasCity(cityID)
+// }
 
-func (ll *LunchList) HasSite(countryID, cityID, siteID string) bool {
-	if !ll.HasCity(countryID, cityID) {
-		return false
-	}
-	return ll.GetCityByID(countryID, cityID).HasSite(siteID)
-}
+// func (ll *LunchList) HasSite(countryID, cityID, siteID string) bool {
+// 	if !ll.HasCity(countryID, cityID) {
+// 		return false
+// 	}
+// 	return ll.GetCityByID(countryID, cityID).HasSite(siteID)
+// }
 
 // func (ll *LunchList) HasRestaurant(countryID, cityID, siteID, restaurantID string) bool {
 // 	if !ll.HasSite(countryID, cityID, siteID) {
@@ -98,14 +98,14 @@ func (ll *LunchList) ClearCountries() *LunchList {
 	return ll
 }
 
-func (ll *LunchList) ClearCities() *LunchList {
-	ll.mu.Lock()
-	for k := range ll.Countries {
-		ll.Countries[k].ClearCities()
-	}
-	ll.mu.Unlock()
-	return ll
-}
+// func (ll *LunchList) ClearCities() *LunchList {
+// 	ll.mu.Lock()
+// 	for k := range ll.Countries {
+// 		ll.Countries[k].ClearCities()
+// 	}
+// 	ll.mu.Unlock()
+// 	return ll
+// }
 
 // func (ll *LunchList) ClearSites() *LunchList {
 // 	ll.mu.Lock()

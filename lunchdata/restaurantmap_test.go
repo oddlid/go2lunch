@@ -17,6 +17,38 @@ func TestRestaurantMap_Len(t *testing.T) {
 	assert.Equal(t, 1, rm.Len())
 }
 
+func TestRestaurantMap_Empty(t *testing.T) {
+	var nilRM RestaurantMap
+	assert.True(t, nilRM.Empty())
+
+	rm := RestaurantMap{"1": {}}
+	assert.False(t, rm.Empty())
+}
+
+func TestRestaurantMap_NumDishes(t *testing.T) {
+	var nilRM RestaurantMap
+	assert.Zero(t, nilRM.NumDishes())
+
+	rm := RestaurantMap{
+		"1": {Dishes: Dishes{{}, {}}},
+		"2": {Dishes: Dishes{{}, {}}},
+		"3": {Dishes: Dishes{{}}},
+	}
+	assert.Equal(t, 5, rm.NumDishes())
+}
+
+func TestRestaurantMap_Total(t *testing.T) {
+	var nilRM RestaurantMap
+	assert.Zero(t, nilRM.Total())
+
+	rm := RestaurantMap{
+		"1": {Dishes: Dishes{{}, {}}},
+		"2": {Dishes: Dishes{{}, {}}},
+		"3": {Dishes: Dishes{{}}},
+	}
+	assert.Equal(t, 8, rm.Total())
+}
+
 func TestRestaurantMap_Add(t *testing.T) {
 	var nilRM RestaurantMap
 	nilRM.Add(&Restaurant{})
@@ -45,4 +77,23 @@ func TestResturantMap_Delete(t *testing.T) {
 
 	rm.Delete(r.ID)
 	assert.Equal(t, 0, len(rm))
+}
+
+func TestRestaurantMap_SetGTag(t *testing.T) {
+	var nilRM RestaurantMap
+	assert.NotPanics(t, func() { nilRM.SetGTag("") })
+
+	rm := RestaurantMap{
+		"1": {Dishes: Dishes{{}, {}}},
+		"2": {Dishes: Dishes{{}, {}}},
+		"3": {Dishes: Dishes{{}}},
+	}
+	tag := "sometag"
+	rm.SetGTag(tag)
+	for _, r := range rm {
+		assert.Equal(t, tag, r.GTag)
+		for _, d := range r.Dishes {
+			assert.Equal(t, tag, d.GTag)
+		}
+	}
 }

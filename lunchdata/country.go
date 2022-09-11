@@ -12,17 +12,6 @@ type Country struct {
 	mu     sync.RWMutex
 }
 
-type Countries []*Country
-type CountryMap map[string]*Country
-
-func (cs *Countries) Add(c *Country) {
-	*cs = append(*cs, c)
-}
-
-func (cs *Countries) Len() int {
-	return len(*cs)
-}
-
 func NewCountry(name, id string) *Country {
 	return &Country{
 		Name:   name,
@@ -32,6 +21,9 @@ func NewCountry(name, id string) *Country {
 }
 
 func (c *Country) Len() int {
+	if c == nil {
+		return 0
+	}
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return len(c.Cities)
@@ -48,6 +40,9 @@ func (c *Country) Len() int {
 // }
 
 func (c *Country) SetGTag(tag string) *Country {
+	if c == nil {
+		return nil
+	}
 	c.mu.Lock()
 	c.GTag = tag
 	for k := range c.Cities {
@@ -58,6 +53,9 @@ func (c *Country) SetGTag(tag string) *Country {
 }
 
 func (c *Country) AddCity(city *City) *Country {
+	if c == nil {
+		return nil
+	}
 	c.mu.Lock()
 	c.Cities[city.ID] = city
 	c.mu.Unlock()
@@ -65,31 +63,34 @@ func (c *Country) AddCity(city *City) *Country {
 }
 
 func (c *Country) DeleteCity(id string) *Country {
+	if c == nil {
+		return nil
+	}
 	c.mu.Lock()
 	delete(c.Cities, id)
 	c.mu.Unlock()
 	return c
 }
 
-func (c *Country) HasCities() bool {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return len(c.Cities) > 0
-}
+// func (c *Country) HasCities() bool {
+// 	c.mu.RLock()
+// 	defer c.mu.RUnlock()
+// 	return len(c.Cities) > 0
+// }
 
-func (c *Country) HasCity(cityID string) bool {
-	c.mu.RLock()
-	_, found := c.Cities[cityID]
-	c.mu.RUnlock()
-	return found
-}
+// func (c *Country) HasCity(cityID string) bool {
+// 	c.mu.RLock()
+// 	_, found := c.Cities[cityID]
+// 	c.mu.RUnlock()
+// 	return found
+// }
 
-func (c *Country) HasSite(cityID, siteID string) bool {
-	if !c.HasCity(cityID) {
-		return false
-	}
-	return c.GetCityByID(cityID).HasSite(siteID)
-}
+// func (c *Country) HasSite(cityID, siteID string) bool {
+// 	if !c.HasCity(cityID) {
+// 		return false
+// 	}
+// 	return c.GetCityByID(cityID).HasSite(siteID)
+// }
 
 // func (c *Country) HasRestaurant(cityID, siteID, restaurantID string) bool {
 // 	if !c.HasSite(cityID, siteID) {
@@ -98,12 +99,12 @@ func (c *Country) HasSite(cityID, siteID string) bool {
 // 	return c.GetSiteByID(cityID, siteID).HasRestaurant(restaurantID)
 // }
 
-func (c *Country) ClearCities() *Country {
-	c.mu.Lock()
-	c.Cities = make(map[string]*City)
-	c.mu.Unlock()
-	return c
-}
+// func (c *Country) ClearCities() *Country {
+// 	c.mu.Lock()
+// 	c.Cities = make(map[string]*City)
+// 	c.mu.Unlock()
+// 	return c
+// }
 
 // func (c *Country) ClearSites() *Country {
 // 	c.mu.Lock()
