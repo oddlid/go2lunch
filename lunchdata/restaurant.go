@@ -17,11 +17,6 @@ type Restaurant struct {
 	mu      sync.RWMutex
 }
 
-type Restaurants []*Restaurant
-type RestaurantMap map[string]*Restaurant
-
-/*** funcs for Restaurant ***/
-
 func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 	return &Restaurant{
 		Name:   name,
@@ -101,83 +96,4 @@ func (r *Restaurant) SetDishes(ds Dishes) *Restaurant {
 	r.Dishes = ds
 	r.mu.Unlock()
 	return r
-}
-
-/*** funcs for Restaurants ***/
-
-func (rs Restaurants) Len() int {
-	return len(rs)
-}
-
-func (rs Restaurants) Empty() bool {
-	return rs.Len() == 0
-}
-
-func (rs Restaurants) NumDishes() int {
-	total := 0
-	for _, r := range rs {
-		total += r.NumDishes()
-	}
-	return total
-}
-
-func (rs Restaurants) Total() int {
-	return rs.Len() + rs.NumDishes()
-}
-
-func (rs Restaurants) SetGTag(tag string) {
-	for _, r := range rs {
-		r.SetGTag(tag)
-	}
-}
-
-func (rs Restaurants) AsMap() RestaurantMap {
-	rMap := make(RestaurantMap)
-	rMap.Add(rs...)
-	return rMap
-}
-
-/*** funcs for RestaurantMap ***/
-
-func (rm RestaurantMap) Len() int {
-	return len(rm)
-}
-
-func (rm RestaurantMap) Empty() bool {
-	return rm.Len() == 0
-}
-
-func (rm RestaurantMap) NumDishes() int {
-	total := 0
-	for _, r := range rm {
-		total += r.NumDishes()
-	}
-	return total
-}
-
-func (rm RestaurantMap) Total() int {
-	return rm.Len() + rm.NumDishes()
-}
-
-func (rm RestaurantMap) Add(restaurants ...*Restaurant) {
-	if rm == nil {
-		return
-	}
-	for _, r := range restaurants {
-		if r != nil {
-			rm[r.ID] = r
-		}
-	}
-}
-
-func (rm RestaurantMap) Delete(ids ...string) {
-	for _, id := range ids {
-		delete(rm, id)
-	}
-}
-
-func (rm RestaurantMap) SetGTag(tag string) {
-	for _, r := range rm {
-		r.SetGTag(tag)
-	}
 }

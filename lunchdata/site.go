@@ -17,9 +17,6 @@ type Site struct {
 	mu          sync.RWMutex
 }
 
-type Sites []*Site
-type SiteMap map[string]*Site
-
 var (
 	errNilSite            = errors.New("site is nil")
 	errNoScraper          = errors.New("no scraper set for site")
@@ -173,103 +170,4 @@ func (s *Site) RunScraper(wg *sync.WaitGroup) error {
 	s.SetRestaurants(rs)
 
 	return nil
-}
-
-/*** funcs for Sites ***/
-
-func (ss Sites) Len() int {
-	return len(ss)
-}
-
-func (ss Sites) Empty() bool {
-	return ss.Len() == 0
-}
-
-func (ss Sites) NumRestaurants() int {
-	total := 0
-	for _, site := range ss {
-		total += site.NumRestaurants()
-	}
-	return total
-}
-
-func (ss Sites) NumDishes() int {
-	total := 0
-	for _, s := range ss {
-		total += s.NumDishes()
-	}
-	return total
-}
-
-func (ss Sites) Total() int {
-	total := 0
-	for _, s := range ss {
-		total += s.Restaurants.Total()
-	}
-	return total + ss.Len()
-}
-
-func (ss Sites) SetGTag(tag string) {
-	for _, s := range ss {
-		s.SetGTag(tag)
-	}
-}
-
-func (ss Sites) AsMap() SiteMap {
-	sMap := make(SiteMap)
-	sMap.Add(ss...)
-	return sMap
-}
-
-/*** funcs for SiteMap ***/
-
-func (sm SiteMap) Len() int {
-	return len(sm)
-}
-
-func (sm SiteMap) Empty() bool {
-	return sm.Len() == 0
-}
-
-func (sm SiteMap) NumRestaurants() int {
-	total := 0
-	for _, s := range sm {
-		total += s.NumRestaurants()
-	}
-	return total
-}
-
-func (sm SiteMap) NumDishes() int {
-	total := 0
-	for _, s := range sm {
-		total += s.NumDishes()
-	}
-	return total
-}
-
-func (sm SiteMap) Total() int {
-	total := 0
-	for _, s := range sm {
-		total += s.Restaurants.Total()
-	}
-	return total + sm.Len()
-}
-
-func (sm SiteMap) Add(sites ...*Site) {
-	for _, site := range sites {
-		if site != nil {
-			sm[site.ID] = site
-		}
-	}
-}
-func (sm SiteMap) Delete(ids ...string) {
-	for _, id := range ids {
-		delete(sm, id)
-	}
-}
-
-func (sm SiteMap) SetGTag(tag string) {
-	for _, s := range sm {
-		s.SetGTag(tag)
-	}
 }
