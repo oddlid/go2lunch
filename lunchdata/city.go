@@ -53,9 +53,7 @@ func (c *City) SetGTag(tag string) *City {
 	}
 	c.mu.Lock()
 	c.GTag = tag
-	for k := range c.Sites {
-		c.Sites[k].SetGTag(tag)
-	}
+	c.Sites.SetGTag(tag)
 	c.mu.Unlock()
 	return c
 }
