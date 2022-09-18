@@ -62,22 +62,22 @@ func TestRestaurant_SetDishes(t *testing.T) {
 	assert.Nil(t, r.Dishes)
 }
 
-func TestRestaurant_AddDishes(t *testing.T) {
+func TestRestaurant_Add(t *testing.T) {
 	var nilRestaurant *Restaurant
 	assert.NotPanics(t, func() {
-		nilRestaurant.AddDishes()
+		nilRestaurant.Add()
 	})
 
 	r := Restaurant{}
-	ret := r.AddDishes()
+	ret := r.Add()
 	assert.Same(t, &r, ret)
 	assert.Nil(t, r.Dishes)
 	ds := Dishes{{}, {}}
-	ret = r.AddDishes(ds...)
+	ret = r.Add(ds...)
 	assert.Same(t, &r, ret)
 	assert.NotNil(t, r.Dishes)
 	assert.Equal(t, len(ds), len(r.Dishes))
-	ret = r.AddDishes(nil, nil, nil)
+	ret = r.Add(nil, nil, nil)
 	assert.Same(t, &r, ret)
 	assert.Equal(t, len(ds), len(r.Dishes))
 }

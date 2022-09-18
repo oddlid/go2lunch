@@ -66,11 +66,7 @@ func (c *City) AddSites(sites ...*Site) *City {
 	if c.Sites == nil {
 		c.Sites = make(SiteMap)
 	}
-	for _, site := range sites {
-		if site != nil {
-			c.Sites[site.ID] = site
-		}
-	}
+	c.Sites.Add(sites...)
 	c.mu.Unlock()
 	return c
 }
@@ -80,14 +76,12 @@ func (c *City) DeleteSites(ids ...string) *City {
 		return nil
 	}
 	c.mu.Lock()
-	for _, id := range ids {
-		c.Sites.Delete(id)
-	}
+	c.Sites.Delete(ids...)
 	c.mu.Unlock()
 	return c
 }
 
-func (c *City) GetSiteByID(id string) *Site {
+func (c *City) Get(id string) *Site {
 	if c == nil {
 		return nil
 	}

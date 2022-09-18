@@ -71,7 +71,7 @@ func (r *Restaurant) SetGTag(tag string) *Restaurant {
 	return r
 }
 
-func (r *Restaurant) AddDishes(dishes ...*Dish) *Restaurant {
+func (r *Restaurant) Add(dishes ...*Dish) *Restaurant {
 	if r == nil {
 		return nil
 	}

@@ -140,24 +140,19 @@ func TestSite_SetRestaurants(t *testing.T) {
 	assert.False(t, found)
 }
 
-func TestSite_GetRestaurantByID(t *testing.T) {
+func TestSite_Get(t *testing.T) {
 	id := "id"
 	var nilSite *Site
-	r, err := nilSite.GetRestaurantByID(id)
+	r := nilSite.Get(id)
 	assert.Nil(t, r)
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errNilSite)
 
 	s := Site{}
-	r, err = s.GetRestaurantByID(id)
+	r = s.Get(id)
 	assert.Nil(t, r)
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errRestaurantNotFound)
 
 	restaurant := Restaurant{}
 	s.Restaurants = RestaurantMap{id: &restaurant}
-	r, err = s.GetRestaurantByID(id)
-	assert.NoError(t, err)
+	r = s.Get(id)
 	assert.NotNil(t, r)
 	assert.Same(t, &restaurant, r)
 }

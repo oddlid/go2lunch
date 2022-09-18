@@ -147,9 +147,9 @@ func TestCity_DeleteSites(t *testing.T) {
 	assert.Len(t, c.Sites, 1)
 }
 
-func TestCity_GetSiteByID(t *testing.T) {
+func TestCity_Get(t *testing.T) {
 	var nilCity *City
-	assert.Nil(t, nilCity.GetSiteByID(""))
+	assert.Nil(t, nilCity.Get(""))
 
 	c := City{
 		Sites: SiteMap{
@@ -169,10 +169,10 @@ func TestCity_GetSiteByID(t *testing.T) {
 			},
 		},
 	}
-	s := c.GetSiteByID("1")
+	s := c.Get("1")
 	assert.NotNil(t, s)
 	assert.Same(t, c.Sites["1"], s)
 
-	s = c.GetSiteByID("blah")
+	s = c.Get("blah")
 	assert.Nil(t, s)
 }

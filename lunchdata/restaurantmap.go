@@ -39,6 +39,17 @@ func (rm RestaurantMap) Delete(ids ...string) {
 	}
 }
 
+func (rm RestaurantMap) Get(id string) *Restaurant {
+	if rm == nil {
+		return nil
+	}
+	r, found := rm[id]
+	if !found {
+		return nil
+	}
+	return r
+}
+
 func (rm RestaurantMap) SetGTag(tag string) {
 	for _, r := range rm {
 		r.SetGTag(tag)

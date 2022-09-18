@@ -47,6 +47,17 @@ func (sm SiteMap) Delete(ids ...string) {
 	}
 }
 
+func (sm SiteMap) Get(id string) *Site {
+	if sm == nil {
+		return nil
+	}
+	s, found := sm[id]
+	if !found {
+		return nil
+	}
+	return s
+}
+
 func (sm SiteMap) SetGTag(tag string) {
 	for _, s := range sm {
 		s.SetGTag(tag)

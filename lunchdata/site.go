@@ -2,7 +2,6 @@ package lunchdata
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -18,10 +17,9 @@ type Site struct {
 }
 
 var (
-	errNilSite            = errors.New("site is nil")
-	errNoScraper          = errors.New("no scraper set for site")
-	errRestaurantNotFound = errors.New("restaurant not found")
-	errNilWaitGroup       = errors.New("passed sync.WaitGroup is nil")
+	errNilSite      = errors.New("site is nil")
+	errNoScraper    = errors.New("no scraper set for site")
+	errNilWaitGroup = errors.New("passed sync.WaitGroup is nil")
 )
 
 func NewSite(name, id, comment string) *Site {
@@ -119,17 +117,13 @@ func (s *Site) SetRestaurants(rs Restaurants) *Site {
 	return s
 }
 
-func (s *Site) GetRestaurantByID(id string) (*Restaurant, error) {
+func (s *Site) Get(id string) *Restaurant {
 	if s == nil {
-		return nil, errNilSite
+		return nil
 	}
 	s.mu.RLock()
-	r, found := s.Restaurants[id]
-	s.mu.RUnlock()
-	if !found {
-		return nil, fmt.Errorf("%w: key=%s", errRestaurantNotFound, id)
-	}
-	return r, nil
+	defer s.mu.RUnlock()
+	return s.Restaurants.Get(id)
 }
 
 func (s *Site) SetScraper(scraper SiteScraper) *Site {

@@ -20,24 +20,41 @@ func NewCountry(name, id string) *Country {
 	}
 }
 
-func (c *Country) Len() int {
+func (c *Country) NumCities() int {
 	if c == nil {
 		return 0
 	}
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return len(c.Cities)
+	return c.Cities.Len()
 }
 
-// func (c *Country) SubItems() int {
-// 	total := 0
-// 	c.mu.RLock()
-// 	for k := range c.Cities {
-// 		total += c.Cities[k].SubItems() + 1 // +1 to count the City itself as well
-// 	}
-// 	c.mu.RUnlock()
-// 	return total
-// }
+func (c *Country) NumSites() int {
+	if c == nil {
+		return 0
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.Cities.NumSites()
+}
+
+func (c *Country) NumRestaurants() int {
+	if c == nil {
+		return 0
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.Cities.NumRestaurants()
+}
+
+func (c *Country) NumDishes() int {
+	if c == nil {
+		return 0
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.Cities.NumDishes()
+}
 
 func (c *Country) SetGTag(tag string) *Country {
 	if c == nil {
@@ -45,9 +62,7 @@ func (c *Country) SetGTag(tag string) *Country {
 	}
 	c.mu.Lock()
 	c.GTag = tag
-	for k := range c.Cities {
-		c.Cities[k].SetGTag(tag)
-	}
+	c.Cities.SetGTag(tag)
 	c.mu.Unlock()
 	return c
 }
@@ -72,121 +87,8 @@ func (c *Country) DeleteCity(id string) *Country {
 	return c
 }
 
-// func (c *Country) HasCities() bool {
-// 	c.mu.RLock()
-// 	defer c.mu.RUnlock()
-// 	return len(c.Cities) > 0
-// }
-
-// func (c *Country) HasCity(cityID string) bool {
-// 	c.mu.RLock()
-// 	_, found := c.Cities[cityID]
-// 	c.mu.RUnlock()
-// 	return found
-// }
-
-// func (c *Country) HasSite(cityID, siteID string) bool {
-// 	if !c.HasCity(cityID) {
-// 		return false
-// 	}
-// 	return c.GetCityByID(cityID).HasSite(siteID)
-// }
-
-// func (c *Country) HasRestaurant(cityID, siteID, restaurantID string) bool {
-// 	if !c.HasSite(cityID, siteID) {
-// 		return false
-// 	}
-// 	return c.GetSiteByID(cityID, siteID).HasRestaurant(restaurantID)
-// }
-
-// func (c *Country) ClearCities() *Country {
-// 	c.mu.Lock()
-// 	c.Cities = make(map[string]*City)
-// 	c.mu.Unlock()
-// 	return c
-// }
-
-// func (c *Country) ClearSites() *Country {
-// 	c.mu.Lock()
-// 	for k := range c.Cities {
-// 		c.Cities[k].ClearSites()
-// 	}
-// 	c.mu.Unlock()
-// 	return c
-// }
-
-// func (c *Country) ClearRestaurants() *Country {
-// 	c.mu.Lock()
-// 	for k := range c.Cities {
-// 		c.Cities[k].ClearRestaurants()
-// 	}
-// 	c.mu.Unlock()
-// 	return c
-// }
-
-// func (c *Country) ClearDishes() *Country {
-// 	c.mu.Lock()
-// 	for k := range c.Cities {
-// 		c.Cities[k].ClearDishes()
-// 	}
-// 	c.mu.Unlock()
-// 	return c
-// }
-
 func (c *Country) GetCityByID(id string) *City {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.Cities[id]
-}
-
-func (c *Country) GetSiteByID(cityID, siteID string) *Site {
-	city := c.GetCityByID(cityID)
-	if city == nil {
-		return nil
-	}
-	return city.GetSiteByID(siteID)
-}
-
-// func (c *Country) GetRestaurantByID(cityID, siteID, restaurantID string) *Restaurant {
-// 	city := c.GetCityByID(cityID)
-// 	if city == nil {
-// 		return nil
-// 	}
-// 	return city.GetRestaurantByID(siteID, restaurantID)
-// }
-
-func (c *Country) NumCities() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return len(c.Cities)
-}
-
-func (c *Country) NumSites() int {
-	total := 0
-	c.mu.RLock()
-	for k := range c.Cities {
-		total += c.Cities[k].NumSites()
-	}
-	c.mu.RUnlock()
-	return total
-}
-
-// func (c *Country) NumRestaurants() int {
-// 	total := 0
-// 	c.mu.RLock()
-// 	for k := range c.Cities {
-// 		total += c.Cities[k].NumRestaurants()
-// 	}
-// 	c.mu.RUnlock()
-// 	return total
-// }
-
-func (c *Country) NumDishes() int {
-	total := 0
-	c.mu.RLock()
-	for k := range c.Cities {
-		total += c.Cities[k].NumDishes()
-	}
-	c.mu.RUnlock()
-	return total
 }
