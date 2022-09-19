@@ -24,8 +24,7 @@ func TestNewRestaurant(t *testing.T) {
 }
 
 func TestRestaurant_NumDishes(t *testing.T) {
-	var nilRestaurant *Restaurant
-	assert.Equal(t, 0, nilRestaurant.NumDishes())
+	assert.Equal(t, 0, (*Restaurant)(nil).NumDishes())
 
 	r := Restaurant{
 		Dishes: Dishes{{}, {}},
@@ -34,8 +33,7 @@ func TestRestaurant_NumDishes(t *testing.T) {
 }
 
 func TestRestaurant_Empty(t *testing.T) {
-	var nilRestaurant *Restaurant
-	assert.True(t, nilRestaurant.Empty())
+	assert.True(t, (*Restaurant)(nil).Empty())
 
 	r := Restaurant{
 		Dishes: Dishes{{}, {}},
@@ -43,29 +41,27 @@ func TestRestaurant_Empty(t *testing.T) {
 	assert.False(t, r.Empty())
 }
 
-func TestRestaurant_SetDishes(t *testing.T) {
-	var nilRestaurant *Restaurant
+func TestRestaurant_Set(t *testing.T) {
 	assert.NotPanics(t, func() {
-		nilRestaurant.SetDishes(nil)
+		(*Restaurant)(nil).Set(nil)
 	})
 
 	r := Restaurant{}
 	assert.Nil(t, r.Dishes)
 
 	ds := Dishes{}
-	ret := r.SetDishes(ds)
+	ret := r.Set(ds)
 	assert.Same(t, &r, ret)
 	assert.NotNil(t, r.Dishes)
 	assert.Equal(t, ds, r.Dishes)
 
-	r.SetDishes(nil)
+	r.Set(nil)
 	assert.Nil(t, r.Dishes)
 }
 
 func TestRestaurant_Add(t *testing.T) {
-	var nilRestaurant *Restaurant
 	assert.NotPanics(t, func() {
-		nilRestaurant.Add()
+		(*Restaurant)(nil).Add()
 	})
 
 	r := Restaurant{}
@@ -83,8 +79,7 @@ func TestRestaurant_Add(t *testing.T) {
 }
 
 func TestRestaurant_ParsedRFC3339(t *testing.T) {
-	var nilRestaurant *Restaurant
-	assert.NotEmpty(t, nilRestaurant.ParsedRFC3339())
+	assert.NotEmpty(t, (*Restaurant)(nil).ParsedRFC3339())
 
 	now := time.Now()
 	r := Restaurant{Parsed: now}
@@ -92,8 +87,7 @@ func TestRestaurant_ParsedRFC3339(t *testing.T) {
 }
 
 func TestRestaurant_ParsedHumanDate(t *testing.T) {
-	var nilRestaurant *Restaurant
-	assert.NotEmpty(t, nilRestaurant.ParsedHumanDate())
+	assert.NotEmpty(t, (*Restaurant)(nil).ParsedHumanDate())
 
 	now := time.Now()
 	r := Restaurant{Parsed: now}
@@ -101,8 +95,7 @@ func TestRestaurant_ParsedHumanDate(t *testing.T) {
 }
 
 func TestRestaurant_SetGTag(t *testing.T) {
-	var nilRestaurant *Restaurant
-	assert.Nil(t, nilRestaurant.SetGTag(""))
+	assert.Nil(t, (*Restaurant)(nil).SetGTag(""))
 
 	gtag := "sometag"
 	r := Restaurant{

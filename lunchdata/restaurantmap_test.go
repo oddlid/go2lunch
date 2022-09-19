@@ -18,16 +18,14 @@ func TestRestaurantMap_Len(t *testing.T) {
 }
 
 func TestRestaurantMap_Empty(t *testing.T) {
-	var nilRM RestaurantMap
-	assert.True(t, nilRM.Empty())
+	assert.True(t, (RestaurantMap)(nil).Empty())
 
 	rm := RestaurantMap{"1": {}}
 	assert.False(t, rm.Empty())
 }
 
 func TestRestaurantMap_NumDishes(t *testing.T) {
-	var nilRM RestaurantMap
-	assert.Zero(t, nilRM.NumDishes())
+	assert.Zero(t, (RestaurantMap)(nil).NumDishes())
 
 	rm := RestaurantMap{
 		"1": {Dishes: Dishes{{}, {}}},
@@ -38,8 +36,7 @@ func TestRestaurantMap_NumDishes(t *testing.T) {
 }
 
 func TestRestaurantMap_Total(t *testing.T) {
-	var nilRM RestaurantMap
-	assert.Zero(t, nilRM.Total())
+	assert.Zero(t, (RestaurantMap)(nil).Total())
 
 	rm := RestaurantMap{
 		"1": {Dishes: Dishes{{}, {}}},
@@ -50,9 +47,7 @@ func TestRestaurantMap_Total(t *testing.T) {
 }
 
 func TestRestaurantMap_Add(t *testing.T) {
-	var nilRM RestaurantMap
-	nilRM.Add(&Restaurant{})
-	assert.Equal(t, 0, nilRM.Len())
+	assert.NotPanics(t, func() { (RestaurantMap)(nil).Add(&Restaurant{}) })
 
 	rm := make(RestaurantMap)
 	rm.Add(nil)
@@ -63,9 +58,8 @@ func TestRestaurantMap_Add(t *testing.T) {
 }
 
 func TestResturantMap_Delete(t *testing.T) {
-	var nilRM RestaurantMap
 	assert.NotPanics(t, func() {
-		nilRM.Delete("test")
+		(RestaurantMap)(nil).Delete("")
 	})
 
 	r := Restaurant{
@@ -79,9 +73,21 @@ func TestResturantMap_Delete(t *testing.T) {
 	assert.Equal(t, 0, len(rm))
 }
 
+func TestRestaurantMap_Get(t *testing.T) {
+	assert.Nil(t, (RestaurantMap)(nil).Get(""))
+
+	id := "id"
+	r := Restaurant{}
+	rm := RestaurantMap{id: &r}
+	got := rm.Get(id)
+	assert.NotNil(t, got)
+	assert.Same(t, &r, got)
+
+	assert.Nil(t, rm.Get("otherid"))
+}
+
 func TestRestaurantMap_SetGTag(t *testing.T) {
-	var nilRM RestaurantMap
-	assert.NotPanics(t, func() { nilRM.SetGTag("") })
+	assert.NotPanics(t, func() { (RestaurantMap)(nil).SetGTag("") })
 
 	rm := RestaurantMap{
 		"1": {Dishes: Dishes{{}, {}}},

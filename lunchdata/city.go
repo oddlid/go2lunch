@@ -58,7 +58,7 @@ func (c *City) SetGTag(tag string) *City {
 	return c
 }
 
-func (c *City) AddSites(sites ...*Site) *City {
+func (c *City) Add(sites ...*Site) *City {
 	if c == nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func (c *City) AddSites(sites ...*Site) *City {
 	return c
 }
 
-func (c *City) DeleteSites(ids ...string) *City {
+func (c *City) Delete(ids ...string) *City {
 	if c == nil {
 		return nil
 	}

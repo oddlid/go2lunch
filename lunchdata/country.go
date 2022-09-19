@@ -67,28 +67,34 @@ func (c *Country) SetGTag(tag string) *Country {
 	return c
 }
 
-func (c *Country) AddCity(city *City) *Country {
+func (c *Country) Add(cities ...*City) *Country {
 	if c == nil {
 		return nil
 	}
 	c.mu.Lock()
-	c.Cities[city.ID] = city
+	if c.Cities == nil {
+		c.Cities = make(CityMap)
+	}
+	c.Cities.Add(cities...)
 	c.mu.Unlock()
 	return c
 }
 
-func (c *Country) DeleteCity(id string) *Country {
+func (c *Country) Delete(ids ...string) *Country {
 	if c == nil {
 		return nil
 	}
 	c.mu.Lock()
-	delete(c.Cities, id)
+	c.Cities.Delete(ids...)
 	c.mu.Unlock()
 	return c
 }
 
-func (c *Country) GetCityByID(id string) *City {
+func (c *Country) Get(id string) *City {
+	if c == nil {
+		return nil
+	}
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.Cities[id]
+	return c.Cities.Get(id)
 }

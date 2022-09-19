@@ -84,7 +84,7 @@ func (s *Site) ParsedHumanDate() string {
 	return dateFormat
 }
 
-func (s *Site) AddRestaurants(restaurants ...*Restaurant) *Site {
+func (s *Site) Add(restaurants ...*Restaurant) *Site {
 	if s == nil {
 		return nil
 	}
@@ -97,7 +97,7 @@ func (s *Site) AddRestaurants(restaurants ...*Restaurant) *Site {
 	return s
 }
 
-func (s *Site) DeleteRestaurants(ids ...string) *Site {
+func (s *Site) Delete(ids ...string) *Site {
 	if s == nil {
 		return nil
 	}
@@ -107,7 +107,7 @@ func (s *Site) DeleteRestaurants(ids ...string) *Site {
 	return s
 }
 
-func (s *Site) SetRestaurants(rs Restaurants) *Site {
+func (s *Site) Set(rs Restaurants) *Site {
 	if s == nil {
 		return nil
 	}
@@ -151,7 +151,7 @@ func (s *Site) RunScraper(wg *sync.WaitGroup) error {
 	if err != nil {
 		return err
 	}
-	s.SetRestaurants(rs)
+	s.Set(rs)
 
 	return nil
 }

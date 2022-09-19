@@ -18,16 +18,14 @@ func TestNewCity(t *testing.T) {
 }
 
 func TestCity_NumSites(t *testing.T) {
-	var nilCity *City
-	assert.Zero(t, nilCity.NumSites())
+	assert.Zero(t, (*City)(nil).NumSites())
 
 	c := City{Sites: SiteMap{"1": {}}}
 	assert.Equal(t, 1, c.NumSites())
 }
 
 func TestCity_NumRestaurants(t *testing.T) {
-	var nilCity *City
-	assert.Zero(t, nilCity.NumRestaurants())
+	assert.Zero(t, (*City)(nil).NumRestaurants())
 
 	c := City{
 		Sites: SiteMap{
@@ -42,8 +40,7 @@ func TestCity_NumRestaurants(t *testing.T) {
 }
 
 func TestCity_NumDishes(t *testing.T) {
-	var nilCity *City
-	assert.Zero(t, nilCity.NumDishes())
+	assert.Zero(t, (*City)(nil).NumDishes())
 
 	c := City{
 		Sites: SiteMap{
@@ -67,8 +64,7 @@ func TestCity_NumDishes(t *testing.T) {
 }
 
 func TestCity_SetGTag(t *testing.T) {
-	var nilCity *City
-	assert.NotPanics(t, func() { nilCity.SetGTag("") })
+	assert.NotPanics(t, func() { (*City)(nil).SetGTag("") })
 
 	c := City{
 		Sites: SiteMap{
@@ -103,25 +99,23 @@ func TestCity_SetGTag(t *testing.T) {
 	}
 }
 
-func TestCity_AddSites(t *testing.T) {
-	var nilCity *City
-	assert.Nil(t, nilCity.AddSites(nil))
+func TestCity_Add(t *testing.T) {
+	assert.Nil(t, (*City)(nil).Add(&Site{}))
 
 	c := City{}
 	assert.Nil(t, c.Sites)
-	ret := c.AddSites(nil)
+	ret := c.Add(nil)
 	assert.Same(t, &c, ret)
 	assert.NotNil(t, c.Sites)
 
 	s := Site{ID: "1"}
-	c.AddSites(&s, nil)
+	c.Add(&s, nil)
 	assert.Len(t, c.Sites, 1)
 	assert.Same(t, &s, c.Sites["1"])
 }
 
-func TestCity_DeleteSites(t *testing.T) {
-	var nilCity *City
-	assert.Nil(t, nilCity.DeleteSites(""))
+func TestCity_Delete(t *testing.T) {
+	assert.Nil(t, (*City)(nil).Delete(""))
 
 	c := City{
 		Sites: SiteMap{
@@ -141,15 +135,14 @@ func TestCity_DeleteSites(t *testing.T) {
 			},
 		},
 	}
-	c.DeleteSites("3")
+	c.Delete("3")
 	assert.Len(t, c.Sites, 2)
-	c.DeleteSites("2")
+	c.Delete("2")
 	assert.Len(t, c.Sites, 1)
 }
 
 func TestCity_Get(t *testing.T) {
-	var nilCity *City
-	assert.Nil(t, nilCity.Get(""))
+	assert.Nil(t, (*City)(nil).Get(""))
 
 	c := City{
 		Sites: SiteMap{

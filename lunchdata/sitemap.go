@@ -35,6 +35,9 @@ func (sm SiteMap) Total() int {
 }
 
 func (sm SiteMap) Add(sites ...*Site) {
+	if sm == nil {
+		return
+	}
 	for _, site := range sites {
 		if site != nil {
 			sm[site.ID] = site
@@ -48,14 +51,7 @@ func (sm SiteMap) Delete(ids ...string) {
 }
 
 func (sm SiteMap) Get(id string) *Site {
-	if sm == nil {
-		return nil
-	}
-	s, found := sm[id]
-	if !found {
-		return nil
-	}
-	return s
+	return sm[id]
 }
 
 func (sm SiteMap) SetGTag(tag string) {

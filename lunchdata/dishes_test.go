@@ -17,8 +17,7 @@ func TestDishes_Len(t *testing.T) {
 }
 
 func TestDishes_Empty(t *testing.T) {
-	var nilDishes Dishes
-	assert.True(t, nilDishes.Empty())
+	assert.True(t, (Dishes)(nil).Empty())
 
 	ds := Dishes{{}}
 	assert.False(t, ds.Empty())

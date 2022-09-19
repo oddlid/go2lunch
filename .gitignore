@@ -1,5 +1,5 @@
 lhlunch.bin
 .DS_Store
 .tmp/
-scraper/**/*.html
 .vscode/
+bistrot.html

@@ -88,7 +88,7 @@ func (r *Restaurant) Add(dishes ...*Dish) *Restaurant {
 	return r
 }
 
-func (r *Restaurant) SetDishes(ds Dishes) *Restaurant {
+func (r *Restaurant) Set(ds Dishes) *Restaurant {
 	if r == nil {
 		return nil
 	}

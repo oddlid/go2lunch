@@ -7,24 +7,21 @@ import (
 )
 
 func TestSiteMap_Len(t *testing.T) {
-	var nilMap SiteMap
-	assert.Equal(t, 0, nilMap.Len())
+	assert.Equal(t, 0, (SiteMap)(nil).Len())
 
 	sMap := SiteMap{"1": {}}
 	assert.Equal(t, 1, sMap.Len())
 }
 
 func TestSiteMap_Empty(t *testing.T) {
-	var nilMap SiteMap
-	assert.True(t, nilMap.Empty())
+	assert.True(t, (SiteMap)(nil).Empty())
 
 	sMap := SiteMap{"1": {}}
 	assert.False(t, sMap.Empty())
 }
 
 func TestSiteMap_NumRestaurants(t *testing.T) {
-	var nilMap SiteMap
-	assert.Equal(t, 0, nilMap.NumRestaurants())
+	assert.Equal(t, 0, (SiteMap)(nil).NumRestaurants())
 
 	sm := SiteMap{
 		"1": {Restaurants: RestaurantMap{"1": {}}},
@@ -34,8 +31,7 @@ func TestSiteMap_NumRestaurants(t *testing.T) {
 }
 
 func TestSiteMap_NumDishes(t *testing.T) {
-	var nilMap SiteMap
-	assert.Equal(t, 0, nilMap.NumDishes())
+	assert.Equal(t, 0, (SiteMap)(nil).NumDishes())
 
 	sm := SiteMap{
 		"1": {
@@ -57,8 +53,7 @@ func TestSiteMap_NumDishes(t *testing.T) {
 }
 
 func TestSiteMap_Total(t *testing.T) {
-	var nilMap SiteMap
-	assert.Equal(t, 0, nilMap.Total())
+	assert.Equal(t, 0, (SiteMap)(nil).Total())
 
 	sm := SiteMap{
 		"1": {
@@ -80,8 +75,7 @@ func TestSiteMap_Total(t *testing.T) {
 }
 
 func TestSiteMap_Add(t *testing.T) {
-	var nilMap SiteMap
-	assert.NotPanics(t, func() { nilMap.Add(nil) })
+	assert.NotPanics(t, func() { (SiteMap)(nil).Add(&Site{}) })
 
 	sm := SiteMap{}
 	ids := []string{"1", "2"}
@@ -94,8 +88,7 @@ func TestSiteMap_Add(t *testing.T) {
 }
 
 func TestSiteMap_Delete(t *testing.T) {
-	var nilMap SiteMap
-	assert.NotPanics(t, func() { nilMap.Delete("") })
+	assert.NotPanics(t, func() { (SiteMap)(nil).Delete("") })
 
 	ids := []string{"1", "2"}
 	s1 := Site{ID: ids[0]}
@@ -108,9 +101,21 @@ func TestSiteMap_Delete(t *testing.T) {
 	assert.Same(t, &s2, sm[ids[1]])
 }
 
+func TestSiteMap_Get(t *testing.T) {
+	assert.Nil(t, (SiteMap)(nil).Get(""))
+
+	id := "id"
+	s := Site{}
+	sm := SiteMap{id: &s}
+	got := sm.Get(id)
+	assert.NotNil(t, got)
+	assert.Same(t, &s, got)
+
+	assert.Nil(t, sm.Get("otherid"))
+}
+
 func TestSiteMap_SetGTag(t *testing.T) {
-	var nilMap SiteMap
-	assert.NotPanics(t, func() { nilMap.SetGTag("") })
+	assert.NotPanics(t, func() { (SiteMap)(nil).SetGTag("") })
 
 	sm := SiteMap{
 		"1": {

@@ -23,8 +23,7 @@ func TestNewSite(t *testing.T) {
 }
 
 func TestSite_NumRestaurants(t *testing.T) {
-	var nilSite *Site
-	assert.Equal(t, 0, nilSite.NumRestaurants())
+	assert.Equal(t, 0, (*Site)(nil).NumRestaurants())
 
 	s := Site{
 		Restaurants: RestaurantMap{
@@ -36,16 +35,14 @@ func TestSite_NumRestaurants(t *testing.T) {
 }
 
 func TestSite_Empty(t *testing.T) {
-	var nilSite *Site
-	assert.True(t, nilSite.Empty())
+	assert.True(t, (*Site)(nil).Empty())
 
 	s := Site{Restaurants: RestaurantMap{"1": {}}}
 	assert.False(t, s.Empty())
 }
 
 func TestSite_getRndRestaurant(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.getRndRestaurant())
+	assert.Nil(t, (*Site)(nil).getRndRestaurant())
 
 	// map access order is random, so we test with only 1 item here to ensure we can assert correctly
 	r := Restaurant{}
@@ -56,8 +53,7 @@ func TestSite_getRndRestaurant(t *testing.T) {
 }
 
 func TestSite_SetGTag(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.SetGTag(""))
+	assert.Nil(t, (*Site)(nil).SetGTag(""))
 
 	gtag := "sometag"
 	s := Site{
@@ -78,8 +74,7 @@ func TestSite_SetGTag(t *testing.T) {
 }
 
 func TestSite_ParsedHumanDate(t *testing.T) {
-	var nilSite *Site
-	assert.Equal(t, dateFormat, nilSite.ParsedHumanDate())
+	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
 
 	now := time.Now()
 	r := Restaurant{Parsed: now}
@@ -89,52 +84,49 @@ func TestSite_ParsedHumanDate(t *testing.T) {
 	assert.Equal(t, r.ParsedHumanDate(), s.ParsedHumanDate())
 }
 
-func TestSite_AddRestaurants(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.AddRestaurants(nil))
+func TestSite_Add(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).Add(&Restaurant{}))
 
 	id := "id"
 	r := Restaurant{ID: id}
 	s := Site{}
-	ret := s.AddRestaurants(nil)
+	ret := s.Add(nil)
 	assert.Same(t, &s, ret)
 	assert.NotNil(t, s.Restaurants)
 	assert.Len(t, s.Restaurants, 0)
-	ret = s.AddRestaurants(&r)
+	ret = s.Add(&r)
 	assert.Same(t, &s, ret)
 	assert.NotNil(t, s.Restaurants)
 	assert.Len(t, s.Restaurants, 1)
 }
 
-func TestSite_DeleteRestaurants(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.DeleteRestaurants(""))
+func TestSite_Delete(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).Delete(""))
 
 	s := Site{}
 	// Test delete on nil map
-	assert.NotPanics(t, func() { s.DeleteRestaurants("") })
+	assert.NotPanics(t, func() { s.Delete("") })
 
 	s.Restaurants = RestaurantMap{"id": {}}
-	s.DeleteRestaurants("id")
+	s.Delete("id")
 	assert.Len(t, s.Restaurants, 0)
 }
 
-func TestSite_SetRestaurants(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.SetRestaurants(nil))
+func TestSite_Set(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).Set(nil))
 
 	id := "id"
 	s := Site{
 		Restaurants: RestaurantMap{id: {}},
 	}
-	ret := s.SetRestaurants(nil)
+	ret := s.Set(nil)
 	assert.Same(t, &s, ret)
 	assert.NotNil(t, s.Restaurants)
 	assert.Len(t, s.Restaurants, 0)
 
 	s.Restaurants[id] = &Restaurant{}
 	rs := Restaurants{{ID: "1"}, {ID: "2"}}
-	s.SetRestaurants(rs)
+	s.Set(rs)
 	assert.Len(t, s.Restaurants, 2)
 	_, found := s.Restaurants[id]
 	assert.False(t, found)
@@ -142,8 +134,7 @@ func TestSite_SetRestaurants(t *testing.T) {
 
 func TestSite_Get(t *testing.T) {
 	id := "id"
-	var nilSite *Site
-	r := nilSite.Get(id)
+	r := (*Site)(nil).Get(id)
 	assert.Nil(t, r)
 
 	s := Site{}
@@ -158,8 +149,7 @@ func TestSite_Get(t *testing.T) {
 }
 
 func TestSite_NumDishes(t *testing.T) {
-	var nilSite *Site
-	assert.Equal(t, 0, nilSite.NumDishes())
+	assert.Equal(t, 0, (*Site)(nil).NumDishes())
 
 	s := Site{
 		Restaurants: RestaurantMap{
@@ -171,8 +161,7 @@ func TestSite_NumDishes(t *testing.T) {
 }
 
 func TestSite_SetScraper(t *testing.T) {
-	var nilSite *Site
-	assert.Nil(t, nilSite.SetScraper(nil))
+	assert.Nil(t, (*Site)(nil).SetScraper(nil))
 
 	s := Site{}
 	scraper := &mockSiteScraper{}
@@ -187,8 +176,7 @@ func TestSite_SetScraper(t *testing.T) {
 }
 
 func TestSite_RunScraper(t *testing.T) {
-	var nilSite *Site
-	err := nilSite.RunScraper(nil)
+	err := (*Site)(nil).RunScraper(nil)
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, errNilSite)
 

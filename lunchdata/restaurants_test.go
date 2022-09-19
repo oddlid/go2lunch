@@ -17,8 +17,7 @@ func TestRestaurants_Len(t *testing.T) {
 }
 
 func TestRestaurants_Empty(t *testing.T) {
-	var nilRestaurants Restaurants
-	assert.True(t, nilRestaurants.Empty())
+	assert.True(t, (Restaurants)(nil).Empty())
 
 	rs := Restaurants{{}}
 	assert.False(t, rs.Empty())
@@ -34,8 +33,7 @@ func TestRestaurants_NumDishes(t *testing.T) {
 }
 
 func TestRestaurants_Total(t *testing.T) {
-	var nilRestaurants Restaurants
-	assert.Zero(t, nilRestaurants.Total())
+	assert.Zero(t, (Restaurants)(nil).Total())
 
 	rs := Restaurants{
 		{Dishes: Dishes{{}, {}}},

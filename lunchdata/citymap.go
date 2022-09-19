@@ -43,9 +43,12 @@ func (cm CityMap) Total() int {
 }
 
 func (cm CityMap) Add(cities ...*City) {
-	for _, city := range cities {
-		if city != nil {
-			cm[city.ID] = city
+	if cm == nil {
+		return
+	}
+	for _, c := range cities {
+		if c != nil {
+			cm[c.ID] = c
 		}
 	}
 }
@@ -54,6 +57,10 @@ func (cm CityMap) Delete(ids ...string) {
 	for _, id := range ids {
 		delete(cm, id)
 	}
+}
+
+func (cm CityMap) Get(id string) *City {
+	return cm[id]
 }
 
 func (cm CityMap) SetGTag(tag string) {

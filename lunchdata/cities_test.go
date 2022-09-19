@@ -7,24 +7,21 @@ import (
 )
 
 func TestCities_Len(t *testing.T) {
-	var nilCities Cities
-	assert.Zero(t, nilCities.Len())
+	assert.Zero(t, (Cities)(nil).Len())
 
 	cs := Cities{{}, {}}
 	assert.Equal(t, 2, cs.Len())
 }
 
 func TestCities_Empty(t *testing.T) {
-	var nilCities Cities
-	assert.True(t, nilCities.Empty())
+	assert.True(t, (Cities)(nil).Empty())
 
 	cs := Cities{{}}
 	assert.False(t, cs.Empty())
 }
 
 func TestCities_NumSites(t *testing.T) {
-	var nilCities Cities
-	assert.Zero(t, nilCities.NumSites())
+	assert.Zero(t, (Cities)(nil).NumSites())
 
 	cs := Cities{
 		{Sites: SiteMap{"1": {}}},
@@ -33,8 +30,7 @@ func TestCities_NumSites(t *testing.T) {
 }
 
 func TestCities_NumRestaurants(t *testing.T) {
-	var nilCities Cities
-	assert.Zero(t, nilCities.NumRestaurants())
+	assert.Zero(t, (Cities)(nil).NumRestaurants())
 
 	cs := Cities{
 		{
@@ -52,8 +48,7 @@ func TestCities_NumRestaurants(t *testing.T) {
 }
 
 func TestCities_NumDishes(t *testing.T) {
-	var nilCities Cities
-	assert.Zero(t, nilCities.NumDishes())
+	assert.Zero(t, (Cities)(nil).NumDishes())
 
 	cs := Cities{
 		{
@@ -75,8 +70,7 @@ func TestCities_NumDishes(t *testing.T) {
 }
 
 func TestCities_Total(t *testing.T) {
-	var nilCities Cities
-	assert.Zero(t, nilCities.Total())
+	assert.Zero(t, (Cities)(nil).Total())
 
 	cs := Cities{
 		{
@@ -98,8 +92,7 @@ func TestCities_Total(t *testing.T) {
 }
 
 func TestCities_SetGTag(t *testing.T) {
-	var nilCities Cities
-	assert.NotPanics(t, func() { nilCities.SetGTag("") })
+	assert.NotPanics(t, func() { (Cities)(nil).SetGTag("") })
 
 	cs := Cities{
 		{
@@ -134,8 +127,7 @@ func TestCities_SetGTag(t *testing.T) {
 }
 
 func TestCities_AsMap(t *testing.T) {
-	var nilCities Cities
-	assert.Empty(t, nilCities.AsMap())
+	assert.Empty(t, (Cities)(nil).AsMap())
 
 	cs := Cities{
 		{

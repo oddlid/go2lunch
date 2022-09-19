@@ -7,32 +7,28 @@ import (
 )
 
 func TestSites_Len(t *testing.T) {
-	var nilSites Sites
-	assert.Equal(t, 0, nilSites.Len())
+	assert.Equal(t, 0, (Sites)(nil).Len())
 
 	s := Sites{{}, {}}
 	assert.Equal(t, 2, s.Len())
 }
 
 func TestSites_Empty(t *testing.T) {
-	var nilSites Sites
-	assert.True(t, nilSites.Empty())
+	assert.True(t, (Sites)(nil).Empty())
 
 	ss := Sites{{}}
 	assert.False(t, ss.Empty())
 }
 
 func TestSites_NumRestaurants(t *testing.T) {
-	var nilSites Sites
-	assert.Equal(t, 0, nilSites.NumRestaurants())
+	assert.Equal(t, 0, (Sites)(nil).NumRestaurants())
 
 	ss := Sites{{Restaurants: RestaurantMap{"1": {}}}}
 	assert.Equal(t, 1, ss.NumRestaurants())
 }
 
 func TestSites_NumDishes(t *testing.T) {
-	var nilSites Sites
-	assert.Equal(t, 0, nilSites.NumDishes())
+	assert.Equal(t, 0, (Sites)(nil).NumDishes())
 
 	ss := Sites{
 		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
@@ -42,8 +38,7 @@ func TestSites_NumDishes(t *testing.T) {
 }
 
 func TestSites_Total(t *testing.T) {
-	var nilSites Sites
-	assert.Equal(t, 0, nilSites.Total())
+	assert.Equal(t, 0, (Sites)(nil).Total())
 
 	ss := Sites{
 		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
@@ -53,8 +48,7 @@ func TestSites_Total(t *testing.T) {
 }
 
 func TestSites_SetGTag(t *testing.T) {
-	var nilSites Sites
-	assert.NotPanics(t, func() { nilSites.SetGTag("") })
+	assert.NotPanics(t, func() { (Sites)(nil).SetGTag("") })
 
 	ss := Sites{
 		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
@@ -74,8 +68,7 @@ func TestSites_SetGTag(t *testing.T) {
 }
 
 func TestSites_AsMap(t *testing.T) {
-	var nilSites Sites
-	emptyMap := nilSites.AsMap()
+	emptyMap := (Sites)(nil).AsMap()
 	assert.Empty(t, emptyMap)
 
 	ids := []string{"0", "1"}

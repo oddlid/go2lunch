@@ -7,40 +7,35 @@ import (
 )
 
 func TestCityMap_Len(t *testing.T) {
-	var nilMap CityMap
-	assert.Zero(t, nilMap.Len())
+	assert.Zero(t, (CityMap)(nil).Len())
 
 	cm := CityMap{"1": {}}
 	assert.Equal(t, 1, cm.Len())
 }
 
 func TestCityMap_Empty(t *testing.T) {
-	var nilMap CityMap
-	assert.True(t, nilMap.Empty())
+	assert.True(t, (CityMap)(nil).Empty())
 
 	cm := CityMap{"1": {}}
 	assert.False(t, cm.Empty())
 }
 
 func TestCityMap_NumSites(t *testing.T) {
-	var nilMap CityMap
-	assert.Zero(t, nilMap.NumSites())
+	assert.Zero(t, (CityMap)(nil).NumSites())
 
 	cm := CityMap{"1": {Sites: SiteMap{"1": {}}}}
 	assert.Equal(t, 1, cm.NumSites())
 }
 
 func TestCityMap_NumRestaurants(t *testing.T) {
-	var nilMap CityMap
-	assert.Zero(t, nilMap.NumRestaurants())
+	assert.Zero(t, (CityMap)(nil).NumRestaurants())
 
 	cm := CityMap{"1": {Sites: SiteMap{"1": {Restaurants: RestaurantMap{"1": {}}}}}}
 	assert.Equal(t, 1, cm.NumRestaurants())
 }
 
 func TestCityMap_NumDishes(t *testing.T) {
-	var nilMap CityMap
-	assert.Zero(t, nilMap.NumDishes())
+	assert.Zero(t, (CityMap)(nil).NumDishes())
 
 	cm := CityMap{
 		"1": {
@@ -61,8 +56,7 @@ func TestCityMap_NumDishes(t *testing.T) {
 }
 
 func TestCityMap_Total(t *testing.T) {
-	var nilMap CityMap
-	assert.Zero(t, nilMap.Total())
+	assert.Zero(t, (CityMap)(nil).Total())
 
 	cm := CityMap{
 		"1": {
@@ -83,8 +77,7 @@ func TestCityMap_Total(t *testing.T) {
 }
 
 func TestCityMap_Add(t *testing.T) {
-	var nilMap CityMap
-	assert.NotPanics(t, func() { nilMap.Add(nil) })
+	assert.NotPanics(t, func() { (CityMap)(nil).Add(&City{}) })
 
 	ids := []string{"1", "2"}
 	c1 := City{ID: ids[0]}
@@ -97,8 +90,7 @@ func TestCityMap_Add(t *testing.T) {
 }
 
 func TestCityMap_Delete(t *testing.T) {
-	var nilMap CityMap
-	assert.NotPanics(t, func() { nilMap.Delete("") })
+	assert.NotPanics(t, func() { (CityMap)(nil).Delete("") })
 
 	ids := []string{"1", "2"}
 	c1 := City{ID: ids[0]}
@@ -111,9 +103,21 @@ func TestCityMap_Delete(t *testing.T) {
 	assert.Same(t, &c2, cm[ids[1]])
 }
 
+func TestCityMap_Get(t *testing.T) {
+	assert.Nil(t, (CityMap)(nil).Get(""))
+
+	id := "id"
+	c := City{}
+	cm := CityMap{id: &c}
+	got := cm.Get(id)
+	assert.NotNil(t, got)
+	assert.Same(t, &c, got)
+
+	assert.Nil(t, cm.Get("otherid"))
+}
+
 func TestCityMap_SetGTag(t *testing.T) {
-	var nilMap CityMap
-	assert.NotPanics(t, func() { nilMap.SetGTag("") })
+	assert.NotPanics(t, func() { (CityMap)(nil).SetGTag("") })
 
 	cm := CityMap{
 		"1": {
