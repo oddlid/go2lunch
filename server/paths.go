@@ -38,21 +38,24 @@ type urlID uint8
 type outputFormat uint8
 
 const (
-	slash            = `/`
-	htmlTemplateFile = `allhtml.go.tpl` // rice doesn't support constants, so this might get removed
-	textTemplateFile = `alltext.go.tpl` // rice doesn't support constants, so this might get removed
-	home             = `default`
-	lunchList        = `lunchlist`
-	country          = `country`
-	city             = `city`
-	site             = `site`
-	restaurant       = `restaurant`
-	dish             = `dish`
-	extHTML          = `html`
-	extTXT           = `txt`
-	extJSON          = `json`
-	pathStatic       = `static`
-	pathTemplates    = `tmpl`
+	slash = `/`
+	// htmlTemplateFile = `allhtml.go.tpl` // rice doesn't support constants, so this might get removed
+	// textTemplateFile = `alltext.go.tpl` // rice doesn't support constants, so this might get removed
+	home       = `default`
+	lunchList  = `lunchlist`
+	country    = `country`
+	city       = `city`
+	site       = `site`
+	restaurant = `restaurant`
+	dish       = `dish`
+	extHTML    = `html`
+	extTXT     = `txt`
+	extJSON    = `json`
+	pathStatic = `static`
+	prefixHTML = `/html/`
+	prefixTXT  = `/txt/`
+	prefixJSON = `/json/`
+	// pathTemplates    = `tmpl`
 )
 
 const (
@@ -70,6 +73,27 @@ const (
 	idRestaurant
 	idDish
 )
+
+func (id urlID) String() string {
+	switch id {
+	case idRoot:
+		return slash
+	case idLunchList:
+		return lunchList
+	case idCountry:
+		return country
+	case idCity:
+		return city
+	case idSite:
+		return site
+	case idRestaurant:
+		return restaurant
+	case idDish:
+		return dish
+	default:
+		return ""
+	}
+}
 
 func (id urlID) fileName(format outputFormat) string {
 	var base string
@@ -106,6 +130,7 @@ func buildRouterPathArgs(elements ...any) (string, []any) {
 		buf.WriteString(slash)
 		buf.WriteString(`{%s}`)
 	}
+	buf.WriteString(slash)
 	return buf.String(), append([]any{}, elements...)
 }
 

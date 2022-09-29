@@ -34,12 +34,12 @@ func Test_urlID_fileName(t *testing.T) {
 
 func Test_buildRouterPathArgs(t *testing.T) {
 	format, args := buildRouterPathArgs("one")
-	assert.Equal(t, "/{%s}", format)
+	assert.Equal(t, "/{%s}/", format)
 	assert.Len(t, args, 1)
 	assert.Equal(t, "one", args[0])
 
 	format, args = buildRouterPathArgs("one", "two")
-	assert.Equal(t, "/{%s}/{%s}", format)
+	assert.Equal(t, "/{%s}/{%s}/", format)
 	assert.Len(t, args, 2)
 	assert.Equal(t, "one", args[0])
 	assert.Equal(t, "two", args[1])
@@ -47,9 +47,9 @@ func Test_buildRouterPathArgs(t *testing.T) {
 
 func Test_urlID_routerPath(t *testing.T) {
 	assert.Equal(t, slash, idLunchList.routerPath())
-	assert.Equal(t, "/{country}", idCountry.routerPath())
-	assert.Equal(t, "/{country}/{city}", idCity.routerPath())
-	assert.Equal(t, "/{country}/{city}/{site}", idSite.routerPath())
-	assert.Equal(t, "/{country}/{city}/{site}/{restaurant}", idRestaurant.routerPath())
-	assert.Equal(t, "/{country}/{city}/{site}/{restaurant}/{dish}", idDish.routerPath())
+	assert.Equal(t, "/{country}/", idCountry.routerPath())
+	assert.Equal(t, "/{country}/{city}/", idCity.routerPath())
+	assert.Equal(t, "/{country}/{city}/{site}/", idSite.routerPath())
+	assert.Equal(t, "/{country}/{city}/{site}/{restaurant}/", idRestaurant.routerPath())
+	assert.Equal(t, "/{country}/{city}/{site}/{restaurant}/{dish}/", idDish.routerPath())
 }

@@ -51,16 +51,69 @@
 {{- define "default.html" }}
 {{- template "pgHdrStart" -}}
 {{- template "pgHdrTitle" "Lunch2Day" -}}
-{{- template "pgHdrScript" .Gtag -}}
+{{- template "pgHdrScript" .GTag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
 {{- template "p3" }}
       <h1 class="pghdr h5 text-center">Choose location and format for lunch menu</h1>
 {{- template "pb3" -}}
 {{- template "pb3" }}
-      <h2 class="dlistitem h6"><a href="html/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (html)</a></h2>
-      <h2 class="dlistitem h6"><a href="text/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (text)</a></h2>
-      <h2 class="dlistitem h6"><a href="json/se/gbg/lindholmen">Sweden / Gothenburg / Lindholmen (json)</a></h2>
+      <h2 class="name h6"> - <a href="html/">HTML</a></h2>
+      <ul>
+      {{- range.Countries }}
+            {{- $country := . }}
+            <li><a href="html/{{.ID}}">{{.Name}}</a></li>
+            <ul>
+            {{- range .Cities }}
+                  {{- $city := . }}
+                  <li><a href="html/{{$country.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  <ul>
+                  {{- range .Sites }}
+                        <li><a href="html/{{$country.ID}}/{{$city.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  {{- end }}
+                  </ul>
+            {{- end}}
+            </ul>
+      {{- end }}
+      </ul>
+
+      <h2 class="name h6"> - <a href="txt/">TXT</a></h2>
+      <ul>
+      {{- range.Countries }}
+            {{- $country := . }}
+            <li><a href="txt/{{.ID}}">{{.Name}}</a></li>
+            <ul>
+            {{- range .Cities }}
+                  {{- $city := . }}
+                  <li><a href="txt/{{$country.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  <ul>
+                  {{- range .Sites }}
+                        <li><a href="txt/{{$country.ID}}/{{$city.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  {{- end }}
+                  </ul>
+            {{- end}}
+            </ul>
+      {{- end }}
+      </ul>
+
+      <h2 class="name h6"> - <a href="json/">JSON</a></h2>
+      <ul>
+      {{- range.Countries }}
+            {{- $country := . }}
+            <li><a href="json/{{.ID}}">{{.Name}}</a></li>
+            <ul>
+            {{- range .Cities }}
+                  {{- $city := . }}
+                  <li><a href="json/{{$country.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  <ul>
+                  {{- range .Sites }}
+                        <li><a href="json/{{$country.ID}}/{{$city.ID}}/{{.ID}}">{{.Name}}</a></li>
+                  {{- end }}
+                  </ul>
+            {{- end}}
+            </ul>
+      {{- end }}
+      </ul>
 {{- template "pb3" -}}
 {{- template "bodyEnd" -}}
 {{- end }}
@@ -68,7 +121,7 @@
 {{- define "lunchlist.html" }}
 {{- template "pgHdrStart" -}}
 {{- template "pgHdrTitle" "Lunchlist countries" -}}
-{{- template "pgHdrScript" .Gtag -}}
+{{- template "pgHdrScript" .GTag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
 {{- template "p3" }}
@@ -85,7 +138,7 @@
 {{- define "country.html" }}
 {{- template "pgHdrStart" }}
     <title>Cities in {{.Name}}</title>
-{{- template "pgHdrScript" .Gtag -}}
+{{- template "pgHdrScript" .GTag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
 {{- template "p3" }}
@@ -102,7 +155,7 @@
 {{- define "city.html" }}
 {{- template "pgHdrStart" }}
     <title>Sites in {{.Name}}</title>
-{{- template "pgHdrScript" .Gtag -}}
+{{- template "pgHdrScript" .GTag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
 {{- template "p3" }}
@@ -119,7 +172,7 @@
 {{- define "site.html" }}
 {{- template "pgHdrStart" }}
     <title>Lunch @ {{.Name}} today</title>
-{{- template "pgHdrScript" .Gtag -}}
+{{- template "pgHdrScript" .GTag -}}
 {{- template "pgHdrEnd" -}}
 {{- template "bodyStart" -}}
 {{- template "p3" }}

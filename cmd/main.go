@@ -59,9 +59,10 @@ func main() {
 	s := server.LunchServer{
 		Log:       logger,
 		LunchList: getEmptyLunchList(logger),
+		Config:    server.DefaultConfig(),
 	}
 
-	if err := s.Start(); err != nil {
+	if err := s.Start(ctx); err != nil {
 		logger.Error().Err(err).Msg("Failed to start Lunch Server")
 		return
 	}

@@ -7,7 +7,7 @@ import (
 // A giant list of everything
 type LunchList struct {
 	Countries CountryMap `json:"countries"`
-	Gtag      string     `json:"gtag,omitempty"`
+	GTag      string     `json:"gtag,omitempty"`
 	mu        sync.RWMutex
 }
 
@@ -67,7 +67,7 @@ func (l *LunchList) SetGTag(tag string) *LunchList {
 		return nil
 	}
 	l.mu.Lock()
-	l.Gtag = tag
+	l.GTag = tag
 	l.Countries.SetGTag(tag)
 	l.mu.Unlock()
 	return l

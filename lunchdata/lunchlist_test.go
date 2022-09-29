@@ -113,7 +113,7 @@ func Test_LunchList_SetGTag(t *testing.T) {
 	}
 	tag := "sometag"
 	l.SetGTag(tag)
-	assert.Equal(t, tag, l.Gtag)
+	assert.Equal(t, tag, l.GTag)
 	for _, country := range l.Countries {
 		assert.Equal(t, tag, country.GTag)
 		for _, city := range country.Cities {

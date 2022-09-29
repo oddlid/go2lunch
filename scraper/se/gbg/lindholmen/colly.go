@@ -98,37 +98,28 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	}
 
 	restaurantMap := make(lunchdata.RestaurantMap)
-	collector := colly.NewCollector(colly.UserAgent(userAgent))
-
-	restaurantMap := make(map[string]*lunchdata.Restaurant)
-	menuCollector := colly.NewCollector()
-	menuCollector.Init()
-	extensions.RandomUserAgent(menuCollector)
-
+	menuCollector := colly.NewCollector(
+		colly.UserAgent(userAgent),
+	)
 	addrCollector := menuCollector.Clone()
-	extensions.RandomUserAgent(addrCollector)
 	addrCollector.Async = true
-	if err := addrCollector.Limit(&colly.LimitRule{DomainGlob: lhs.DomainGlob, Parallelism: 32}); err != nil {
-		return nil, err
-	}
+	addrCollector.Limit(&colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32})
 
 	addrCollector.OnHTML(selectorContent, func(e *colly.HTMLElement) {
-		reqURL := e.Request.URL.String()
 		lhs.Logger.Trace().
-			Str(keyURL, reqURL).
+			Str(keyURL, e.Request.URL.String()).
 			Msg("Looking for map link...")
 
-		restaurant, ok := restaurantMap[reqURL]
-		if !ok {
+		restaurant, found := restaurantMap[e.Request.URL.String()]
+		if !found {
 			lhs.Logger.Error().
-				Str(keyURL, reqURL).
-				Msgf("No restaurant entry for URL: %s", reqURL)
+				Str(keyURL, e.Request.URL.String()).
+				Msg("No restaurant entry for URL")
 			return
 		}
-
-		e.ForEachWithBreak("p > a", func(_ int, h *colly.HTMLElement) bool {
+		e.ForEachWithBreak("p > a", func(i int, h *colly.HTMLElement) bool {
 			link := h.Attr("href")
-			if strings.Contains(link, mapLinkPattern) {
+			if strings.Contains(link, "maps.google.com") {
 				mapURL, err := url.Parse(link)
 				if err != nil {
 					lhs.Logger.Error().Err(err).Send()
@@ -145,7 +136,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 				restaurant.Address = address
 
 				lhs.Logger.Trace().
-					Str(keyURL, reqURL).
+					Str(keyURL, e.Request.URL.String()).
 					Str(keyMapURL, restaurant.MapURL).
 					Str(keyAddr, address).
 					Str(keyRestaurant, restaurant.Name).
@@ -154,7 +145,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 				return false
 			}
 			lhs.Logger.Trace().
-				Str(keyURL, reqURL).
+				Str(keyURL, e.Request.URL.String()).
 				Str(keyLink, link).
 				Msg("Not a map link")
 			return true
@@ -162,8 +153,14 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	})
 
 	menuCollector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
-		e.ForEach(selectorTitle, func(_ int, h *colly.HTMLElement) {
-			name := strings.TrimSpace(h.Text)
+		e.ForEach(selectorTitle, func(i int, h *colly.HTMLElement) {
+			name := strings.TrimSpace(h.ChildText("a"))
+			// we only want the last part of the link, since the links on this page are not correct,
+			// so we need to reconstruct them ourselves later
+			link := strings.Replace(
+				h.ChildAttr("a", "href"),
+				"/restauranger/", "", 1,
+			)
 
 			lhs.Logger.Trace().
 				Str(keyRestaurant, name).
@@ -211,6 +208,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 			})
 
 			restaurantMap[restaurant.URL] = restaurant
+
 			lhs.Logger.Trace().Str(keyURL, restaurant.URL).Msg("Starting scrape for maps link")
 			if err := addrCollector.Visit(restaurant.URL); err != nil {
 				lhs.Logger.Error().Err(err).Send()
@@ -231,16 +229,11 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	addrCollector.Wait()
 	endTimeAddrs := time.Now()
 
-	restaurants := make(lunchdata.Restaurants, 0, len(restaurantMap))
-	for _, restaurant := range restaurantMap {
-		restaurants = append(restaurants, restaurant)
-	}
-
 	lhs.Logger.Debug().
 		Str(keyURL, lhs.URL).
 		Dur(keyParsedTime, endTimeMenus.Sub(startTimeMenus)).
-		Int(keyNumRestaurants, restaurants.Len()).
-		Int(keyNumDishes, restaurants.NumDishes()).
+		Int(keyNumRestaurants, restaurantMap.Len()).
+		Int(keyNumDishes, restaurantMap.NumDishes()).
 		Msg("Restaurants and menus parsed")
 
 	lhs.Logger.Debug().
@@ -252,6 +245,11 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 		Str(keyURL, lhs.URL).
 		Dur(keyParsedTime, time.Since(startTimeMenus)).
 		Msg("Site parsed")
+
+	restaurants := make(lunchdata.Restaurants, 0, restaurantMap.Len())
+	for _, restaurant := range restaurantMap {
+		restaurants = append(restaurants, restaurant)
+	}
 
 	return restaurants, nil
 }

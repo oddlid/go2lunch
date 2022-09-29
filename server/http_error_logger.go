@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/rs/zerolog"
 	stdLog "log"
+
+	"github.com/rs/zerolog"
 )
 
 type httpErrorLogger struct {
@@ -15,6 +16,6 @@ func (l httpErrorLogger) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func newHttpErrorLogger(logger zerolog.Logger) *stdLog.Logger {
+func newHTTPErrorLogger(logger zerolog.Logger) *stdLog.Logger {
 	return stdLog.New(httpErrorLogger{log: logger}, "", 0)
 }
