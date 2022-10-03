@@ -1,5 +1,7 @@
 package lunchdata
 
+import "sync"
+
 type CityMap map[string]*City
 
 func (cm CityMap) Len() int {
@@ -66,5 +68,13 @@ func (cm CityMap) Get(id string) *City {
 func (cm CityMap) SetGTag(tag string) {
 	for _, c := range cm {
 		c.SetGTag(tag)
+	}
+}
+
+func (cm CityMap) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
+	for _, c := range cm {
+		if c != nil {
+			c.RunSiteScrapers(wg, errChan)
+		}
 	}
 }

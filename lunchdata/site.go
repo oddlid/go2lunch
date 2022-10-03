@@ -18,7 +18,7 @@ type Site struct {
 
 var (
 	errNilSite      = errors.New("site is nil")
-	errNoScraper    = errors.New("no scraper set for site")
+	errNilScraper   = errors.New("scraper is nil")
 	errNilWaitGroup = errors.New("passed sync.WaitGroup is nil")
 )
 
@@ -136,16 +136,12 @@ func (s *Site) SetScraper(scraper SiteScraper) *Site {
 	return s
 }
 
-func (s *Site) RunScraper(wg *sync.WaitGroup) error {
+func (s *Site) RunScraper() error {
 	if s == nil {
 		return errNilSite
 	}
-	if wg == nil {
-		return errNilWaitGroup
-	}
-	defer wg.Done()
 	if s.Scraper == nil {
-		return errNoScraper
+		return errNilScraper
 	}
 	rs, err := s.Scraper.Scrape()
 	if err != nil {

@@ -98,3 +98,12 @@ func (c *Country) Get(id string) *City {
 	defer c.mu.RUnlock()
 	return c.Cities.Get(id)
 }
+
+func (c *Country) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
+	if c == nil {
+		return
+	}
+	if c.Cities != nil {
+		c.Cities.RunSiteScrapers(wg, errChan)
+	}
+}

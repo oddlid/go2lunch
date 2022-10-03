@@ -1,6 +1,7 @@
 package lunchdata
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -103,6 +104,40 @@ func (l *LunchList) Get(id string) *Country {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return l.Countries.Get(id)
+}
+
+func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
+	if l == nil {
+		return nil
+	}
+	if s == nil {
+		return errNilScraper
+	}
+	if site := l.Get(s.CountryID()).Get(s.CityID()).Get(s.SiteID()).SetScraper(s); site == nil {
+		return fmt.Errorf(
+			"%w: Not found: Country=%q City=%q Site=%q",
+			errNilSite,
+			s.CountryID(),
+			s.CityID(),
+			s.SiteID(),
+		)
+	}
+	return nil
+}
+
+func (l *LunchList) RunSiteScrapers() {
+	if l == nil {
+		return
+	}
+	// TODO: Think about how to best solve this. Do we want this func to be blocking or not?
+	// If we want to lock, then we need to create our own WaitGroup to pass in here, so we don't unlock
+	// until all is done.
+	// What might be a good way, is to create both the wg and the error channel here, pass them in,
+	// then wait on the wg, and after that close the error channel and return it. That way, the caller can range
+	// over any returned errors. Downside to that, is that this func is then blocking.
+	if l.Countries != nil {
+		// l.Countries.RunSiteScrapers(wg, errChan)
+	}
 }
 
 // func (ll *LunchList) RunSiteScrapers(wg *sync.WaitGroup) {

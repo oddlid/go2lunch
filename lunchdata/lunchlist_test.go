@@ -172,3 +172,37 @@ func Test_LunchList_Get(t *testing.T) {
 	assert.Same(t, l.Countries["1"], ret)
 	assert.Nil(t, l.Get("3"))
 }
+
+func Test_LunchList_RegisterSiteScraper(t *testing.T) {
+	assert.Nil(t, (*LunchList)(nil).RegisterSiteScraper(nil))
+
+	ll := LunchList{}
+	err := ll.RegisterSiteScraper(nil)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, errNilScraper)
+
+	scraper := mockSiteScraper{
+		countryID: "se",
+		cityID:    "gbg",
+		siteID:    "lh",
+	}
+	err = ll.RegisterSiteScraper(&scraper)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, errNilSite)
+
+	ll = LunchList{
+		Countries: CountryMap{
+			"se": {
+				Cities: CityMap{
+					"gbg": {
+						Sites: SiteMap{
+							"lh": {},
+						},
+					},
+				},
+			},
+		},
+	}
+	err = ll.RegisterSiteScraper(&scraper)
+	assert.NoError(t, err)
+}

@@ -1,6 +1,8 @@
 package lunchdata
 
 import (
+	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,7 +54,7 @@ func TestSiteMap_NumDishes(t *testing.T) {
 	assert.Equal(t, 4, sm.NumDishes())
 }
 
-func TestSiteMap_Total(t *testing.T) {
+func Test_SiteMap_Total(t *testing.T) {
 	assert.Equal(t, 0, (SiteMap)(nil).Total())
 
 	sm := SiteMap{
@@ -74,7 +76,7 @@ func TestSiteMap_Total(t *testing.T) {
 	assert.Equal(t, 8, sm.Total())
 }
 
-func TestSiteMap_Add(t *testing.T) {
+func Test_SiteMap_Add(t *testing.T) {
 	assert.NotPanics(t, func() { (SiteMap)(nil).Add(&Site{}) })
 
 	sm := SiteMap{}
@@ -87,7 +89,7 @@ func TestSiteMap_Add(t *testing.T) {
 	assert.Same(t, &s2, sm[ids[1]])
 }
 
-func TestSiteMap_Delete(t *testing.T) {
+func Test_SiteMap_Delete(t *testing.T) {
 	assert.NotPanics(t, func() { (SiteMap)(nil).Delete("") })
 
 	ids := []string{"1", "2"}
@@ -101,7 +103,7 @@ func TestSiteMap_Delete(t *testing.T) {
 	assert.Same(t, &s2, sm[ids[1]])
 }
 
-func TestSiteMap_Get(t *testing.T) {
+func Test_SiteMap_Get(t *testing.T) {
 	assert.Nil(t, (SiteMap)(nil).Get(""))
 
 	id := "id"
@@ -114,7 +116,7 @@ func TestSiteMap_Get(t *testing.T) {
 	assert.Nil(t, sm.Get("otherid"))
 }
 
-func TestSiteMap_SetGTag(t *testing.T) {
+func Test_SiteMap_SetGTag(t *testing.T) {
 	assert.NotPanics(t, func() { (SiteMap)(nil).SetGTag("") })
 
 	sm := SiteMap{
@@ -136,5 +138,31 @@ func TestSiteMap_SetGTag(t *testing.T) {
 				assert.Equal(t, tag, d.GTag)
 			}
 		}
+	}
+}
+
+func Test_SiteMap_RunSiteScrapers(t *testing.T) {
+	assert.NotPanics(t, func() {
+		var nilMap SiteMap
+		nilMap.RunSiteScrapers(nil, nil)
+	})
+
+	sm := SiteMap{
+		"1": {
+			Scraper: &mockSiteScraper{err: errors.New("scrape error")},
+		},
+		"2": {},
+		"3": {
+			Scraper: &mockSiteScraper{},
+		},
+		"4": nil,
+	}
+	errChan := make(chan error, sm.Len())
+	wg := sync.WaitGroup{}
+	sm.RunSiteScrapers(&wg, errChan)
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		t.Log(err)
 	}
 }

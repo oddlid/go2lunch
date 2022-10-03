@@ -12,14 +12,14 @@ func (s *mockSiteScraper) Scrape() (Restaurants, error) {
 	return s.restaurants, s.err
 }
 
-func (s *mockSiteScraper) GetCountryID() string {
+func (s *mockSiteScraper) CountryID() string {
 	return s.countryID
 }
 
-func (s *mockSiteScraper) GetCityID() string {
+func (s *mockSiteScraper) CityID() string {
 	return s.cityID
 }
 
-func (s *mockSiteScraper) GetSiteID() string {
+func (s *mockSiteScraper) SiteID() string {
 	return s.siteID
 }

@@ -2,7 +2,6 @@ package lunchdata
 
 import (
 	"errors"
-	"sync"
 	"testing"
 	"time"
 
@@ -176,36 +175,25 @@ func TestSite_SetScraper(t *testing.T) {
 }
 
 func TestSite_RunScraper(t *testing.T) {
-	err := (*Site)(nil).RunScraper(nil)
+	err := (*Site)(nil).RunScraper()
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, errNilSite)
 
 	s := Site{}
-	err = s.RunScraper(nil)
+	err = s.RunScraper()
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, errNilWaitGroup)
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	err = s.RunScraper(&wg)
-	wg.Wait()
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errNoScraper)
+	assert.ErrorIs(t, err, errNilScraper)
 
 	scrapeErr := errors.New("scrape error")
 	s.Scraper = &mockSiteScraper{err: scrapeErr}
-	wg.Add(1)
-	err = s.RunScraper(&wg)
-	wg.Wait()
+	err = s.RunScraper()
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, scrapeErr)
 	assert.Nil(t, s.Restaurants)
 
 	rs := Restaurants{{ID: "1"}, {ID: "2"}}
 	s.Scraper = &mockSiteScraper{restaurants: rs}
-	wg.Add(1)
-	err = s.RunScraper(&wg)
-	wg.Wait()
+	err = s.RunScraper()
 	assert.NoError(t, err)
 	assert.NotNil(t, s.Restaurants)
 	assert.Len(t, s.Restaurants, 2)

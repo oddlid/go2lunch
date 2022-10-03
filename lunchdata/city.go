@@ -89,3 +89,16 @@ func (c *City) Get(id string) *Site {
 	defer c.mu.RUnlock()
 	return c.Sites[id]
 }
+
+func (c *City) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
+	if c == nil {
+		return
+	}
+	// One would think doing a lock here would be good, but since SiteMap.RunSiteScrapers()
+	// starts one goroutine for each site and then return, the unlock here would come long before
+	// the scraping is actually done, and so not really give any protection.
+	// It's probably best to just lock at the top level, in LunchList.
+	if c.Sites != nil {
+		c.Sites.RunSiteScrapers(wg, errChan)
+	}
+}

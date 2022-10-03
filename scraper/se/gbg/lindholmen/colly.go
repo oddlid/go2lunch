@@ -76,15 +76,15 @@ func getRestaurantNameLinkName(name string) string {
 	)
 }
 
-func (Scraper) GetCountryID() string {
+func (Scraper) CountryID() string {
 	return countryID
 }
 
-func (Scraper) GetCityID() string {
+func (Scraper) CityID() string {
 	return cityID
 }
 
-func (Scraper) GetSiteID() string {
+func (Scraper) SiteID() string {
 	return siteID
 }
 
