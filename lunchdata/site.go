@@ -17,9 +17,8 @@ type Site struct {
 }
 
 var (
-	errNilSite      = errors.New("site is nil")
-	errNilScraper   = errors.New("scraper is nil")
-	errNilWaitGroup = errors.New("passed sync.WaitGroup is nil")
+	errNilSite    = errors.New("site is nil")
+	errNilScraper = errors.New("scraper is nil")
 )
 
 func NewSite(name, id, comment string) *Site {

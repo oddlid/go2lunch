@@ -1,6 +1,8 @@
 package lunchdata
 
 import (
+	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -168,4 +170,28 @@ func TestCity_Get(t *testing.T) {
 
 	s = c.Get("blah")
 	assert.Nil(t, s)
+}
+
+func Test_City_RunSiteScrapers(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*City)(nil).RunSiteScrapers(nil, nil)
+	})
+
+	c := City{
+		Sites: SiteMap{
+			"1": {
+				Scraper: &mockSiteScraper{
+					err: errors.New("scrape error"),
+				},
+			},
+		},
+	}
+	errChan := make(chan error, c.NumSites())
+	wg := sync.WaitGroup{}
+	c.RunSiteScrapers(&wg, errChan)
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		t.Log(err)
+	}
 }
