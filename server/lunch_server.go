@@ -2,15 +2,17 @@ package server
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	htpl "html/template"
+	"io/fs"
 	"net"
 	"net/http"
+	"path"
 	"sync"
 	ttpl "text/template"
 
-	rice "github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
 	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/rs/zerolog"
@@ -25,6 +27,9 @@ type publicServer struct {
 	httpServer http.Server
 	config     Config
 }
+
+//go:embed static tmpl
+var efs embed.FS
 
 type templateHandler func(w http.ResponseWriter, id urlID, data any)
 
@@ -77,36 +82,21 @@ func (s *publicServer) start(ctx context.Context) error {
 	return nil
 }
 
-func (s *publicServer) stop(ctx context.Context) error {
-	return s.httpServer.Shutdown(ctx)
-}
-
 func (s *publicServer) loadTemplates() error {
 	s.log.Debug().Msg("Loading templates...")
 
-	box, err := rice.FindBox("tmpl")
-	if err != nil {
-		return err
-	}
-	htmlTemplateString, err := box.String("allhtml.go.tpl")
-	if err != nil {
-		return err
-	}
-	htmlTemplate, err := htpl.New("html").Parse(htmlTemplateString)
-	if err != nil {
-		return err
-	}
-	textTemplateString, err := box.String("alltext.go.tpl")
-	if err != nil {
-		return err
-	}
-	textTemplate, err := ttpl.New("text").Parse(textTemplateString)
+	hTpl, err := htpl.ParseFS(efs, path.Join(pathTemplates, htmlTemplateFile))
 	if err != nil {
 		return err
 	}
 
-	s.hTpl = htmlTemplate
-	s.tTpl = textTemplate
+	tTpl, err := ttpl.ParseFS(efs, path.Join(pathTemplates, textTemplateFile))
+	if err != nil {
+		return err
+	}
+
+	s.hTpl = hTpl
+	s.tTpl = tTpl
 
 	s.log.Debug().Msg("Templates successfully loaded")
 
@@ -132,15 +122,25 @@ func (s *publicServer) checkTextTemplate(w http.ResponseWriter) error {
 }
 
 func (s *publicServer) setupRouter() (*mux.Router, error) {
-	box, err := rice.FindBox("static")
+	staticFS, err := fs.Sub(efs, pathStatic)
 	if err != nil {
 		return nil, err
 	}
 
+	prefixStatic := slashWrap(pathStatic) // '/static/'
 	router := mux.NewRouter()
 
-	static := slashWrap(pathStatic) // '/static/'
-	router.PathPrefix(static).Handler(http.StripPrefix(static, http.FileServer(box.HTTPBox())))
+	router.PathPrefix(prefixStatic).Handler(
+		http.StripPrefix(
+			prefixStatic,
+			http.FileServer(
+				http.FS(
+					staticFS,
+				),
+			),
+		),
+	)
+
 	router.HandleFunc(idLunchList.routerPath(), s.htmlRootHandler).Methods(http.MethodGet)
 
 	htmlSubRouter := router.PathPrefix(prefixHTML).Subrouter().StrictSlash(true)

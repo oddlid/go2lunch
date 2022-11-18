@@ -10,18 +10,12 @@ ARG BUILD_BIN
 ARG ARG_TZ=Europe/Stockholm
 ENV TZ=${ARG_TZ}
 # Note that $GOPATH is set to /go from the parent image
-# We donät need to use GOPATH anymore after moving to Go modules,
-# but there's not harm in it either.
+# We don't need to use GOPATH anymore after moving to Go modules,
+# but there's no harm in it either.
 WORKDIR ${GOPATH}/src/github.com/oddlid/
 RUN git clone https://github.com/oddlid/go2lunch.git
 WORKDIR ${GOPATH}/src/github.com/oddlid/go2lunch/server
-# go get is not needed anymore after moving to Go modules
-#RUN go get -d -v ./...
 RUN make BINARY=${BUILD_BIN}
-# This needs to be done in addition, for the binary rice.
-RUN go install github.com/GeertJohan/go.rice/rice@latest
-RUN ${GOPATH}/bin/rice append --exec ${BUILD_BIN}
-
 
 FROM alpine:latest
 LABEL maintainer="Odd E. Ebbesen <oddebb@gmail.com>"
@@ -30,10 +24,10 @@ ARG ARG_TZ=Europe/Stockholm
 ENV SRV_BIN=${BUILD_BIN}
 ENV TZ=${ARG_TZ}
 RUN apk add --no-cache --update \
-		ca-certificates \
-		tzdata \
-		&& \
-		rm -rf /var/cache/apk/*
+  ca-certificates \
+  tzdata \
+  && \
+  rm -rf /var/cache/apk/*
 RUN adduser -D -u 1000 lunchsrv
 COPY --from=builder /go/src/github.com/oddlid/go2lunch/server/${BUILD_BIN} /usr/local/bin/
 RUN chown lunchsrv /usr/local/bin/${BUILD_BIN} && chmod 555 /usr/local/bin/${BUILD_BIN}

@@ -6,12 +6,12 @@ import (
 )
 
 const (
+	DefaultPort              = 20666
 	defaultHost              = ``
-	defaultReadTimeout       = 5 * time.Minute
-	defaultReadHeaderTimeout = 5 * time.Minute
-	defaultWriteTimeout      = 5 * time.Minute
-	defaultIdleTimeout       = 5 * time.Minute
-	defaultPort              = 20666
+	defaultReadTimeout       = 5 * time.Second
+	defaultReadHeaderTimeout = 5 * time.Second
+	defaultWriteTimeout      = 5 * time.Second
+	defaultIdleTimeout       = 2 * time.Minute
 )
 
 type Config struct {
@@ -30,7 +30,7 @@ func (c Config) addr() string {
 func DefaultConfig() Config {
 	return Config{
 		Host:              defaultHost,
-		Port:              defaultPort,
+		Port:              DefaultPort,
 		ReadTimeout:       defaultReadTimeout,
 		ReadHeaderTimeout: defaultReadHeaderTimeout,
 		WriteTimeout:      defaultWriteTimeout,

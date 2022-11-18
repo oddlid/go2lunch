@@ -24,5 +24,5 @@ func (s *LunchServer) Start(ctx context.Context) error {
 }
 
 func (s *LunchServer) Stop(ctx context.Context) error {
-	return s.server.stop(ctx)
+	return s.server.httpServer.Shutdown(ctx)
 }

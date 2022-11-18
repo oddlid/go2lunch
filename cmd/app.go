@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/oddlid/go2lunch/server"
 	"github.com/rs/zerolog"
 	"github.com/urfave/cli/v2"
 )
@@ -49,6 +50,7 @@ func logSetup(cCtx *cli.Context) error {
 func newApp() *cli.App {
 	return &cli.App{
 		Version:   Version,
+		Compiled:  getCompileTime(),
 		Copyright: "(C) 2017 Odd Eivind Ebbesen",
 		Authors: []*cli.Author{
 			{
@@ -82,8 +84,13 @@ func newApp() *cli.App {
 				Usage:  "Start lunch server with optional background scraping",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:  optListen,
-						Usage: "Listen `address`",
+						Name:  optBindHost,
+						Usage: "Bind to `host`",
+					},
+					&cli.UintFlag{
+						Name:  optPort,
+						Usage: "Listen on `port`",
+						Value: server.DefaultPort,
 					},
 					&cli.StringFlag{
 						Name:  optCron,

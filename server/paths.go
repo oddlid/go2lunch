@@ -38,24 +38,24 @@ type urlID uint8
 type outputFormat uint8
 
 const (
-	slash = `/`
-	// htmlTemplateFile = `allhtml.go.tpl` // rice doesn't support constants, so this might get removed
-	// textTemplateFile = `alltext.go.tpl` // rice doesn't support constants, so this might get removed
-	home       = `default`
-	lunchList  = `lunchlist`
-	country    = `country`
-	city       = `city`
-	site       = `site`
-	restaurant = `restaurant`
-	dish       = `dish`
-	extHTML    = `html`
-	extTXT     = `txt`
-	extJSON    = `json`
-	pathStatic = `static`
-	prefixHTML = `/html/`
-	prefixTXT  = `/txt/`
-	prefixJSON = `/json/`
-	// pathTemplates    = `tmpl`
+	slash            = `/`
+	htmlTemplateFile = `allhtml.go.tpl`
+	textTemplateFile = `alltext.go.tpl`
+	home             = `default`
+	lunchList        = `lunchlist`
+	country          = `country`
+	city             = `city`
+	site             = `site`
+	restaurant       = `restaurant`
+	dish             = `dish`
+	extHTML          = `html`
+	extTXT           = `txt`
+	extJSON          = `json`
+	pathStatic       = `static`
+	pathTemplates    = `tmpl`
+	prefixHTML       = `/html/`
+	prefixTXT        = `/txt/`
+	prefixJSON       = `/json/`
 )
 
 const (

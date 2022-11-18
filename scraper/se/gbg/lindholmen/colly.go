@@ -22,6 +22,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
+	"github.com/google/uuid"
+	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/rs/zerolog"
 
 	"github.com/oddlid/go2lunch/lunchdata"
@@ -29,7 +31,6 @@ import (
 
 const (
 	DefaultScrapeURL    = `https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe`
-	userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
 	countryID           = `se`
 	cityID              = `gbg`
 	siteID              = `lindholmen`
@@ -49,8 +50,7 @@ const (
 	keyMapURL           = `mapURL`
 	keyAddr             = `addr`
 	keyLink             = `link`
-	mapLinkPattern      = `maps.google.com`
-	urlPrefix           = `https://www.lindholmen.se/sv/`
+	// userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
 )
 
 type Scraper struct {
@@ -98,12 +98,15 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	}
 
 	restaurantMap := make(lunchdata.RestaurantMap)
-	menuCollector := colly.NewCollector(
-		colly.UserAgent(userAgent),
-	)
+	menuCollector := colly.NewCollector()
+	extensions.RandomUserAgent(menuCollector)
+
 	addrCollector := menuCollector.Clone()
+	extensions.RandomUserAgent(addrCollector)
 	addrCollector.Async = true
-	addrCollector.Limit(&colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32})
+	if err := addrCollector.Limit(&colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32}); err != nil {
+		return nil, err
+	}
 
 	addrCollector.OnHTML(selectorContent, func(e *colly.HTMLElement) {
 		lhs.Logger.Trace().
@@ -196,6 +199,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 				}
 				restaurant.Add(
 					&lunchdata.Dish{
+						ID:    uuid.NewString(),
 						Name:  dishName,
 						Desc:  dishDesc,
 						Price: price,

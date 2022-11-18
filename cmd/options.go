@@ -7,7 +7,8 @@ const (
 	optLogLevel        = `log-level`
 	optCron            = `cron`
 	optGTag            = `gtag`
-	optListen          = `listen`
 	optOutput          = `output`
 	optLoad            = `load`
+	optPort            = `port`
+	optBindHost        = `bind-host`
 )
