@@ -8,7 +8,8 @@ import (
 // A giant list of everything
 type LunchList struct {
 	Countries CountryMap `json:"countries"`
-	GTag      string     `json:"gtag,omitempty"`
+	ID        string     `json:"id"`
+	GTag      string     `json:"-"`
 	mu        sync.RWMutex
 }
 

@@ -76,7 +76,7 @@ func TestSite_ParsedHumanDate(t *testing.T) {
 	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
 
 	now := time.Now()
-	r := Restaurant{Parsed: now}
+	r := Restaurant{ParsedAt: now}
 	s := Site{}
 	assert.Equal(t, dateFormat, s.ParsedHumanDate())
 	s.Restaurants = RestaurantMap{"1": &r}

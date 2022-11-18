@@ -6,8 +6,8 @@ import (
 
 type City struct {
 	Sites SiteMap `json:"sites"`
-	Name  string  `json:"city_name"`
-	ID    string  `json:"city_id"` // e.g. osl, gbg or something like the airlines use
+	Name  string  `json:"name"`
+	ID    string  `json:"id"` // e.g. osl, gbg or something like the airlines use
 	GTag  string  `json:"-"`
 	mu    sync.RWMutex
 }

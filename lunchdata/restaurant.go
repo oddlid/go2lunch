@@ -6,24 +6,24 @@ import (
 )
 
 type Restaurant struct {
-	Name    string    `json:"restaurant_name"`
-	ID      string    `json:"restaurant_id"`
-	URL     string    `json:"url,omitempty"`
-	GTag    string    `json:"-"`
-	Address string    `json:"address"`
-	MapURL  string    `json:"map_url"`
-	Parsed  time.Time `json:"scrape_date"`
-	Dishes  Dishes    `json:"dishes"`
-	mu      sync.RWMutex
+	Name     string    `json:"name"`
+	ID       string    `json:"id"`
+	URL      string    `json:"url,omitempty"`
+	GTag     string    `json:"-"`
+	Address  string    `json:"address"`
+	MapURL   string    `json:"map_url"`
+	ParsedAt time.Time `json:"parsed_at"`
+	Dishes   Dishes    `json:"dishes"`
+	mu       sync.RWMutex
 }
 
 func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 	return &Restaurant{
-		Name:   name,
-		ID:     id,
-		URL:    url,
-		Parsed: parsed,
-		Dishes: make(Dishes, 0),
+		Name:     name,
+		ID:       id,
+		URL:      url,
+		ParsedAt: parsed,
+		Dishes:   make(Dishes, 0),
 	}
 }
 
@@ -47,7 +47,7 @@ func (r *Restaurant) ParsedRFC3339() string {
 	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.Parsed.Format(time.RFC3339)
+	return r.ParsedAt.Format(time.RFC3339)
 }
 
 // ParsedHumanDate returns a more human readable date/time format, without too much detail
@@ -57,7 +57,7 @@ func (r *Restaurant) ParsedHumanDate() string {
 	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.Parsed.Format(dateFormat)
+	return r.ParsedAt.Format(dateFormat)
 }
 
 func (r *Restaurant) SetGTag(tag string) *Restaurant {

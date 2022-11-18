@@ -8,9 +8,9 @@ import (
 type Site struct {
 	Restaurants RestaurantMap `json:"restaurants"`
 	Scraper     SiteScraper   `json:"-"`
-	Name        string        `json:"site_name"`
-	ID          string        `json:"site_id"` // something unique within the parent city
-	Comment     string        `json:"site_comment,omitempty"`
+	Name        string        `json:"name"`
+	ID          string        `json:"id"` // something unique within the parent city
+	Comment     string        `json:"comment,omitempty"`
 	URL         string        `json:"url,omitempty"`
 	GTag        string        `json:"-"`
 	mu          sync.RWMutex

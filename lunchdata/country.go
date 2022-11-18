@@ -6,8 +6,8 @@ import (
 
 type Country struct {
 	Cities CityMap `json:"cities"`
-	Name   string  `json:"country_name"`
-	ID     string  `json:"country_id"` // preferably international country code, like "se", "no", and so on
+	Name   string  `json:"name"`
+	ID     string  `json:"id"` // preferably international country code, like "se", "no", and so on
 	GTag   string  `json:"-"`
 	mu     sync.RWMutex
 }

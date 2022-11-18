@@ -82,7 +82,7 @@ func TestRestaurant_ParsedRFC3339(t *testing.T) {
 	assert.NotEmpty(t, (*Restaurant)(nil).ParsedRFC3339())
 
 	now := time.Now()
-	r := Restaurant{Parsed: now}
+	r := Restaurant{ParsedAt: now}
 	assert.Equal(t, now.Format(time.RFC3339), r.ParsedRFC3339())
 }
 
@@ -90,7 +90,7 @@ func TestRestaurant_ParsedHumanDate(t *testing.T) {
 	assert.NotEmpty(t, (*Restaurant)(nil).ParsedHumanDate())
 
 	now := time.Now()
-	r := Restaurant{Parsed: now}
+	r := Restaurant{ParsedAt: now}
 	assert.Equal(t, now.Format(dateFormat), r.ParsedHumanDate())
 }
 

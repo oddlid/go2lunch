@@ -5,16 +5,18 @@ import (
 )
 
 const (
-	idSE    = `se`
-	nameSE  = `Sweden`
-	idGBG   = `gbg`
-	nameGBG = `Gothenburg`
-	idLH    = `lindholmen`
-	nameLH  = `Lindholmen`
+	idLunchList = `lunchList`
+	idSE        = `se`
+	nameSE      = `Sweden`
+	idGBG       = `gbg`
+	nameGBG     = `Gothenburg`
+	idLH        = `lindholmen`
+	nameLH      = `Lindholmen`
 )
 
 func getEmptyLunchList() *lunchdata.LunchList {
 	return &lunchdata.LunchList{
+		ID: idLunchList,
 		Countries: lunchdata.CountryMap{
 			idSE: {
 				Name: nameSE,
