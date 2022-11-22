@@ -42,9 +42,9 @@ func (cs Cities) Total() int {
 	return total + cs.Len()
 }
 
-func (cs Cities) SetGTag(tag string) {
+func (cs Cities) setGTag(tag string) {
 	for _, c := range cs {
-		c.SetGTag(tag)
+		c.setGTag(tag)
 	}
 }
 

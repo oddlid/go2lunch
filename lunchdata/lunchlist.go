@@ -3,6 +3,8 @@ package lunchdata
 import (
 	"fmt"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // A giant list of everything
@@ -70,7 +72,7 @@ func (l *LunchList) SetGTag(tag string) *LunchList {
 	}
 	l.mu.Lock()
 	l.GTag = tag
-	l.Countries.SetGTag(tag)
+	l.Countries.setGTag(tag)
 	l.mu.Unlock()
 	return l
 }
@@ -116,7 +118,7 @@ func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
 	}
 	if site := l.Get(s.CountryID()).Get(s.CityID()).Get(s.SiteID()).SetScraper(s); site == nil {
 		return fmt.Errorf(
-			"%w: Not found: Country=%q City=%q Site=%q",
+			"%w: Not found: Country: %q City: %q Site: %q",
 			errNilSite,
 			s.CountryID(),
 			s.CityID(),
@@ -136,9 +138,6 @@ func (l *LunchList) RunSiteScrapers() {
 	// What might be a good way, is to create both the wg and the error channel here, pass them in,
 	// then wait on the wg, and after that close the error channel and return it. That way, the caller can range
 	// over any returned errors. Downside to that, is that this func is then blocking.
-	// if l.Countries != nil {
-	// 	// l.Countries.RunSiteScrapers(wg, errChan)
-	// }
 }
 
 // func (ll *LunchList) RunSiteScrapers(wg *sync.WaitGroup) {
@@ -157,3 +156,15 @@ func (l *LunchList) RunSiteScrapers() {
 // 	}
 // 	//ll.Unlock()
 // }
+
+func (l *LunchList) SetIDIfEmpty() {
+	if l == nil {
+		return
+	}
+	l.mu.Lock()
+	if l.ID == "" {
+		l.ID = uuid.NewString()
+	}
+	l.Countries.setIDIfEmpty()
+	l.mu.Unlock()
+}

@@ -3,6 +3,8 @@ package lunchdata
 import (
 	"errors"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type Site struct {
@@ -27,6 +29,20 @@ func NewSite(name, id, comment string) *Site {
 		ID:          id,
 		Comment:     comment,
 		Restaurants: make(RestaurantMap),
+	}
+}
+
+func (s *Site) Clone() *Site {
+	if s == nil {
+		return nil
+	}
+	return &Site{
+		Name:        s.Name,
+		ID:          s.ID,
+		Comment:     s.Comment,
+		URL:         s.URL,
+		GTag:        s.GTag,
+		Restaurants: s.Restaurants.Clone(),
 	}
 }
 
@@ -64,13 +80,13 @@ func (s *Site) getRndRestaurant() *Restaurant {
 	return nil
 }
 
-func (s *Site) SetGTag(tag string) *Site {
+func (s *Site) setGTag(tag string) *Site {
 	if s == nil {
 		return nil
 	}
 	s.mu.Lock()
 	s.GTag = tag
-	s.Restaurants.SetGTag(tag)
+	s.Restaurants.setGTag(tag)
 	s.mu.Unlock()
 	return s
 }
@@ -106,12 +122,16 @@ func (s *Site) Delete(ids ...string) *Site {
 	return s
 }
 
-func (s *Site) Set(rs Restaurants) *Site {
+func (s *Site) Set(rm RestaurantMap) *Site {
 	if s == nil {
 		return nil
 	}
 	s.mu.Lock()
-	s.Restaurants = rs.AsMap()
+	if rm == nil {
+		s.Restaurants = make(RestaurantMap)
+	} else {
+		s.Restaurants = rm
+	}
 	s.mu.Unlock()
 	return s
 }
@@ -142,11 +162,25 @@ func (s *Site) RunScraper() error {
 	if s.Scraper == nil {
 		return errNilScraper
 	}
+	s.mu.Lock()
 	rs, err := s.Scraper.Scrape()
+	s.mu.Unlock()
 	if err != nil {
 		return err
 	}
 	s.Set(rs)
 
 	return nil
+}
+
+func (s *Site) setIDIfEmpty() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	if s.ID == "" {
+		s.ID = uuid.NewString()
+	}
+	s.Restaurants.setIDIfEmpty()
+	s.mu.Unlock()
 }

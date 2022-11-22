@@ -1,6 +1,8 @@
 package lunchdata
 
-import "sync"
+import (
+	"sync"
+)
 
 type SiteMap map[string]*Site
 
@@ -56,9 +58,9 @@ func (sm SiteMap) Get(id string) *Site {
 	return sm[id]
 }
 
-func (sm SiteMap) SetGTag(tag string) {
+func (sm SiteMap) setGTag(tag string) {
 	for _, s := range sm {
-		s.SetGTag(tag)
+		s.setGTag(tag)
 	}
 }
 
@@ -69,5 +71,11 @@ func (sm SiteMap) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 			defer wg.Done()
 			errChan <- site.RunScraper()
 		}(s)
+	}
+}
+
+func (sm SiteMap) setIDIfEmpty() {
+	for _, site := range sm {
+		site.setIDIfEmpty()
 	}
 }

@@ -34,9 +34,9 @@ func (ss Sites) Total() int {
 	return total + ss.Len()
 }
 
-func (ss Sites) SetGTag(tag string) {
+func (ss Sites) setGTag(tag string) {
 	for _, s := range ss {
-		s.SetGTag(tag)
+		s.setGTag(tag)
 	}
 }
 

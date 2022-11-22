@@ -3,6 +3,8 @@ package lunchdata
 import (
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Restaurant struct {
@@ -24,6 +26,22 @@ func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 		URL:      url,
 		ParsedAt: parsed,
 		Dishes:   make(Dishes, 0),
+	}
+}
+
+func (r *Restaurant) Clone() *Restaurant {
+	if r == nil {
+		return nil
+	}
+	return &Restaurant{
+		Name:     r.Name,
+		ID:       r.ID,
+		URL:      r.URL,
+		GTag:     r.GTag,
+		Address:  r.Address,
+		MapURL:   r.MapURL,
+		ParsedAt: r.ParsedAt,
+		Dishes:   r.Dishes.Clone(),
 	}
 }
 
@@ -60,13 +78,13 @@ func (r *Restaurant) ParsedHumanDate() string {
 	return r.ParsedAt.Format(dateFormat)
 }
 
-func (r *Restaurant) SetGTag(tag string) *Restaurant {
+func (r *Restaurant) setGTag(tag string) *Restaurant {
 	if r == nil {
 		return nil
 	}
 	r.mu.Lock()
 	r.GTag = tag
-	r.Dishes.SetGTag(tag)
+	r.Dishes.setGTag(tag)
 	r.mu.Unlock()
 	return r
 }
@@ -96,4 +114,16 @@ func (r *Restaurant) Set(ds Dishes) *Restaurant {
 	r.Dishes = ds
 	r.mu.Unlock()
 	return r
+}
+
+func (r *Restaurant) setIDIfEmpty() {
+	if r == nil {
+		return
+	}
+	r.mu.Lock()
+	if r.ID == "" {
+		r.ID = uuid.NewString()
+	}
+	r.Dishes.setIDIfEmpty()
+	r.mu.Unlock()
 }

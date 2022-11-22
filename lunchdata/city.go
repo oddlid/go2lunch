@@ -2,6 +2,8 @@ package lunchdata
 
 import (
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type City struct {
@@ -47,13 +49,13 @@ func (c *City) NumDishes() int {
 	return c.Sites.NumDishes()
 }
 
-func (c *City) SetGTag(tag string) *City {
+func (c *City) setGTag(tag string) *City {
 	if c == nil {
 		return nil
 	}
 	c.mu.Lock()
 	c.GTag = tag
-	c.Sites.SetGTag(tag)
+	c.Sites.setGTag(tag)
 	c.mu.Unlock()
 	return c
 }
@@ -98,7 +100,17 @@ func (c *City) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 	// starts one goroutine for each site and then return, the unlock here would come long before
 	// the scraping is actually done, and so not really give any protection.
 	// It's probably best to just lock at the top level, in LunchList.
-	if c.Sites != nil {
-		c.Sites.RunSiteScrapers(wg, errChan)
+	c.Sites.RunSiteScrapers(wg, errChan)
+}
+
+func (c *City) setIDIfEmpty() {
+	if c == nil {
+		return
 	}
+	c.mu.Lock()
+	if c.ID == "" {
+		c.ID = uuid.NewString()
+	}
+	c.Sites.setIDIfEmpty()
+	c.mu.Unlock()
 }

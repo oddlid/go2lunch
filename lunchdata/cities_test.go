@@ -91,8 +91,8 @@ func TestCities_Total(t *testing.T) {
 	assert.Equal(t, 7, cs.Total())
 }
 
-func TestCities_SetGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (Cities)(nil).SetGTag("") })
+func TestCities_setGTag(t *testing.T) {
+	assert.NotPanics(t, func() { (Cities)(nil).setGTag("") })
 
 	cs := Cities{
 		{
@@ -111,7 +111,7 @@ func TestCities_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	cs.SetGTag(tag)
+	cs.setGTag(tag)
 	for _, c := range cs {
 		assert.Equal(t, tag, c.GTag)
 		for _, s := range c.Sites {

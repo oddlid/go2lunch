@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCity(t *testing.T) {
+func Test_NewCity(t *testing.T) {
 	id := "id"
 	name := "name"
 	c := NewCity(name, id)
@@ -19,14 +19,14 @@ func TestNewCity(t *testing.T) {
 	assert.NotNil(t, c.Sites)
 }
 
-func TestCity_NumSites(t *testing.T) {
+func Test_City_NumSites(t *testing.T) {
 	assert.Zero(t, (*City)(nil).NumSites())
 
 	c := City{Sites: SiteMap{"1": {}}}
 	assert.Equal(t, 1, c.NumSites())
 }
 
-func TestCity_NumRestaurants(t *testing.T) {
+func Test_City_NumRestaurants(t *testing.T) {
 	assert.Zero(t, (*City)(nil).NumRestaurants())
 
 	c := City{
@@ -41,7 +41,7 @@ func TestCity_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 1, c.NumRestaurants())
 }
 
-func TestCity_NumDishes(t *testing.T) {
+func Test_City_NumDishes(t *testing.T) {
 	assert.Zero(t, (*City)(nil).NumDishes())
 
 	c := City{
@@ -65,8 +65,8 @@ func TestCity_NumDishes(t *testing.T) {
 	assert.Equal(t, 4, c.NumDishes())
 }
 
-func TestCity_SetGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (*City)(nil).SetGTag("") })
+func Test_City_setGTag(t *testing.T) {
+	assert.NotPanics(t, func() { (*City)(nil).setGTag("") })
 
 	c := City{
 		Sites: SiteMap{
@@ -87,7 +87,7 @@ func TestCity_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	ret := c.SetGTag(tag)
+	ret := c.setGTag(tag)
 	assert.Same(t, &c, ret)
 	assert.Equal(t, tag, c.GTag)
 	for _, s := range c.Sites {
@@ -101,7 +101,7 @@ func TestCity_SetGTag(t *testing.T) {
 	}
 }
 
-func TestCity_Add(t *testing.T) {
+func Test_City_Add(t *testing.T) {
 	assert.Nil(t, (*City)(nil).Add(&Site{}))
 
 	c := City{}
@@ -116,7 +116,7 @@ func TestCity_Add(t *testing.T) {
 	assert.Same(t, &s, c.Sites["1"])
 }
 
-func TestCity_Delete(t *testing.T) {
+func Test_City_Delete(t *testing.T) {
 	assert.Nil(t, (*City)(nil).Delete(""))
 
 	c := City{
@@ -143,7 +143,7 @@ func TestCity_Delete(t *testing.T) {
 	assert.Len(t, c.Sites, 1)
 }
 
-func TestCity_Get(t *testing.T) {
+func Test_City_Get(t *testing.T) {
 	assert.Nil(t, (*City)(nil).Get(""))
 
 	c := City{
@@ -194,4 +194,13 @@ func Test_City_RunSiteScrapers(t *testing.T) {
 	for err := range errChan {
 		t.Log(err)
 	}
+}
+
+func Test_City_setIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*City)(nil).setIDIfEmpty()
+	})
+	c := City{}
+	c.setIDIfEmpty()
+	assert.NotEmpty(t, c.ID)
 }

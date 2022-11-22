@@ -19,10 +19,9 @@ import (
 )
 
 type publicServer struct {
-	lunchData *lunchdata.LunchList
-	hTpl      *htpl.Template
-	tTpl      *ttpl.Template
-	// endpoints  map[string]http.HandlerFunc
+	lunchData  *lunchdata.LunchList
+	hTpl       *htpl.Template
+	tTpl       *ttpl.Template
 	log        zerolog.Logger
 	httpServer http.Server
 	config     Config

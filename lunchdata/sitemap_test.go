@@ -116,8 +116,8 @@ func Test_SiteMap_Get(t *testing.T) {
 	assert.Nil(t, sm.Get("otherid"))
 }
 
-func Test_SiteMap_SetGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (SiteMap)(nil).SetGTag("") })
+func Test_SiteMap_setGTag(t *testing.T) {
+	assert.NotPanics(t, func() { (SiteMap)(nil).setGTag("") })
 
 	sm := SiteMap{
 		"1": {
@@ -129,7 +129,7 @@ func Test_SiteMap_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	sm.SetGTag(tag)
+	sm.setGTag(tag)
 	for _, s := range sm {
 		assert.Equal(t, tag, s.GTag)
 		for _, r := range s.Restaurants {
@@ -165,4 +165,15 @@ func Test_SiteMap_RunSiteScrapers(t *testing.T) {
 	for err := range errChan {
 		t.Log(err)
 	}
+}
+
+func Test_SiteMap_setIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(SiteMap)(nil).setIDIfEmpty()
+	})
+	sm := SiteMap{
+		"1": {},
+	}
+	sm.setIDIfEmpty()
+	assert.NotEmpty(t, sm["1"].ID)
 }

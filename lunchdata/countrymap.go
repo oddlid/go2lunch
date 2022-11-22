@@ -1,6 +1,8 @@
 package lunchdata
 
-import "sync"
+import (
+	"sync"
+)
 
 type CountryMap map[string]*Country
 
@@ -73,16 +75,20 @@ func (cm CountryMap) Get(id string) *Country {
 	return cm[id]
 }
 
-func (cm CountryMap) SetGTag(tag string) {
+func (cm CountryMap) setGTag(tag string) {
 	for _, c := range cm {
-		c.SetGTag(tag)
+		c.setGTag(tag)
 	}
 }
 
 func (cm CountryMap) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 	for _, c := range cm {
-		if c != nil {
-			c.RunSiteScrapers(wg, errChan)
-		}
+		c.RunSiteScrapers(wg, errChan)
+	}
+}
+
+func (cm CountryMap) setIDIfEmpty() {
+	for _, country := range cm {
+		country.setIDIfEmpty()
 	}
 }

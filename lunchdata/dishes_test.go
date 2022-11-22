@@ -6,28 +6,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDishes_Len_whenNil(t *testing.T) {
+func Test_Dishes_Len_whenNil(t *testing.T) {
 	var dishes Dishes
 	assert.Equal(t, 0, dishes.Len())
 }
 
-func TestDishes_Len(t *testing.T) {
+func Test_Dishes_Len(t *testing.T) {
 	dishes := Dishes{{}, {}}
 	assert.Equal(t, 2, dishes.Len())
 }
 
-func TestDishes_Empty(t *testing.T) {
+func Test_Dishes_Empty(t *testing.T) {
 	assert.True(t, (Dishes)(nil).Empty())
 
 	ds := Dishes{{}}
 	assert.False(t, ds.Empty())
 }
 
-func TestDishes_SetGTag(t *testing.T) {
+func Test_Dishes_Clone(t *testing.T) {
+	d := Dish{
+		ID:    "id",
+		Name:  "name",
+		Desc:  "desc",
+		GTag:  "tag",
+		Price: 1,
+	}
+	ds := Dishes{&d}
+	clone := ds.Clone()
+	assert.NotNil(t, clone)
+	assert.Equal(t, ds, clone)
+}
+
+func Test_Dishes_setGTag(t *testing.T) {
+	assert.NotPanics(t, func() {
+		var ds Dishes
+		ds.setGTag("")
+	})
 	ds := Dishes{{}, {}}
 	tag := "sometag"
-	ds.SetGTag(tag)
+	ds.setGTag(tag)
 	for _, d := range ds {
 		assert.Equal(t, tag, d.GTag)
 	}
+}
+
+func Test_Dishes_setIDIFEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		var nilDishes Dishes
+		nilDishes.setIDIfEmpty()
+	})
+	ds := Dishes{{}, {}}
+	ds.setIDIfEmpty()
+	assert.NotEmpty(t, ds[0].ID)
+	assert.NotEmpty(t, ds[1].ID)
 }

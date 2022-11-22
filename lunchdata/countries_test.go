@@ -100,7 +100,7 @@ func TestCountries_Total(t *testing.T) {
 	assert.Equal(t, 5, cs.Total())
 }
 
-func TestCountries_SetGTag(t *testing.T) {
+func TestCountries_setGTag(t *testing.T) {
 	cs := Countries{
 		{
 			Cities: CityMap{
@@ -119,7 +119,7 @@ func TestCountries_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	cs.SetGTag(tag)
+	cs.setGTag(tag)
 	for _, country := range cs {
 		assert.Equal(t, tag, country.GTag)
 		for _, city := range country.Cities {

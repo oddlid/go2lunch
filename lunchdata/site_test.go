@@ -21,6 +21,40 @@ func TestNewSite(t *testing.T) {
 	assert.NotNil(t, s.Restaurants)
 }
 
+func Test_Site_Clone(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).Clone())
+
+	s := Site{
+		Name:    "sName",
+		ID:      "sID",
+		Comment: "sComment",
+		URL:     "sURL",
+		GTag:    "sTAG",
+		Restaurants: RestaurantMap{
+			"rID": {
+				Name:     "rName",
+				ID:       "rID",
+				URL:      "rURL",
+				GTag:     "rTAG",
+				Address:  "rAddr",
+				MapURL:   "rMapUrl",
+				ParsedAt: time.Now(),
+				Dishes: Dishes{
+					{
+						Name:  "dName",
+						ID:    "dID",
+						Desc:  "dDesc",
+						Price: 1,
+						GTag:  "dTAG",
+					},
+				},
+			},
+		},
+	}
+	clone := s.Clone()
+	assert.Equal(t, &s, clone)
+}
+
 func TestSite_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 0, (*Site)(nil).NumRestaurants())
 
@@ -51,8 +85,8 @@ func TestSite_getRndRestaurant(t *testing.T) {
 	assert.Same(t, &r, s.getRndRestaurant())
 }
 
-func TestSite_SetGTag(t *testing.T) {
-	assert.Nil(t, (*Site)(nil).SetGTag(""))
+func TestSite_setGTag(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).setGTag(""))
 
 	gtag := "sometag"
 	s := Site{
@@ -61,7 +95,7 @@ func TestSite_SetGTag(t *testing.T) {
 			"2": {Dishes: Dishes{{}, {}}},
 		},
 	}
-	ret := s.SetGTag(gtag)
+	ret := s.setGTag(gtag)
 	assert.Same(t, &s, ret)
 	assert.Equal(t, gtag, ret.GTag)
 	for _, r := range s.Restaurants {
@@ -124,8 +158,11 @@ func TestSite_Set(t *testing.T) {
 	assert.Len(t, s.Restaurants, 0)
 
 	s.Restaurants[id] = &Restaurant{}
-	rs := Restaurants{{ID: "1"}, {ID: "2"}}
-	s.Set(rs)
+	rm := RestaurantMap{
+		"1": {},
+		"2": {},
+	}
+	s.Set(rm)
 	assert.Len(t, s.Restaurants, 2)
 	_, found := s.Restaurants[id]
 	assert.False(t, found)
@@ -191,10 +228,74 @@ func TestSite_RunScraper(t *testing.T) {
 	assert.ErrorIs(t, err, scrapeErr)
 	assert.Nil(t, s.Restaurants)
 
-	rs := Restaurants{{ID: "1"}, {ID: "2"}}
-	s.Scraper = &mockSiteScraper{restaurants: rs}
+	rm := RestaurantMap{
+		"1": {},
+		"2": {},
+	}
+	s.Scraper = &mockSiteScraper{restaurants: rm}
 	err = s.RunScraper()
 	assert.NoError(t, err)
 	assert.NotNil(t, s.Restaurants)
 	assert.Len(t, s.Restaurants, 2)
 }
+
+func Test_Site_setIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*Site)(nil).setIDIfEmpty()
+	})
+	s := Site{}
+	s.setIDIfEmpty()
+	assert.NotEmpty(t, s.ID)
+}
+
+// func Test_Site_UnmarshalJSON(t *testing.T) {
+// 	data := []byte(`
+// 		{
+// 			"name": "sName",
+// 			"id": "sID",
+// 			"comment": "sComment",
+// 			"restaurants": {
+// 				"mapKey": {
+// 					"name": "rName",
+// 					"id": "rID",
+// 					"url": "rURL",
+// 					"address": "rAddr",
+// 					"map_url": "rMapURL",
+// 					"parsed_at": "2022-11-14T12:30:03.465655196+01:00",
+// 					"dishes": [
+// 						{
+// 							"id": "dID",
+// 							"name": "dName",
+// 							"desc": "dDesc",
+// 							"price": 1
+// 						}
+// 					]
+// 				}
+// 			}
+// 		}
+// 	`)
+// 	var s *Site
+// 	assert.NoError(t, json.Unmarshal(data, &s))
+// 	assert.NotNil(t, s)
+// 	assert.IsType(t, (*Site)(nil), s)
+// 	assert.Equal(t, "sName", s.Name)
+// 	assert.Equal(t, "sID", s.ID)
+// 	assert.Equal(t, "sComment", s.Comment)
+// 	assert.NotNil(t, s.Restaurants)
+// 	assert.Len(t, s.Restaurants, 1)
+// 	r := s.Restaurants["mapKey"]
+// 	if assert.NotNil(t, r) {
+// 		assert.IsType(t, (*Restaurant)(nil), r)
+// 		assert.Equal(t, "rName", r.Name)
+// 		assert.Equal(t, "rID", r.ID)
+// 		assert.Equal(t, "rURL", r.URL)
+// 		assert.Equal(t, "rAddr", r.Address)
+// 		assert.Equal(t, "rMapURL", r.MapURL)
+// 		assert.NotNil(t, r.Dishes)
+// 		assert.Len(t, r.Dishes, 1)
+// 		assert.Equal(t, "dID", r.Dishes[0].ID)
+// 		assert.Equal(t, "dName", r.Dishes[0].Name)
+// 		assert.Equal(t, "dDesc", r.Dishes[0].Desc)
+// 		assert.Equal(t, 1, r.Dishes[0].Price)
+// 	}
+// }

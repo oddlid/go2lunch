@@ -6,19 +6,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCountryMap_Len(t *testing.T) {
+func Test_CountryMap_Len(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).Len())
 	cm := CountryMap{"1": {}}
 	assert.Equal(t, 1, cm.Len())
 }
 
-func TestCountryMap_Empty(t *testing.T) {
+func Test_CountryMap_Empty(t *testing.T) {
 	assert.True(t, (CountryMap)(nil).Empty())
 	cm := CountryMap{"1": {}}
 	assert.False(t, cm.Empty())
 }
 
-func TestCountryMap_NumCities(t *testing.T) {
+func Test_CountryMap_NumCities(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).NumCities())
 	cm := CountryMap{
 		"1": {
@@ -30,7 +30,7 @@ func TestCountryMap_NumCities(t *testing.T) {
 	assert.Equal(t, 1, cm.NumCities())
 }
 
-func TestCountryMap_NumSites(t *testing.T) {
+func Test_CountryMap_NumSites(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).NumSites())
 	cm := CountryMap{
 		"1": {
@@ -44,7 +44,7 @@ func TestCountryMap_NumSites(t *testing.T) {
 	assert.Equal(t, 1, cm.NumSites())
 }
 
-func TestCountryMap_NumRestaurants(t *testing.T) {
+func Test_CountryMap_NumRestaurants(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).NumRestaurants())
 	cm := CountryMap{
 		"1": {
@@ -62,7 +62,7 @@ func TestCountryMap_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 1, cm.NumRestaurants())
 }
 
-func TestCountryMap_NumDishes(t *testing.T) {
+func Test_CountryMap_NumDishes(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).NumDishes())
 	cm := CountryMap{
 		"1": {
@@ -84,7 +84,7 @@ func TestCountryMap_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, cm.NumDishes())
 }
 
-func TestCountryMap_Total(t *testing.T) {
+func Test_CountryMap_Total(t *testing.T) {
 	assert.Zero(t, (CountryMap)(nil).Total())
 	cm := CountryMap{
 		"1": {
@@ -106,7 +106,7 @@ func TestCountryMap_Total(t *testing.T) {
 	assert.Equal(t, 5, cm.Total())
 }
 
-func TestCountryMap_Add(t *testing.T) {
+func Test_CountryMap_Add(t *testing.T) {
 	assert.NotPanics(t, func() {
 		(CountryMap)(nil).Add(&Country{})
 	})
@@ -118,7 +118,7 @@ func TestCountryMap_Add(t *testing.T) {
 	assert.Same(t, cs[1], cm["2"])
 }
 
-func TestCountryMap_Delete(t *testing.T) {
+func Test_CountryMap_Delete(t *testing.T) {
 	assert.NotPanics(t, func() {
 		(CountryMap)(nil).Delete("")
 	})
@@ -132,7 +132,7 @@ func TestCountryMap_Delete(t *testing.T) {
 	assert.Len(t, cm, 1)
 }
 
-func TestCountryMap_Get(t *testing.T) {
+func Test_CountryMap_Get(t *testing.T) {
 	assert.Nil(t, (CountryMap)(nil).Get(""))
 	cm := CountryMap{
 		"1": {},
@@ -144,8 +144,8 @@ func TestCountryMap_Get(t *testing.T) {
 	assert.Nil(t, cm.Get("3"))
 }
 
-func TestCountryMap_SetGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (CountryMap)(nil).SetGTag("") })
+func Test_CountryMap_setGTag(t *testing.T) {
+	assert.NotPanics(t, func() { (CountryMap)(nil).setGTag("") })
 	cm := CountryMap{
 		"1": {
 			Cities: CityMap{
@@ -164,7 +164,7 @@ func TestCountryMap_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	cm.SetGTag(tag)
+	cm.setGTag(tag)
 	for _, country := range cm {
 		assert.Equal(t, tag, country.GTag)
 		for _, city := range country.Cities {
@@ -180,4 +180,15 @@ func TestCountryMap_SetGTag(t *testing.T) {
 			}
 		}
 	}
+}
+
+func Test_CountryMap_setIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(CountryMap)(nil).setIDIfEmpty()
+	})
+	cm := CountryMap{
+		"1": {},
+	}
+	cm.setIDIfEmpty()
+	assert.NotEmpty(t, cm["1"].ID)
 }

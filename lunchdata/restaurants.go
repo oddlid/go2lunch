@@ -22,9 +22,9 @@ func (rs Restaurants) Total() int {
 	return rs.Len() + rs.NumDishes()
 }
 
-func (rs Restaurants) SetGTag(tag string) {
+func (rs Restaurants) setGTag(tag string) {
 	for _, r := range rs {
-		r.SetGTag(tag)
+		r.setGTag(tag)
 	}
 }
 

@@ -2,6 +2,8 @@ package lunchdata
 
 import (
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type Country struct {
@@ -56,13 +58,13 @@ func (c *Country) NumDishes() int {
 	return c.Cities.NumDishes()
 }
 
-func (c *Country) SetGTag(tag string) *Country {
+func (c *Country) setGTag(tag string) *Country {
 	if c == nil {
 		return nil
 	}
 	c.mu.Lock()
 	c.GTag = tag
-	c.Cities.SetGTag(tag)
+	c.Cities.setGTag(tag)
 	c.mu.Unlock()
 	return c
 }
@@ -103,7 +105,17 @@ func (c *Country) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 	if c == nil {
 		return
 	}
-	if c.Cities != nil {
-		c.Cities.RunSiteScrapers(wg, errChan)
+	c.Cities.RunSiteScrapers(wg, errChan)
+}
+
+func (c *Country) setIDIfEmpty() {
+	if c == nil {
+		return
 	}
+	c.mu.Lock()
+	if c.ID == "" {
+		c.ID = uuid.NewString()
+	}
+	c.Cities.setIDIfEmpty()
+	c.mu.Unlock()
 }

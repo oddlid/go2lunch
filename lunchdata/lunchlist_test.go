@@ -206,3 +206,12 @@ func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 	err = ll.RegisterSiteScraper(&scraper)
 	assert.NoError(t, err)
 }
+
+func Test_LunchList_SetIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*LunchList)(nil).SetIDIfEmpty()
+	})
+	ll := LunchList{}
+	ll.SetIDIfEmpty()
+	assert.NotEmpty(t, ll.ID)
+}

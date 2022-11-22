@@ -2,6 +2,14 @@ package lunchdata
 
 type RestaurantMap map[string]*Restaurant
 
+func (rm RestaurantMap) Clone() RestaurantMap {
+	clone := make(RestaurantMap)
+	for _, r := range rm {
+		clone[r.ID] = r.Clone()
+	}
+	return clone
+}
+
 func (rm RestaurantMap) Len() int {
 	return len(rm)
 }
@@ -43,8 +51,14 @@ func (rm RestaurantMap) Get(id string) *Restaurant {
 	return rm[id]
 }
 
-func (rm RestaurantMap) SetGTag(tag string) {
+func (rm RestaurantMap) setGTag(tag string) {
 	for _, r := range rm {
-		r.SetGTag(tag)
+		r.setGTag(tag)
+	}
+}
+
+func (rm RestaurantMap) setIDIfEmpty() {
+	for _, r := range rm {
+		r.setIDIfEmpty()
 	}
 }

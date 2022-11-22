@@ -50,13 +50,13 @@ func TestRestaurants_AsMap(t *testing.T) {
 	assert.Equal(t, rs[0], rm[rs[0].ID])
 }
 
-func TestRestaurants_SetGTag(t *testing.T) {
+func TestRestaurants_setGTag(t *testing.T) {
 	gtag := "sometag"
 	rs := Restaurants{
 		{Dishes: Dishes{{}, {}}},
 		{Dishes: Dishes{{}, {}}},
 	}
-	rs.SetGTag(gtag)
+	rs.setGTag(gtag)
 	for _, r := range rs {
 		assert.Equal(t, gtag, r.GTag)
 		for _, d := range r.Dishes {

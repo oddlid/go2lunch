@@ -1,6 +1,8 @@
 package lunchdata
 
-import "sync"
+import (
+	"sync"
+)
 
 type CityMap map[string]*City
 
@@ -65,16 +67,20 @@ func (cm CityMap) Get(id string) *City {
 	return cm[id]
 }
 
-func (cm CityMap) SetGTag(tag string) {
+func (cm CityMap) setGTag(tag string) {
 	for _, c := range cm {
-		c.SetGTag(tag)
+		c.setGTag(tag)
 	}
 }
 
 func (cm CityMap) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 	for _, c := range cm {
-		if c != nil {
-			c.RunSiteScrapers(wg, errChan)
-		}
+		c.RunSiteScrapers(wg, errChan)
+	}
+}
+
+func (cm CityMap) setIDIfEmpty() {
+	for _, city := range cm {
+		city.setIDIfEmpty()
 	}
 }

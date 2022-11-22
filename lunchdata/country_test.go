@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCountry(t *testing.T) {
+func Test_NewCountry(t *testing.T) {
 	id := "id"
 	name := "name"
 	c := NewCountry(name, id)
@@ -17,13 +17,13 @@ func TestNewCountry(t *testing.T) {
 	assert.NotNil(t, c.Cities)
 }
 
-func TestCountry_NumCities(t *testing.T) {
+func Test_Country_NumCities(t *testing.T) {
 	assert.Zero(t, (*Country)(nil).NumCities())
 	c := Country{Cities: CityMap{"1": {}}}
 	assert.Equal(t, 1, c.NumCities())
 }
 
-func TestCountry_NumSites(t *testing.T) {
+func Test_Country_NumSites(t *testing.T) {
 	assert.Zero(t, (*Country)(nil).NumSites())
 	c := Country{
 		Cities: CityMap{
@@ -37,7 +37,7 @@ func TestCountry_NumSites(t *testing.T) {
 	assert.Equal(t, 1, c.NumSites())
 }
 
-func TestCountry_NumRestaurants(t *testing.T) {
+func Test_Country_NumRestaurants(t *testing.T) {
 	assert.Zero(t, (*Country)(nil).NumRestaurants())
 	c := Country{
 		Cities: CityMap{
@@ -55,7 +55,7 @@ func TestCountry_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 1, c.NumRestaurants())
 }
 
-func TestCountry_NumDishes(t *testing.T) {
+func Test_Country_NumDishes(t *testing.T) {
 	assert.Zero(t, (*Country)(nil).NumDishes())
 	c := Country{
 		Cities: CityMap{
@@ -75,8 +75,8 @@ func TestCountry_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, c.NumDishes())
 }
 
-func TestCountry_SetGTag(t *testing.T) {
-	assert.Nil(t, (*Country)(nil).SetGTag(""))
+func Test_Country_setGTag(t *testing.T) {
+	assert.Nil(t, (*Country)(nil).setGTag(""))
 	c := Country{
 		Cities: CityMap{
 			"1": {
@@ -93,7 +93,7 @@ func TestCountry_SetGTag(t *testing.T) {
 		},
 	}
 	tag := "sometag"
-	got := c.SetGTag(tag)
+	got := c.setGTag(tag)
 	assert.NotNil(t, got)
 	assert.Same(t, &c, got)
 	assert.Equal(t, tag, c.GTag)
@@ -111,7 +111,7 @@ func TestCountry_SetGTag(t *testing.T) {
 	}
 }
 
-func TestCountry_Add(t *testing.T) {
+func Test_Country_Add(t *testing.T) {
 	assert.Nil(t, (*Country)(nil).Add(&City{}))
 	c := Country{}
 	assert.Nil(t, c.Cities)
@@ -125,7 +125,7 @@ func TestCountry_Add(t *testing.T) {
 	assert.Same(t, &city, c.Cities["1"])
 }
 
-func TestCountry_Delete(t *testing.T) {
+func Test_Country_Delete(t *testing.T) {
 	assert.Nil(t, (*Country)(nil).Delete())
 	c := Country{
 		Cities: CityMap{
@@ -140,7 +140,7 @@ func TestCountry_Delete(t *testing.T) {
 	assert.Len(t, c.Cities, 1)
 }
 
-func TestCountry_Get(t *testing.T) {
+func Test_Country_Get(t *testing.T) {
 	assert.Nil(t, (*Country)(nil).Get(""))
 	c := Country{
 		Cities: CityMap{
@@ -152,4 +152,13 @@ func TestCountry_Get(t *testing.T) {
 	assert.NotNil(t, ret)
 	assert.Same(t, c.Cities["1"], ret)
 	assert.Nil(t, c.Get("3"))
+}
+
+func Test_Country_setIDIfEmpty(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*Country)(nil).setIDIfEmpty()
+	})
+	c := Country{}
+	c.setIDIfEmpty()
+	assert.NotEmpty(t, c.ID)
 }
