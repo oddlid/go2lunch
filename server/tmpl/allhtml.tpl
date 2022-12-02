@@ -129,7 +129,7 @@
         <details open class="pb-3">
           <summary>
             <h2 class="name h6">
-				<a href="{{.Url}}">{{.Name}}</a>
+				<a href="{{.URL}}">{{.Name}}</a>
 			{{- if .Address }}
 				- <a href="{{.MapURL}}" target="_blank">{{.Address}}</a>
 			{{- end }}
