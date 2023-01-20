@@ -23,31 +23,31 @@ func Test_NewRestaurant(t *testing.T) {
 	assert.Len(t, r.Dishes, 0)
 }
 
-func Test_Restaurant_Clone(t *testing.T) {
-	assert.Nil(t, (*Restaurant)(nil).Clone())
+// func Test_Restaurant_Clone(t *testing.T) {
+// 	assert.Nil(t, (*Restaurant)(nil).Clone())
 
-	r := Restaurant{
-		Name:     "rName",
-		ID:       "rID",
-		URL:      "rURL",
-		GTag:     "rTAG",
-		Address:  "rAddr",
-		MapURL:   "rMapUrl",
-		ParsedAt: time.Now(),
-		Dishes: Dishes{
-			{
-				Name:  "dName",
-				ID:    "dID",
-				Desc:  "dDesc",
-				Price: 1,
-				GTag:  "dTAG",
-			},
-		},
-	}
-	clone := r.Clone()
-	assert.NotNil(t, clone)
-	assert.Equal(t, &r, clone)
-}
+// 	r := Restaurant{
+// 		Name:     "rName",
+// 		ID:       "rID",
+// 		URL:      "rURL",
+// 		GTag:     "rTAG",
+// 		Address:  "rAddr",
+// 		MapURL:   "rMapUrl",
+// 		ParsedAt: time.Now(),
+// 		Dishes: Dishes{
+// 			{
+// 				Name:  "dName",
+// 				ID:    "dID",
+// 				Desc:  "dDesc",
+// 				Price: 1,
+// 				GTag:  "dTAG",
+// 			},
+// 		},
+// 	}
+// 	clone := r.Clone()
+// 	assert.NotNil(t, clone)
+// 	assert.Equal(t, &r, clone)
+// }
 
 func Test_Restaurant_NumDishes(t *testing.T) {
 	assert.Equal(t, 0, (*Restaurant)(nil).NumDishes())

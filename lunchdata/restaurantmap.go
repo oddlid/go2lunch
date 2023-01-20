@@ -2,13 +2,13 @@ package lunchdata
 
 type RestaurantMap map[string]*Restaurant
 
-func (rm RestaurantMap) Clone() RestaurantMap {
-	clone := make(RestaurantMap)
-	for _, r := range rm {
-		clone[r.ID] = r.Clone()
-	}
-	return clone
-}
+// func (rm RestaurantMap) Clone() RestaurantMap {
+// 	clone := make(RestaurantMap)
+// 	for _, r := range rm {
+// 		clone[r.ID] = r.Clone()
+// 	}
+// 	return clone
+// }
 
 func (rm RestaurantMap) Len() int {
 	return len(rm)

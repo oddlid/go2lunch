@@ -32,19 +32,19 @@ func NewSite(name, id, comment string) *Site {
 	}
 }
 
-func (s *Site) Clone() *Site {
-	if s == nil {
-		return nil
-	}
-	return &Site{
-		Name:        s.Name,
-		ID:          s.ID,
-		Comment:     s.Comment,
-		URL:         s.URL,
-		GTag:        s.GTag,
-		Restaurants: s.Restaurants.Clone(),
-	}
-}
+// func (s *Site) Clone() *Site {
+// 	if s == nil {
+// 		return nil
+// 	}
+// 	return &Site{
+// 		Name:        s.Name,
+// 		ID:          s.ID,
+// 		Comment:     s.Comment,
+// 		URL:         s.URL,
+// 		GTag:        s.GTag,
+// 		Restaurants: s.Restaurants.Clone(),
+// 	}
+// }
 
 func (s *Site) NumRestaurants() int {
 	if s == nil {

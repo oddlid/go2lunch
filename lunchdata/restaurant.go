@@ -29,21 +29,21 @@ func NewRestaurant(name, id, url string, parsed time.Time) *Restaurant {
 	}
 }
 
-func (r *Restaurant) Clone() *Restaurant {
-	if r == nil {
-		return nil
-	}
-	return &Restaurant{
-		Name:     r.Name,
-		ID:       r.ID,
-		URL:      r.URL,
-		GTag:     r.GTag,
-		Address:  r.Address,
-		MapURL:   r.MapURL,
-		ParsedAt: r.ParsedAt,
-		Dishes:   r.Dishes.Clone(),
-	}
-}
+// func (r *Restaurant) Clone() *Restaurant {
+// 	if r == nil {
+// 		return nil
+// 	}
+// 	return &Restaurant{
+// 		Name:     r.Name,
+// 		ID:       r.ID,
+// 		URL:      r.URL,
+// 		GTag:     r.GTag,
+// 		Address:  r.Address,
+// 		MapURL:   r.MapURL,
+// 		ParsedAt: r.ParsedAt,
+// 		Dishes:   r.Dishes.Clone(),
+// 	}
+// }
 
 func (r *Restaurant) NumDishes() int {
 	if r == nil {

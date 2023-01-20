@@ -21,39 +21,39 @@ func TestNewSite(t *testing.T) {
 	assert.NotNil(t, s.Restaurants)
 }
 
-func Test_Site_Clone(t *testing.T) {
-	assert.Nil(t, (*Site)(nil).Clone())
+// func Test_Site_Clone(t *testing.T) {
+// 	assert.Nil(t, (*Site)(nil).Clone())
 
-	s := Site{
-		Name:    "sName",
-		ID:      "sID",
-		Comment: "sComment",
-		URL:     "sURL",
-		GTag:    "sTAG",
-		Restaurants: RestaurantMap{
-			"rID": {
-				Name:     "rName",
-				ID:       "rID",
-				URL:      "rURL",
-				GTag:     "rTAG",
-				Address:  "rAddr",
-				MapURL:   "rMapUrl",
-				ParsedAt: time.Now(),
-				Dishes: Dishes{
-					{
-						Name:  "dName",
-						ID:    "dID",
-						Desc:  "dDesc",
-						Price: 1,
-						GTag:  "dTAG",
-					},
-				},
-			},
-		},
-	}
-	clone := s.Clone()
-	assert.Equal(t, &s, clone)
-}
+// 	s := Site{
+// 		Name:    "sName",
+// 		ID:      "sID",
+// 		Comment: "sComment",
+// 		URL:     "sURL",
+// 		GTag:    "sTAG",
+// 		Restaurants: RestaurantMap{
+// 			"rID": {
+// 				Name:     "rName",
+// 				ID:       "rID",
+// 				URL:      "rURL",
+// 				GTag:     "rTAG",
+// 				Address:  "rAddr",
+// 				MapURL:   "rMapUrl",
+// 				ParsedAt: time.Now(),
+// 				Dishes: Dishes{
+// 					{
+// 						Name:  "dName",
+// 						ID:    "dID",
+// 						Desc:  "dDesc",
+// 						Price: 1,
+// 						GTag:  "dTAG",
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}
+// 	clone := s.Clone()
+// 	assert.Equal(t, &s, clone)
+// }
 
 func TestSite_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 0, (*Site)(nil).NumRestaurants())

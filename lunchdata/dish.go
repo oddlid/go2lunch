@@ -10,20 +10,23 @@ type Dish struct {
 	Price int    `json:"price"`
 }
 
-func (d *Dish) Clone() *Dish {
-	if d == nil {
-		return nil
-	}
-	return &Dish{
-		ID:    d.ID,
-		Name:  d.Name,
-		Desc:  d.Desc,
-		GTag:  d.GTag,
-		Price: d.Price,
-	}
-}
+// func (d *Dish) Clone() *Dish {
+// 	if d == nil {
+// 		return nil
+// 	}
+// 	return &Dish{
+// 		ID:    d.ID,
+// 		Name:  d.Name,
+// 		Desc:  d.Desc,
+// 		GTag:  d.GTag,
+// 		Price: d.Price,
+// 	}
+// }
 
-func (d Dish) String() string {
+func (d *Dish) String() string {
+	if d == nil {
+		return ""
+	}
 	return d.Name + " " + d.Desc
 }
 

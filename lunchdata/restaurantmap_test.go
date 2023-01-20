@@ -2,37 +2,36 @@ package lunchdata
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_RestaurantMap_Clone(t *testing.T) {
-	assert.Empty(t, (RestaurantMap)(nil).Clone())
+// func Test_RestaurantMap_Clone(t *testing.T) {
+// 	assert.Empty(t, (RestaurantMap)(nil).Clone())
 
-	rm := RestaurantMap{
-		"rID": {
-			Name:     "rName",
-			ID:       "rID",
-			URL:      "rURL",
-			GTag:     "rTAG",
-			Address:  "rAddr",
-			MapURL:   "rMapUrl",
-			ParsedAt: time.Now(),
-			Dishes: Dishes{
-				{
-					Name:  "dName",
-					ID:    "dID",
-					Desc:  "dDesc",
-					Price: 1,
-					GTag:  "dTAG",
-				},
-			},
-		},
-	}
-	clone := rm.Clone()
-	assert.Equal(t, rm, clone)
-}
+// 	rm := RestaurantMap{
+// 		"rID": {
+// 			Name:     "rName",
+// 			ID:       "rID",
+// 			URL:      "rURL",
+// 			GTag:     "rTAG",
+// 			Address:  "rAddr",
+// 			MapURL:   "rMapUrl",
+// 			ParsedAt: time.Now(),
+// 			Dishes: Dishes{
+// 				{
+// 					Name:  "dName",
+// 					ID:    "dID",
+// 					Desc:  "dDesc",
+// 					Price: 1,
+// 					GTag:  "dTAG",
+// 				},
+// 			},
+// 		},
+// 	}
+// 	clone := rm.Clone()
+// 	assert.Equal(t, rm, clone)
+// }
 
 func Test_RestaurantMap_Len_whenNil(t *testing.T) {
 	var rm RestaurantMap

@@ -6,22 +6,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Dish_Clone(t *testing.T) {
-	assert.Nil(t, (*Dish)(nil).Clone())
+// func Test_Dish_Clone(t *testing.T) {
+// 	assert.Nil(t, (*Dish)(nil).Clone())
 
-	d := Dish{
-		ID:    "id",
-		Name:  "name",
-		Desc:  "desc",
-		GTag:  "tag",
-		Price: 1,
-	}
-	clone := d.Clone()
-	assert.NotNil(t, clone)
-	assert.Equal(t, &d, clone)
-}
+// 	d := Dish{
+// 		ID:    "id",
+// 		Name:  "name",
+// 		Desc:  "desc",
+// 		GTag:  "tag",
+// 		Price: 1,
+// 	}
+// 	clone := d.Clone()
+// 	assert.NotNil(t, clone)
+// 	assert.Equal(t, &d, clone)
+// }
 
 func Test_Dish_String(t *testing.T) {
+	assert.Empty(t, (*Dish)(nil).String())
 	d := Dish{
 		Name: "name",
 		Desc: "desc",
