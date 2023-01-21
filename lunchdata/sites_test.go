@@ -13,17 +13,10 @@ func TestSites_Len(t *testing.T) {
 	assert.Equal(t, 2, s.Len())
 }
 
-func TestSites_Empty(t *testing.T) {
-	assert.True(t, (Sites)(nil).Empty())
-
-	ss := Sites{{}}
-	assert.False(t, ss.Empty())
-}
-
 func TestSites_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 0, (Sites)(nil).NumRestaurants())
 
-	ss := Sites{{Restaurants: RestaurantMap{"1": {}}}}
+	ss := Sites{{Restaurants: Restaurants{{}}}}
 	assert.Equal(t, 1, ss.NumRestaurants())
 }
 
@@ -31,8 +24,8 @@ func TestSites_NumDishes(t *testing.T) {
 	assert.Equal(t, 0, (Sites)(nil).NumDishes())
 
 	ss := Sites{
-		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
-		{Restaurants: RestaurantMap{"2": {Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
 	}
 	assert.Equal(t, 4, ss.NumDishes())
 }
@@ -41,8 +34,8 @@ func TestSites_Total(t *testing.T) {
 	assert.Equal(t, 0, (Sites)(nil).Total())
 
 	ss := Sites{
-		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
-		{Restaurants: RestaurantMap{"2": {Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
 	}
 	assert.Equal(t, 8, ss.Total())
 }
@@ -51,8 +44,8 @@ func TestSites_setGTag(t *testing.T) {
 	assert.NotPanics(t, func() { (Sites)(nil).setGTag("") })
 
 	ss := Sites{
-		{Restaurants: RestaurantMap{"1": {Dishes: Dishes{{}, {}}}}},
-		{Restaurants: RestaurantMap{"2": {Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
+		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
 	}
 	tag := "sometag"
 	ss.setGTag(tag)
@@ -65,19 +58,4 @@ func TestSites_setGTag(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestSites_AsMap(t *testing.T) {
-	emptyMap := (Sites)(nil).AsMap()
-	assert.Empty(t, emptyMap)
-
-	ids := []string{"0", "1"}
-	ss := Sites{
-		{ID: ids[0], Restaurants: RestaurantMap{ids[0]: {Dishes: Dishes{{}, {}}}}},
-		{ID: ids[1], Restaurants: RestaurantMap{ids[1]: {Dishes: Dishes{{}, {}}}}},
-	}
-	sMap := ss.AsMap()
-	assert.Len(t, sMap, 2)
-	assert.Same(t, ss[0], sMap[ids[0]])
-	assert.Same(t, ss[1], sMap[ids[1]])
 }

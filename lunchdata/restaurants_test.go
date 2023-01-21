@@ -16,13 +16,6 @@ func TestRestaurants_Len(t *testing.T) {
 	assert.Equal(t, 2, rs.Len())
 }
 
-func TestRestaurants_Empty(t *testing.T) {
-	assert.True(t, (Restaurants)(nil).Empty())
-
-	rs := Restaurants{{}}
-	assert.False(t, rs.Empty())
-}
-
 func TestRestaurants_NumDishes(t *testing.T) {
 	rs := Restaurants{
 		{Dishes: Dishes{{}, {}}},
@@ -84,40 +77,6 @@ func Benchmark_Restaurant_GetFromMap(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		_ = rm["c"]
-	}
-}
-
-func Test_Restaurants_Delete(t *testing.T) {
-	rs := Restaurants{
-		{URL: "a"},
-		{URL: "b"},
-	}
-	f := func(url string) RestaurantMatch {
-		return func(r Restaurant) bool {
-			return r.URL == url
-		}
-	}
-	var nilRS Restaurants
-	assert.False(t, nilRS.Delete(f("")))
-	assert.False(t, rs.Delete(f("c")))
-	assert.Len(t, rs, 2)
-	assert.True(t, rs.Delete(f("a")))
-	assert.Len(t, rs, 1)
-	assert.True(t, rs.Delete(f("b")))
-	assert.Len(t, rs, 0)
-}
-
-func Benchmark_Restaurants_Delete(b *testing.B) {
-	const id = `blah`
-	f := func(r Restaurant) bool { return r.ID == id }
-	r := Restaurant{ID: id}
-	rs := Restaurants{
-		{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-		r,
-	}
-	for i := 0; i < b.N; i++ {
-		rs.Delete(f)
-		rs = append(rs, r)
 	}
 }
 

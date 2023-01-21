@@ -17,20 +17,20 @@ const (
 func getEmptyLunchList() *lunchdata.LunchList {
 	return &lunchdata.LunchList{
 		ID: idLunchList,
-		Countries: lunchdata.CountryMap{
-			idSE: {
+		Countries: lunchdata.Countries{
+			{
 				Name: nameSE,
 				ID:   idSE,
-				Cities: lunchdata.CityMap{
-					idGBG: {
+				Cities: lunchdata.Cities{
+					{
 						Name: nameGBG,
 						ID:   idGBG,
-						Sites: lunchdata.SiteMap{
-							idLH: {
+						Sites: lunchdata.Sites{
+							{
 								Name:        nameLH,
 								ID:          idLH,
 								Comment:     "Gruvan",
-								Restaurants: lunchdata.RestaurantMap{},
+								Restaurants: lunchdata.Restaurants{},
 								// Scraper: &lindholmen.Scraper{
 								// 	Logger: logger,
 								// 	URL:    lindholmen.DefaultScrapeURL,

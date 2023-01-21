@@ -180,7 +180,7 @@ func (s *publicServer) pathHandler(w http.ResponseWriter, r *http.Request, f tem
 		f(w, idLunchList, s.lunchData)
 		return
 	}
-	countryPtr := s.lunchData.Get(countryID)
+	countryPtr := s.lunchData.GetByID(countryID)
 	if countryPtr == nil {
 		http.NotFound(w, r)
 		return
@@ -190,7 +190,7 @@ func (s *publicServer) pathHandler(w http.ResponseWriter, r *http.Request, f tem
 		f(w, idCountry, countryPtr)
 		return
 	}
-	cityPtr := countryPtr.Get(cityID)
+	cityPtr := countryPtr.GetByID(cityID)
 	if cityPtr == nil {
 		http.NotFound(w, r)
 		return
@@ -200,7 +200,7 @@ func (s *publicServer) pathHandler(w http.ResponseWriter, r *http.Request, f tem
 		f(w, idCity, cityPtr)
 		return
 	}
-	sitePtr := cityPtr.Get(siteID)
+	sitePtr := cityPtr.GetByID(siteID)
 	if sitePtr == nil {
 		http.NotFound(w, r)
 		return
@@ -210,7 +210,7 @@ func (s *publicServer) pathHandler(w http.ResponseWriter, r *http.Request, f tem
 		f(w, idSite, sitePtr)
 		return
 	}
-	restaurantPtr := sitePtr.Get(restaurantID)
+	restaurantPtr := sitePtr.GetByID(restaurantID)
 	if restaurantPtr == nil {
 		http.NotFound(w, r)
 		return

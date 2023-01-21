@@ -16,13 +16,6 @@ func Test_Dishes_Len(t *testing.T) {
 	assert.Equal(t, 2, dishes.Len())
 }
 
-func Test_Dishes_Empty(t *testing.T) {
-	assert.True(t, (Dishes)(nil).Empty())
-
-	ds := Dishes{{}}
-	assert.False(t, ds.Empty())
-}
-
 func Test_Dishes_setGTag(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var ds Dishes

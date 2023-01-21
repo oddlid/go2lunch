@@ -2,31 +2,21 @@ package lunchdata
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/google/uuid"
 )
 
 // A giant list of everything
 type LunchList struct {
-	Countries CountryMap `json:"countries"`
-	ID        string     `json:"id"`
-	GTag      string     `json:"-"`
-	mu        sync.RWMutex
-}
-
-func NewLunchList() *LunchList {
-	return &LunchList{
-		Countries: make(CountryMap),
-	}
+	Countries Countries `json:"countries"`
+	ID        string    `json:"id"`
+	GTag      string    `json:"-"`
 }
 
 func (l *LunchList) NumCountries() int {
 	if l == nil {
 		return 0
 	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.Countries.Len()
 }
 
@@ -34,8 +24,6 @@ func (l *LunchList) NumCities() int {
 	if l == nil {
 		return 0
 	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.Countries.NumCities()
 }
 
@@ -43,8 +31,6 @@ func (l *LunchList) NumSites() int {
 	if l == nil {
 		return 0
 	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.Countries.NumSites()
 }
 
@@ -52,8 +38,6 @@ func (l *LunchList) NumRestaurants() int {
 	if l == nil {
 		return 0
 	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.Countries.NumRestaurants()
 }
 
@@ -61,52 +45,29 @@ func (l *LunchList) NumDishes() int {
 	if l == nil {
 		return 0
 	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.Countries.NumDishes()
 }
 
-func (l *LunchList) SetGTag(tag string) *LunchList {
+func (l *LunchList) SetGTag(tag string) {
 	if l == nil {
-		return nil
+		return
 	}
-	l.mu.Lock()
 	l.GTag = tag
 	l.Countries.setGTag(tag)
-	l.mu.Unlock()
-	return l
 }
 
-func (l *LunchList) Add(countries ...*Country) *LunchList {
+func (l *LunchList) Get(f CountryMatch) *Country {
 	if l == nil {
 		return nil
 	}
-	l.mu.Lock()
-	if l.Countries == nil {
-		l.Countries = make(CountryMap)
-	}
-	l.Countries.Add(countries...)
-	l.mu.Unlock()
-	return l
+	return l.Countries.Get(f)
 }
 
-func (l *LunchList) Delete(ids ...string) *LunchList {
+func (l *LunchList) GetByID(id string) *Country {
 	if l == nil {
 		return nil
 	}
-	l.mu.Lock()
-	l.Countries.Delete(ids...)
-	l.mu.Unlock()
-	return l
-}
-
-func (l *LunchList) Get(id string) *Country {
-	if l == nil {
-		return nil
-	}
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	return l.Countries.Get(id)
+	return l.Countries.GetByID(id)
 }
 
 func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
@@ -116,7 +77,7 @@ func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
 	if s == nil {
 		return errNilScraper
 	}
-	if site := l.Get(s.CountryID()).Get(s.CityID()).Get(s.SiteID()).SetScraper(s); site == nil {
+	if site := l.GetByID(s.CountryID()).GetByID(s.CityID()).GetByID(s.SiteID()).SetScraper(s); site == nil {
 		return fmt.Errorf(
 			"%w: Not found: Country: %q City: %q Site: %q",
 			errNilSite,
@@ -161,10 +122,8 @@ func (l *LunchList) SetIDIfEmpty() {
 	if l == nil {
 		return
 	}
-	l.mu.Lock()
 	if l.ID == "" {
 		l.ID = uuid.NewString()
 	}
 	l.Countries.setIDIfEmpty()
-	l.mu.Unlock()
 }

@@ -17,16 +17,6 @@ type Restaurant struct {
 	Dishes   Dishes    `json:"dishes"`
 }
 
-// func NewRestaurant(name, id, url string, parsed time.Time) Restaurant {
-// 	return Restaurant{
-// 		Name:     name,
-// 		ID:       id,
-// 		URL:      url,
-// 		ParsedAt: parsed,
-// 		Dishes:   make(Dishes, 0),
-// 	}
-// }
-
 func (r *Restaurant) NumDishes() int {
 	if r == nil {
 		return 0
@@ -34,14 +24,10 @@ func (r *Restaurant) NumDishes() int {
 	return r.Dishes.Len()
 }
 
-func (r *Restaurant) Empty() bool {
-	return r.NumDishes() == 0
-}
-
 // ParsedRFC3339 returns the date in RFC3339 format
 func (r *Restaurant) ParsedRFC3339() string {
 	if r == nil {
-		return time.Now().Format(time.RFC3339)
+		return time.Time{}.Format(time.RFC3339)
 	}
 	return r.ParsedAt.Format(time.RFC3339)
 }
@@ -54,34 +40,26 @@ func (r *Restaurant) ParsedHumanDate() string {
 	return r.ParsedAt.Format(dateFormat)
 }
 
-func (r *Restaurant) setGTag(tag string) *Restaurant {
+func (r *Restaurant) Get(f DishMatch) *Dish {
 	if r == nil {
 		return nil
+	}
+	return r.Dishes.Get(f)
+}
+
+func (r *Restaurant) GetByID(id string) *Dish {
+	if r == nil {
+		return nil
+	}
+	return r.Dishes.GetByID(id)
+}
+
+func (r *Restaurant) setGTag(tag string) {
+	if r == nil {
+		return
 	}
 	r.GTag = tag
 	r.Dishes.setGTag(tag)
-	return r
-}
-
-func (r *Restaurant) Add(dishes ...Dish) *Restaurant {
-	if r == nil {
-		return nil
-	}
-	if len(dishes) == 0 {
-		return r
-	}
-	for _, dish := range dishes {
-		r.Dishes = append(r.Dishes, dish)
-	}
-	return r
-}
-
-func (r *Restaurant) Set(ds Dishes) *Restaurant {
-	if r == nil {
-		return nil
-	}
-	r.Dishes = ds
-	return r
 }
 
 func (r *Restaurant) setIDIfEmpty() {

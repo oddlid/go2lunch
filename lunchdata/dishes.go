@@ -7,19 +7,15 @@ func (ds Dishes) Len() int {
 	return len(ds)
 }
 
-func (ds Dishes) Empty() bool {
-	return ds.Len() == 0
-}
-
-func (ds Dishes) get(f DishMatch) *Dish {
+func (ds Dishes) Get(f DishMatch) *Dish {
 	if idx := sliceIndex(ds, f); idx > -1 {
 		return &ds[idx]
 	}
 	return nil
 }
 
-func (ds Dishes) getByID(id string) *Dish {
-	return ds.get(func(d Dish) bool { return d.ID == id })
+func (ds Dishes) GetByID(id string) *Dish {
+	return ds.Get(func(d Dish) bool { return d.ID == id })
 }
 
 func (ds Dishes) setGTag(tag string) {

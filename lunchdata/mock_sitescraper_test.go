@@ -5,10 +5,10 @@ type mockSiteScraper struct {
 	countryID   string
 	cityID      string
 	siteID      string
-	restaurants RestaurantMap
+	restaurants Restaurants
 }
 
-func (s *mockSiteScraper) Scrape() (RestaurantMap, error) {
+func (s *mockSiteScraper) Scrape() (Restaurants, error) {
 	return s.restaurants, s.err
 }
 

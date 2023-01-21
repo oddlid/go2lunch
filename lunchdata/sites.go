@@ -1,47 +1,55 @@
 package lunchdata
 
-type Sites []*Site
+type Sites []Site
+type SiteMatch func(s Site) bool
 
 func (ss Sites) Len() int {
 	return len(ss)
 }
 
-func (ss Sites) Empty() bool {
-	return ss.Len() == 0
-}
-
 func (ss Sites) NumRestaurants() int {
 	total := 0
-	for _, site := range ss {
-		total += site.NumRestaurants()
+	for i := range ss {
+		total += ss[i].NumRestaurants()
 	}
 	return total
 }
 
 func (ss Sites) NumDishes() int {
 	total := 0
-	for _, s := range ss {
-		total += s.NumDishes()
+	for i := range ss {
+		total += ss[i].NumDishes()
 	}
 	return total
 }
 
 func (ss Sites) Total() int {
 	total := 0
-	for _, s := range ss {
-		total += s.Restaurants.Total()
+	for i := range ss {
+		total += ss[i].Restaurants.Total()
 	}
 	return total + ss.Len()
 }
 
+func (ss Sites) Get(f SiteMatch) *Site {
+	if idx := sliceIndex(ss, f); idx > -1 {
+		return &ss[idx]
+	}
+	return nil
+}
+
+func (ss Sites) GetByID(id string) *Site {
+	return ss.Get(func(s Site) bool { return s.ID == id })
+}
+
 func (ss Sites) setGTag(tag string) {
-	for _, s := range ss {
-		s.setGTag(tag)
+	for i := range ss {
+		ss[i].setGTag(tag)
 	}
 }
 
-func (ss Sites) AsMap() SiteMap {
-	sMap := make(SiteMap)
-	sMap.Add(ss...)
-	return sMap
+func (ss Sites) setIDIfEmpty() {
+	for i := range ss {
+		ss[i].setIDIfEmpty()
+	}
 }

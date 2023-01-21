@@ -7,10 +7,6 @@ func (rs Restaurants) Len() int {
 	return len(rs)
 }
 
-func (rs Restaurants) Empty() bool {
-	return rs.Len() == 0
-}
-
 func (rs Restaurants) NumDishes() int {
 	total := 0
 	for i := range rs {
@@ -30,16 +26,25 @@ func (rs Restaurants) Get(f RestaurantMatch) *Restaurant {
 	return nil
 }
 
-func (rs *Restaurants) Delete(f RestaurantMatch) bool {
-	if idx := sliceIndex(*rs, f); idx > -1 {
-		*rs = deleteByIndex(*rs, idx)
-		return true
+func (rs Restaurants) GetByID(id string) *Restaurant {
+	return rs.Get(func(r Restaurant) bool { return r.ID == id })
+}
+
+func (rs Restaurants) first() *Restaurant {
+	if len(rs) > 0 {
+		return &rs[0]
 	}
-	return false
+	return nil
 }
 
 func (rs Restaurants) setGTag(tag string) {
 	for i := range rs {
 		rs[i].setGTag(tag)
+	}
+}
+
+func (rs Restaurants) setIDIfEmpty() {
+	for i := range rs {
+		rs[i].setIDIfEmpty()
 	}
 }

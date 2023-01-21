@@ -8,7 +8,7 @@ any language, as long as they provide the proper JSON to the proper URL.
 */
 
 type SiteScraper interface {
-	Scrape() (RestaurantMap, error)
+	Scrape() (Restaurants, error)
 	CountryID() string
 	CityID() string
 	SiteID() string

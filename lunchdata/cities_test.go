@@ -13,19 +13,10 @@ func TestCities_Len(t *testing.T) {
 	assert.Equal(t, 2, cs.Len())
 }
 
-func TestCities_Empty(t *testing.T) {
-	assert.True(t, (Cities)(nil).Empty())
-
-	cs := Cities{{}}
-	assert.False(t, cs.Empty())
-}
-
 func TestCities_NumSites(t *testing.T) {
 	assert.Zero(t, (Cities)(nil).NumSites())
 
-	cs := Cities{
-		{Sites: SiteMap{"1": {}}},
-	}
+	cs := Cities{{Sites: Sites{{}}}}
 	assert.Equal(t, 1, cs.NumSites())
 }
 
@@ -34,12 +25,9 @@ func TestCities_NumRestaurants(t *testing.T) {
 
 	cs := Cities{
 		{
-			Sites: SiteMap{
-				"1": {
-					Restaurants: RestaurantMap{
-						"1": {},
-						"2": {},
-					},
+			Sites: Sites{
+				{
+					Restaurants: Restaurants{{}, {}},
 				},
 			},
 		},
@@ -52,13 +40,13 @@ func TestCities_NumDishes(t *testing.T) {
 
 	cs := Cities{
 		{
-			Sites: SiteMap{
-				"1": {
-					Restaurants: RestaurantMap{
-						"1": {
+			Sites: Sites{
+				{
+					Restaurants: Restaurants{
+						{
 							Dishes: Dishes{{}, {}},
 						},
-						"2": {
+						{
 							Dishes: Dishes{{}},
 						},
 					},
@@ -74,13 +62,13 @@ func TestCities_Total(t *testing.T) {
 
 	cs := Cities{
 		{
-			Sites: SiteMap{
-				"1": {
-					Restaurants: RestaurantMap{
-						"1": {
+			Sites: Sites{
+				{
+					Restaurants: Restaurants{
+						{
 							Dishes: Dishes{{}, {}},
 						},
-						"2": {
+						{
 							Dishes: Dishes{{}},
 						},
 					},
@@ -96,13 +84,13 @@ func TestCities_setGTag(t *testing.T) {
 
 	cs := Cities{
 		{
-			Sites: SiteMap{
-				"1": {
-					Restaurants: RestaurantMap{
-						"1": {
+			Sites: Sites{
+				{
+					Restaurants: Restaurants{
+						{
 							Dishes: Dishes{{}, {}},
 						},
-						"2": {
+						{
 							Dishes: Dishes{{}},
 						},
 					},
@@ -124,29 +112,4 @@ func TestCities_setGTag(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestCities_AsMap(t *testing.T) {
-	assert.Empty(t, (Cities)(nil).AsMap())
-
-	cs := Cities{
-		{
-			ID: "1",
-			Sites: SiteMap{
-				"1": {
-					Restaurants: RestaurantMap{
-						"1": {
-							Dishes: Dishes{{}, {}},
-						},
-						"2": {
-							Dishes: Dishes{{}},
-						},
-					},
-				},
-			},
-		},
-	}
-	cMap := cs.AsMap()
-	assert.NotEmpty(t, cMap)
-	assert.Same(t, cs[0], cMap["1"])
 }
