@@ -7,6 +7,9 @@ import (
 )
 
 func Test_sliceIndex(t *testing.T) {
+	idx := sliceIndex([]int(nil), func(n int) bool { return n == 0 })
+	assert.Equal(t, -1, idx)
+
 	assert.Equal(
 		t,
 		1,

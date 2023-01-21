@@ -50,7 +50,6 @@ const (
 	keyMapURL           = `mapURL`
 	keyAddr             = `addr`
 	keyLink             = `link`
-	// userAgent           = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`
 )
 
 type Scraper struct {
@@ -88,7 +87,7 @@ func (Scraper) SiteID() string {
 	return siteID
 }
 
-func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
+func (lhs Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
 	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
 	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
@@ -104,7 +103,8 @@ func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 	addrCollector := menuCollector.Clone()
 	extensions.RandomUserAgent(addrCollector)
 	addrCollector.Async = true
-	if err := addrCollector.Limit(&colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32}); err != nil {
+	limitRule := colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32}
+	if err := addrCollector.Limit(&limitRule); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 				Msg("No restaurant entry for URL")
 			return
 		}
-		e.ForEachWithBreak("p > a", func(i int, h *colly.HTMLElement) bool {
+		e.ForEachWithBreak("p > a", func(_ int, h *colly.HTMLElement) bool {
 			link := h.Attr("href")
 			if strings.Contains(link, "maps.google.com") {
 				mapURL, err := url.Parse(link)
@@ -156,7 +156,7 @@ func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 	})
 
 	menuCollector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
-		e.ForEach(selectorTitle, func(i int, h *colly.HTMLElement) {
+		e.ForEach(selectorTitle, func(_ int, h *colly.HTMLElement) {
 			name := strings.TrimSpace(h.ChildText("a"))
 			// we only want the last part of the link, since the links on this page are not correct,
 			// so we need to reconstruct them ourselves later
@@ -169,12 +169,11 @@ func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 				Str(keyRestaurant, name).
 				Msg("Adding restaurant")
 
-			linkName := getRestaurantNameLinkName(name)
 			restaurant := &lunchdata.Restaurant{
-				Name:   name,
-				ID:     linkName,
-				URL:    linkName,
-				Parsed: time.Now(),
+				Name:     name,
+				ID:       getRestaurantID(name),
+				ParsedAt: time.Now(),
+				URL:      "https://www.lindholmen.se/sv/" + link, // fill in the correct prefix for the link
 			}
 
 			h.DOM.NextFilteredUntil(selectorDishRow, selectorTitle).Each(func(_ int, s *goquery.Selection) {
@@ -198,7 +197,7 @@ func (lhs *Scraper) Scrape() (lunchdata.RestaurantMap, error) {
 					price = -1
 				}
 				restaurant.Add(
-					&lunchdata.Dish{
+					lunchdata.Dish{
 						ID:    uuid.NewString(),
 						Name:  dishName,
 						Desc:  dishDesc,

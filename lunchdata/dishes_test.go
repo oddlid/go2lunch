@@ -23,20 +23,6 @@ func Test_Dishes_Empty(t *testing.T) {
 	assert.False(t, ds.Empty())
 }
 
-// func Test_Dishes_Clone(t *testing.T) {
-// 	d := Dish{
-// 		ID:    "id",
-// 		Name:  "name",
-// 		Desc:  "desc",
-// 		GTag:  "tag",
-// 		Price: 1,
-// 	}
-// 	ds := Dishes{&d}
-// 	clone := ds.Clone()
-// 	assert.NotNil(t, clone)
-// 	assert.Equal(t, ds, clone)
-// }
-
 func Test_Dishes_setGTag(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var ds Dishes

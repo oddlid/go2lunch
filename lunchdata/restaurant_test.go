@@ -7,21 +7,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewRestaurant(t *testing.T) {
-	name := "Bistrot"
-	id := "id"
-	url := "url"
-	parsed := time.Now()
+// func Test_NewRestaurant(t *testing.T) {
+// 	name := "Bistrot"
+// 	id := "id"
+// 	url := "url"
+// 	parsed := time.Now()
 
-	r := NewRestaurant(name, id, url, parsed)
-	assert.NotNil(t, r)
-	assert.IsType(t, (*Restaurant)(nil), r)
-	assert.Equal(t, name, r.Name)
-	assert.Equal(t, id, r.ID)
-	assert.Equal(t, url, r.URL)
-	assert.NotNil(t, r.Dishes)
-	assert.Len(t, r.Dishes, 0)
-}
+// 	r := NewRestaurant(name, id, url, parsed)
+// 	assert.NotNil(t, r)
+// 	assert.IsType(t, (*Restaurant)(nil), r)
+// 	assert.Equal(t, name, r.Name)
+// 	assert.Equal(t, id, r.ID)
+// 	assert.Equal(t, url, r.URL)
+// 	assert.NotNil(t, r.Dishes)
+// 	assert.Len(t, r.Dishes, 0)
+// }
 
 // func Test_Restaurant_Clone(t *testing.T) {
 // 	assert.Nil(t, (*Restaurant)(nil).Clone())
@@ -98,9 +98,6 @@ func Test_Restaurant_Add(t *testing.T) {
 	ret = r.Add(ds...)
 	assert.Same(t, &r, ret)
 	assert.NotNil(t, r.Dishes)
-	assert.Equal(t, len(ds), len(r.Dishes))
-	ret = r.Add(nil, nil, nil)
-	assert.Same(t, &r, ret)
 	assert.Equal(t, len(ds), len(r.Dishes))
 }
 

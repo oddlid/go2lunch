@@ -1,6 +1,7 @@
 package lunchdata
 
-type Dishes []*Dish
+type Dishes []Dish
+type DishMatch func(d Dish) bool
 
 func (ds Dishes) Len() int {
 	return len(ds)
@@ -10,27 +11,25 @@ func (ds Dishes) Empty() bool {
 	return ds.Len() == 0
 }
 
-// func (ds Dishes) Clone() Dishes {
-// 	ret := make(Dishes, 0, ds.Len())
-// 	for _, d := range ds {
-// 		ret = append(ret, d.Clone())
-// 	}
-// 	return ret
-// }
+func (ds Dishes) get(f DishMatch) *Dish {
+	if idx := sliceIndex(ds, f); idx > -1 {
+		return &ds[idx]
+	}
+	return nil
+}
+
+func (ds Dishes) getByID(id string) *Dish {
+	return ds.get(func(d Dish) bool { return d.ID == id })
+}
 
 func (ds Dishes) setGTag(tag string) {
-	if ds == nil {
-		return
-	}
-	for _, d := range ds {
-		if d != nil {
-			d.GTag = tag
-		}
+	for i := range ds {
+		ds[i].setGTag(tag)
 	}
 }
 
 func (ds Dishes) setIDIfEmpty() {
-	for _, d := range ds {
-		d.setIDIfEmpty()
+	for i := range ds {
+		ds[i].setIDIfEmpty()
 	}
 }
