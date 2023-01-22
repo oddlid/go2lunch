@@ -5,10 +5,10 @@ import (
 )
 
 type Country struct {
-	Cities Cities `json:"cities"`
 	Name   string `json:"name"`
 	ID     string `json:"id"` // preferably international country code, like "se", "no", and so on
 	GTag   string `json:"-"`
+	Cities Cities `json:"cities"`
 }
 
 func (c *Country) NumCities() int {

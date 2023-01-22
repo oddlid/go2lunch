@@ -7,13 +7,13 @@ import (
 )
 
 type Site struct {
-	Restaurants Restaurants `json:"restaurants"`
 	Scraper     SiteScraper `json:"-"`
 	Name        string      `json:"name"`
-	ID          string      `json:"id"` // something unique within the parent city
+	ID          string      `json:"id"`
 	Comment     string      `json:"comment,omitempty"`
 	URL         string      `json:"url,omitempty"`
 	GTag        string      `json:"-"`
+	Restaurants Restaurants `json:"restaurants"`
 }
 
 var (

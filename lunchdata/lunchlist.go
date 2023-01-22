@@ -8,8 +8,8 @@ import (
 
 // A giant list of everything
 type LunchList struct {
-	Countries Countries `json:"countries"`
 	ID        string    `json:"id"`
+	Countries Countries `json:"countries"`
 }
 
 func (l *LunchList) NumCountries() int {

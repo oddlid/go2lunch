@@ -5,10 +5,10 @@ import (
 )
 
 type City struct {
-	Sites Sites  `json:"sites"`
 	Name  string `json:"name"`
 	ID    string `json:"id"` // e.g. osl, gbg or something like the airlines use
 	GTag  string `json:"-"`
+	Sites Sites  `json:"sites"`
 }
 
 func (c *City) NumSites() int {
