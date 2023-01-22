@@ -136,6 +136,7 @@ func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 	}
 	err = ll.RegisterSiteScraper(&scraper)
 	assert.NoError(t, err)
+	assert.NotNil(t, ll.Countries[0].Cities[0].Sites[0].Scraper)
 }
 
 func Test_LunchList_RunSiteScrapers(t *testing.T) {
