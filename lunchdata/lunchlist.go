@@ -10,7 +10,6 @@ import (
 type LunchList struct {
 	Countries Countries `json:"countries"`
 	ID        string    `json:"id"`
-	GTag      string    `json:"-"`
 }
 
 func (l *LunchList) NumCountries() int {
