@@ -48,14 +48,6 @@ func (l *LunchList) NumDishes() int {
 	return l.Countries.NumDishes()
 }
 
-func (l *LunchList) SetGTag(tag string) {
-	if l == nil {
-		return
-	}
-	l.GTag = tag
-	l.Countries.setGTag(tag)
-}
-
 func (l *LunchList) Get(f CountryMatch) *Country {
 	if l == nil {
 		return nil

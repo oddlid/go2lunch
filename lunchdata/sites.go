@@ -42,12 +42,6 @@ func (ss Sites) GetByID(id string) *Site {
 	return ss.Get(func(s Site) bool { return s.ID == id })
 }
 
-func (ss Sites) setGTag(tag string) {
-	for i := range ss {
-		ss[i].setGTag(tag)
-	}
-}
-
 func (ss Sites) setIDIfEmpty() {
 	for i := range ss {
 		ss[i].setIDIfEmpty()

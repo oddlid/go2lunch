@@ -53,14 +53,6 @@ func (c *Country) GetByID(id string) *City {
 	return c.Cities.GetByID(id)
 }
 
-func (c *Country) setGTag(tag string) {
-	if c == nil {
-		return
-	}
-	c.GTag = tag
-	c.Cities.setGTag(tag)
-}
-
 // func (c *Country) RunSiteScrapers(wg *sync.WaitGroup, errChan chan<- error) {
 // 	if c == nil {
 // 		return

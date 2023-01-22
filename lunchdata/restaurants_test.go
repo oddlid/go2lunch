@@ -79,18 +79,3 @@ func Benchmark_Restaurant_GetFromMap(b *testing.B) {
 		_ = rm["c"]
 	}
 }
-
-func TestRestaurants_setGTag(t *testing.T) {
-	gtag := "sometag"
-	rs := Restaurants{
-		{Dishes: Dishes{{}, {}}},
-		{Dishes: Dishes{{}, {}}},
-	}
-	rs.setGTag(gtag)
-	for i := range rs {
-		assert.Equal(t, gtag, rs[i].GTag)
-		for j := range rs[i].Dishes {
-			assert.Equal(t, gtag, rs[i].Dishes[j].GTag)
-		}
-	}
-}

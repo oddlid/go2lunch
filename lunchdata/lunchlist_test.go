@@ -85,50 +85,6 @@ func Test_LunchList_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, l.NumDishes())
 }
 
-func Test_LunchList_SetGTag(t *testing.T) {
-	assert.NotPanics(t,
-		func() {
-			(*LunchList)(nil).SetGTag("")
-		},
-	)
-	l := LunchList{
-		Countries: Countries{
-			{
-				Cities: Cities{
-					{
-						Sites: Sites{
-							{
-								Restaurants: Restaurants{
-									{
-										Dishes: Dishes{{}},
-									}},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	tag := "sometag"
-	l.SetGTag(tag)
-	assert.Equal(t, tag, l.GTag)
-	for _, country := range l.Countries {
-		assert.Equal(t, tag, country.GTag)
-		for _, city := range country.Cities {
-			assert.Equal(t, tag, city.GTag)
-			for _, s := range city.Sites {
-				assert.Equal(t, tag, s.GTag)
-				for _, r := range s.Restaurants {
-					assert.Equal(t, tag, r.GTag)
-					for _, d := range r.Dishes {
-						assert.Equal(t, tag, d.GTag)
-					}
-				}
-			}
-		}
-	}
-}
-
 // func Test_LunchList_Get(t *testing.T) {
 // 	assert.Nil(t, (*LunchList)(nil).Get(""))
 // 	l := LunchList{

@@ -32,27 +32,6 @@ func Test_Restaurant_ParsedHumanDate(t *testing.T) {
 	assert.Equal(t, now.Format(dateFormat), r.ParsedHumanDate())
 }
 
-func Test_Restaurant_setGTag(t *testing.T) {
-	assert.NotPanics(t,
-		func() {
-			(*Restaurant)(nil).setGTag("")
-		},
-	)
-
-	gtag := "sometag"
-	r := Restaurant{
-		Dishes: Dishes{
-			{Name: "Middag"},
-			{Name: "Lunch"},
-		},
-	}
-	r.setGTag(gtag)
-	for _, dish := range r.Dishes {
-		assert.Equal(t, gtag, dish.GTag)
-	}
-	assert.Equal(t, gtag, r.GTag)
-}
-
 func Test_Restaurant_setIDIfEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var r *Restaurant

@@ -37,12 +37,6 @@ func (rs Restaurants) first() *Restaurant {
 	return nil
 }
 
-func (rs Restaurants) setGTag(tag string) {
-	for i := range rs {
-		rs[i].setGTag(tag)
-	}
-}
-
 func (rs Restaurants) setIDIfEmpty() {
 	for i := range rs {
 		rs[i].setIDIfEmpty()

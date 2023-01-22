@@ -27,27 +27,6 @@ func TestSite_NumRestaurants(t *testing.T) {
 // 	assert.Same(t, &r, s.getRndRestaurant())
 // }
 
-func TestSite_setGTag(t *testing.T) {
-	assert.Nil(t, (*Site)(nil).setGTag(""))
-
-	gtag := "sometag"
-	s := Site{
-		Restaurants: Restaurants{
-			{Dishes: Dishes{{}, {}}},
-			{Dishes: Dishes{{}, {}}},
-		},
-	}
-	ret := s.setGTag(gtag)
-	assert.Same(t, &s, ret)
-	assert.Equal(t, gtag, ret.GTag)
-	for _, r := range s.Restaurants {
-		assert.Equal(t, gtag, r.GTag)
-		for _, d := range r.Dishes {
-			assert.Equal(t, gtag, d.GTag)
-		}
-	}
-}
-
 // func TestSite_ParsedHumanDate(t *testing.T) {
 // 	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
 

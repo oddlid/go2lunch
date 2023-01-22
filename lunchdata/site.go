@@ -80,15 +80,6 @@ func (s *Site) RunScraper() error {
 	return nil
 }
 
-func (s *Site) setGTag(tag string) *Site {
-	if s == nil {
-		return nil
-	}
-	s.GTag = tag
-	s.Restaurants.setGTag(tag)
-	return s
-}
-
 func (s *Site) setIDIfEmpty() {
 	if s == nil {
 		return

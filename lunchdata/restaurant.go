@@ -54,14 +54,6 @@ func (r *Restaurant) GetByID(id string) *Dish {
 	return r.Dishes.GetByID(id)
 }
 
-func (r *Restaurant) setGTag(tag string) {
-	if r == nil {
-		return
-	}
-	r.GTag = tag
-	r.Dishes.setGTag(tag)
-}
-
 func (r *Restaurant) setIDIfEmpty() {
 	if r == nil {
 		return

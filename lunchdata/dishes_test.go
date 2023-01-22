@@ -16,19 +16,6 @@ func Test_Dishes_Len(t *testing.T) {
 	assert.Equal(t, 2, dishes.Len())
 }
 
-func Test_Dishes_setGTag(t *testing.T) {
-	assert.NotPanics(t, func() {
-		var ds Dishes
-		ds.setGTag("")
-	})
-	ds := Dishes{{}, {}}
-	tag := "sometag"
-	ds.setGTag(tag)
-	for _, d := range ds {
-		assert.Equal(t, tag, d.GTag)
-	}
-}
-
 func Test_Dishes_setIDIFEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var nilDishes Dishes

@@ -18,12 +18,6 @@ func (ds Dishes) GetByID(id string) *Dish {
 	return ds.Get(func(d Dish) bool { return d.ID == id })
 }
 
-func (ds Dishes) setGTag(tag string) {
-	for i := range ds {
-		ds[i].setGTag(tag)
-	}
-}
-
 func (ds Dishes) setIDIfEmpty() {
 	for i := range ds {
 		ds[i].setIDIfEmpty()

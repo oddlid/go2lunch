@@ -50,41 +50,6 @@ func Test_City_NumDishes(t *testing.T) {
 	assert.Equal(t, 4, c.NumDishes())
 }
 
-func Test_City_setGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (*City)(nil).setGTag("") })
-
-	c := City{
-		Sites: Sites{
-			{
-				Restaurants: Restaurants{
-					{
-						Dishes: Dishes{{}, {}},
-					},
-				},
-			},
-			{
-				Restaurants: Restaurants{
-					{
-						Dishes: Dishes{{}, {}},
-					},
-				},
-			},
-		},
-	}
-	tag := "sometag"
-	c.setGTag(tag)
-	assert.Equal(t, tag, c.GTag)
-	for _, s := range c.Sites {
-		assert.Equal(t, tag, s.GTag)
-		for _, r := range s.Restaurants {
-			assert.Equal(t, tag, r.GTag)
-			for _, d := range r.Dishes {
-				assert.Equal(t, tag, d.GTag)
-			}
-		}
-	}
-}
-
 func Test_City_setIDIfEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		(*City)(nil).setIDIfEmpty()

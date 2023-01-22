@@ -39,23 +39,3 @@ func TestSites_Total(t *testing.T) {
 	}
 	assert.Equal(t, 8, ss.Total())
 }
-
-func TestSites_setGTag(t *testing.T) {
-	assert.NotPanics(t, func() { (Sites)(nil).setGTag("") })
-
-	ss := Sites{
-		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
-		{Restaurants: Restaurants{{Dishes: Dishes{{}, {}}}}},
-	}
-	tag := "sometag"
-	ss.setGTag(tag)
-	for _, s := range ss {
-		assert.Equal(t, tag, s.GTag)
-		for _, r := range s.Restaurants {
-			assert.Equal(t, tag, r.GTag)
-			for _, d := range r.Dishes {
-				assert.Equal(t, tag, d.GTag)
-			}
-		}
-	}
-}
