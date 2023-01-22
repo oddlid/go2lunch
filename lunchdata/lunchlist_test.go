@@ -153,3 +153,36 @@ func Test_LunchList_SetIDIfEmpty(t *testing.T) {
 	ll.SetIDIfEmpty()
 	assert.NotEmpty(t, ll.ID)
 }
+
+func Benchmark_LunchList_GetByID(b *testing.B) {
+	const id = `id`
+	ll := LunchList{
+		Countries: Countries{
+			{
+				ID: id,
+				Cities: Cities{
+					{
+						ID: id,
+						Sites: Sites{{
+							ID: id,
+							Restaurants: Restaurants{
+								{
+									ID: id,
+									Dishes: Dishes{
+										{
+											ID: id,
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		assert.NotNil(b, ll.GetByID(id).GetByID(id).GetByID(id).GetByID(id).GetByID(id))
+	}
+}

@@ -31,6 +31,7 @@ import (
 
 const (
 	DefaultScrapeURL    = `https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe`
+	defaultDomainGlob   = `*.lindholmen.se`
 	countryID           = `se`
 	cityID              = `gbg`
 	siteID              = `lindholmen`
@@ -50,6 +51,8 @@ const (
 	keyMapURL           = `mapURL`
 	keyAddr             = `addr`
 	keyLink             = `link`
+	mapLinkPattern      = `maps.google.com`
+	urlPrefix           = `https://www.lindholmen.se/sv/`
 )
 
 var (
@@ -59,8 +62,9 @@ var (
 )
 
 type Scraper struct {
-	URL    string
-	Logger zerolog.Logger
+	URL        string
+	DomainGlob string
+	Logger     zerolog.Logger
 }
 
 // Encode ID field. Might find a better strategy for this later
@@ -93,7 +97,7 @@ func (Scraper) SiteID() string {
 	return siteID
 }
 
-func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
+func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
 	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
 	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
@@ -101,16 +105,19 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	if lhs.URL == "" {
 		lhs.URL = DefaultScrapeURL
 	}
+	if lhs.DomainGlob == "" {
+		lhs.DomainGlob = defaultDomainGlob
+	}
 
 	restaurants := lunchdata.Restaurants{}
 	menuCollector := colly.NewCollector()
+	menuCollector.Init()
 	extensions.RandomUserAgent(menuCollector)
 
 	addrCollector := menuCollector.Clone()
 	extensions.RandomUserAgent(addrCollector)
 	addrCollector.Async = true
-	limitRule := colly.LimitRule{DomainGlob: "*.lindholmen.se", Parallelism: 32}
-	if err := addrCollector.Limit(&limitRule); err != nil {
+	if err := addrCollector.Limit(&colly.LimitRule{DomainGlob: lhs.DomainGlob, Parallelism: 32}); err != nil {
 		return nil, err
 	}
 
@@ -120,13 +127,6 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 			Str(keyURL, reqURL).
 			Msg("Looking for map link...")
 
-		// restaurant, found := restaurantMap[e.Request.URL.String()]
-		// if !found {
-		// 	lhs.Logger.Error().
-		// 		Str(keyURL, e.Request.URL.String()).
-		// 		Msg("No restaurant entry for URL")
-		// 	return
-		// }
 		restaurant := restaurants.Get(byURL(reqURL))
 		if restaurant == nil {
 			lhs.Logger.Error().
@@ -137,7 +137,7 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 
 		e.ForEachWithBreak("p > a", func(_ int, h *colly.HTMLElement) bool {
 			link := h.Attr("href")
-			if strings.Contains(link, "maps.google.com") {
+			if strings.Contains(link, mapLinkPattern) {
 				mapURL, err := url.Parse(link)
 				if err != nil {
 					lhs.Logger.Error().Err(err).Send()
@@ -173,12 +173,6 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	menuCollector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
 		e.ForEach(selectorTitle, func(_ int, h *colly.HTMLElement) {
 			name := strings.TrimSpace(h.ChildText("a"))
-			// we only want the last part of the link, since the links on this page are not correct,
-			// so we need to reconstruct them ourselves later
-			link := strings.Replace(
-				h.ChildAttr("a", "href"),
-				"/restauranger/", "", 1,
-			)
 
 			lhs.Logger.Trace().
 				Str(keyRestaurant, name).
@@ -188,7 +182,7 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 				Name:     name,
 				ID:       getRestaurantID(name),
 				ParsedAt: time.Now(),
-				URL:      "https://www.lindholmen.se/sv/" + link, // fill in the correct prefix for the link
+				URL:      urlPrefix + strings.Replace(h.ChildAttr("a", "href"), "/restauranger/", "", 1), // fill in the correct prefix for the link
 			}
 
 			h.DOM.NextFilteredUntil(selectorDishRow, selectorTitle).Each(func(_ int, s *goquery.Selection) {
@@ -211,14 +205,6 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 						Msg("Failed to parse dish price")
 					price = -1
 				}
-				// restaurant.Add(
-				// 	lunchdata.Dish{
-				// 		ID:    uuid.NewString(),
-				// 		Name:  dishName,
-				// 		Desc:  dishDesc,
-				// 		Price: price,
-				// 	},
-				// )
 				restaurant.Dishes = append(
 					restaurant.Dishes,
 					lunchdata.Dish{
@@ -233,7 +219,6 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 					Str(keyDish, dishName).
 					Send()
 			})
-			// restaurantMap[restaurant.URL] = restaurant
 
 			lhs.Logger.Trace().Str(keyURL, restaurant.URL).Msg("Starting scrape for maps link")
 			if err := addrCollector.Visit(restaurant.URL); err != nil {
