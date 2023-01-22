@@ -3,6 +3,7 @@ package lunchdata
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,43 +17,15 @@ func TestSite_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 2, s.NumRestaurants())
 }
 
-// func TestSite_getRndRestaurant(t *testing.T) {
-// 	assert.Nil(t, (*Site)(nil).getRndRestaurant())
+func Test_Site_ParsedHumanDate(t *testing.T) {
+	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
 
-// 	// map access order is random, so we test with only 1 item here to ensure we can assert correctly
-// 	r := Restaurant{}
-// 	s := Site{}
-// 	assert.Nil(t, s.getRndRestaurant())
-// 	s.Restaurants = RestaurantMap{"1": &r}
-// 	assert.Same(t, &r, s.getRndRestaurant())
-// }
+	s := Site{}
+	assert.Equal(t, dateFormat, s.ParsedHumanDate())
 
-// func TestSite_ParsedHumanDate(t *testing.T) {
-// 	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
-
-// 	now := time.Now()
-// 	r := Restaurant{ParsedAt: now}
-// 	s := Site{}
-// 	assert.Equal(t, dateFormat, s.ParsedHumanDate())
-// 	s.Restaurants = RestaurantMap{"1": &r}
-// 	assert.Equal(t, r.ParsedHumanDate(), s.ParsedHumanDate())
-// }
-
-// func TestSite_Get(t *testing.T) {
-// 	id := "id"
-// 	r := (*Site)(nil).Get(id)
-// 	assert.Nil(t, r)
-
-// 	s := Site{}
-// 	r = s.Get(id)
-// 	assert.Nil(t, r)
-
-// 	restaurant := Restaurant{}
-// 	s.Restaurants = RestaurantMap{id: &restaurant}
-// 	r = s.Get(id)
-// 	assert.NotNil(t, r)
-// 	assert.Same(t, &restaurant, r)
-// }
+	s.Restaurants = Restaurants{{}}
+	assert.Equal(t, time.Time{}.Format(dateFormat), s.ParsedHumanDate())
+}
 
 func TestSite_NumDishes(t *testing.T) {
 	assert.Equal(t, 0, (*Site)(nil).NumDishes())
@@ -64,6 +37,22 @@ func TestSite_NumDishes(t *testing.T) {
 		},
 	}
 	assert.Equal(t, 4, s.NumDishes())
+}
+
+func Test_Site_Get(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).Get(nil))
+
+	const id = `blah`
+	s := Site{Restaurants: Restaurants{{ID: id}}}
+	assert.Same(t, &s.Restaurants[0], s.Get(func(r Restaurant) bool { return r.ID == id }))
+}
+
+func Test_Site_GetByID(t *testing.T) {
+	assert.Nil(t, (*Site)(nil).GetByID(""))
+
+	const id = `blah`
+	s := Site{Restaurants: Restaurants{{ID: id}}}
+	assert.Same(t, &s.Restaurants[0], s.GetByID(id))
 }
 
 func TestSite_SetScraper(t *testing.T) {
@@ -86,20 +75,22 @@ func TestSite_RunScraper(t *testing.T) {
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, errNilSite)
 
+	mockScraper := mockSiteScraper{
+		err: errors.New("scrape error"),
+	}
 	s := Site{}
 	err = s.RunScraper()
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, errNilScraper)
 
-	scrapeErr := errors.New("scrape error")
-	s.Scraper = &mockSiteScraper{err: scrapeErr}
+	s.Scraper = &mockScraper
 	err = s.RunScraper()
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, scrapeErr)
+	assert.ErrorIs(t, err, mockScraper.err)
 	assert.Nil(t, s.Restaurants)
 
-	rm := Restaurants{{}, {}}
-	s.Scraper = &mockSiteScraper{restaurants: rm}
+	mockScraper.restaurants = Restaurants{{}, {}}
+	mockScraper.err = nil
 	err = s.RunScraper()
 	assert.NoError(t, err)
 	assert.NotNil(t, s.Restaurants)

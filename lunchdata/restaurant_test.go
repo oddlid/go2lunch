@@ -32,6 +32,21 @@ func Test_Restaurant_ParsedHumanDate(t *testing.T) {
 	assert.Equal(t, now.Format(dateFormat), r.ParsedHumanDate())
 }
 
+func Test_Restaurant_Get(t *testing.T) {
+	assert.Nil(t, (*Restaurant)(nil).Get(nil))
+	const id = `blah`
+	r := Restaurant{Dishes: Dishes{{ID: id}}}
+	assert.Same(t, &r.Dishes[0], r.Get(func(d Dish) bool { return d.ID == id }))
+}
+
+func Test_Restaurant_GetByID(t *testing.T) {
+	assert.Nil(t, (*Restaurant)(nil).GetByID(""))
+
+	const id = `blah`
+	r := Restaurant{Dishes: Dishes{{ID: id}}}
+	assert.Same(t, &r.Dishes[0], r.GetByID(id))
+}
+
 func Test_Restaurant_setIDIfEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var r *Restaurant

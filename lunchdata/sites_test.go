@@ -39,3 +39,7 @@ func TestSites_Total(t *testing.T) {
 	}
 	assert.Equal(t, 8, ss.Total())
 }
+
+func Test_Sites_Get(t *testing.T) {
+	assert.Nil(t, (Sites(nil).Get(nil)))
+}

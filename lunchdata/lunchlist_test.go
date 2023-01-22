@@ -85,15 +85,20 @@ func Test_LunchList_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, l.NumDishes())
 }
 
-// func Test_LunchList_Get(t *testing.T) {
-// 	assert.Nil(t, (*LunchList)(nil).Get(""))
-// 	l := LunchList{
-// 		Countries: Countries{{}, {}},
-// 	}
-// 	ret := l.Get("1")
-// 	assert.Same(t, l.Countries["1"], ret)
-// 	assert.Nil(t, l.Get("3"))
-// }
+func Test_LunchList_Get(t *testing.T) {
+	assert.Nil(t, (*LunchList)(nil).Get(nil))
+
+	const id = `blah`
+	ll := LunchList{Countries: Countries{{ID: id}}}
+	assert.Same(t, &ll.Countries[0], ll.Get(func(c Country) bool { return c.ID == id }))
+}
+
+func Test_LunchList_GetByID(t *testing.T) {
+	assert.Nil(t, (*LunchList)(nil).GetByID(""))
+	const id = `blah`
+	ll := LunchList{Countries: Countries{{ID: id}}}
+	assert.Same(t, &ll.Countries[0], ll.GetByID(id))
+}
 
 func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 	assert.Nil(t, (*LunchList)(nil).RegisterSiteScraper(nil))
@@ -115,10 +120,14 @@ func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 	ll = LunchList{
 		Countries: Countries{
 			{
+				ID: "se",
 				Cities: Cities{
 					{
+						ID: "gbg",
 						Sites: Sites{
-							{},
+							{
+								ID: "lh",
+							},
 						},
 					},
 				},
@@ -129,11 +138,17 @@ func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func Test_LunchList_RunSiteScrapers(t *testing.T) {
+	assert.NotPanics(t, func() {
+		(*LunchList)(nil).RunSiteScrapers()
+	})
+}
+
 func Test_LunchList_SetIDIfEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		(*LunchList)(nil).SetIDIfEmpty()
 	})
-	ll := LunchList{}
+	ll := LunchList{Countries: Countries{{Cities: Cities{{Sites: Sites{{Restaurants: Restaurants{{Dishes: Dishes{}}}}}}}}}}
 	ll.SetIDIfEmpty()
 	assert.NotEmpty(t, ll.ID)
 }

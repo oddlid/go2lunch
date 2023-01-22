@@ -79,3 +79,10 @@ func Benchmark_Restaurant_GetFromMap(b *testing.B) {
 		_ = rm["c"]
 	}
 }
+
+func Test_Restaurants_first(t *testing.T) {
+	assert.Nil(t, (Restaurants)(nil).first())
+
+	rs := Restaurants{{}}
+	assert.Same(t, &rs[0], rs.first())
+}

@@ -50,6 +50,13 @@ func Test_City_NumDishes(t *testing.T) {
 	assert.Equal(t, 4, c.NumDishes())
 }
 
+func Test_City_Get(t *testing.T) {
+	assert.Nil(t, (*City)(nil).Get(nil))
+	const id = `blah`
+	c := City{Sites: Sites{{ID: id}}}
+	assert.Same(t, &c.Sites[0], c.Get(func(s Site) bool { return s.ID == id }))
+}
+
 func Test_City_setIDIfEmpty(t *testing.T) {
 	assert.NotPanics(t, func() {
 		(*City)(nil).setIDIfEmpty()

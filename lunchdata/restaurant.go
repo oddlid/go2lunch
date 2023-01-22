@@ -35,7 +35,7 @@ func (r *Restaurant) ParsedRFC3339() string {
 // ParsedHumanDate returns a more human readable date/time format, without too much detail
 func (r *Restaurant) ParsedHumanDate() string {
 	if r == nil {
-		return time.Now().Format(dateFormat)
+		return time.Time{}.Format(dateFormat)
 	}
 	return r.ParsedAt.Format(dateFormat)
 }

@@ -72,3 +72,10 @@ func Test_Country_setIDIfEmpty(t *testing.T) {
 	c.setIDIfEmpty()
 	assert.NotEmpty(t, c.ID)
 }
+
+func Test_Country_Get(t *testing.T) {
+	assert.Nil(t, (*Country)(nil).Get(nil))
+	const id = `blah`
+	c := Country{Cities: Cities{{ID: id}}}
+	assert.Same(t, &c.Cities[0], c.Get(func(c City) bool { return c.ID == id }))
+}

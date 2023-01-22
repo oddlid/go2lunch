@@ -78,3 +78,11 @@ func TestCities_Total(t *testing.T) {
 	}
 	assert.Equal(t, 7, cs.Total())
 }
+
+func Test_Cities_Get(t *testing.T) {
+	assert.Nil(t, (Cities)(nil).Get(nil))
+}
+
+func Test_Cities_GetByID(t *testing.T) {
+	assert.Nil(t, (Cities)(nil).GetByID(""))
+}

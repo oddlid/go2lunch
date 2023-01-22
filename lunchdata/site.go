@@ -50,6 +50,9 @@ func (s *Site) GetByID(id string) *Restaurant {
 }
 
 func (s *Site) ParsedHumanDate() string {
+	if s == nil {
+		return dateFormat
+	}
 	if r := s.Restaurants.first(); r != nil {
 		return r.ParsedHumanDate()
 	}
@@ -71,11 +74,11 @@ func (s *Site) RunScraper() error {
 	if s.Scraper == nil {
 		return errNilScraper
 	}
-	// rs, err := s.Scraper.Scrape()
-	// if err != nil {
-	// 	return err
-	// }
-	// s.Set(rs)
+	rs, err := s.Scraper.Scrape()
+	if err != nil {
+		return err
+	}
+	s.Restaurants = rs
 
 	return nil
 }
