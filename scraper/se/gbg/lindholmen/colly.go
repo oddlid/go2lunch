@@ -55,11 +55,9 @@ const (
 	urlPrefix           = `https://www.lindholmen.se/sv/`
 )
 
-var (
-	byURL = func(url string) lunchdata.RestaurantMatch {
-		return func(r lunchdata.Restaurant) bool { return r.URL == url }
-	}
-)
+var byURL = func(url string) lunchdata.RestaurantMatch {
+	return func(r lunchdata.Restaurant) bool { return r.URL == url }
+}
 
 type Scraper struct {
 	URL        string
@@ -172,17 +170,29 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 
 	menuCollector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
 		e.ForEach(selectorTitle, func(_ int, h *colly.HTMLElement) {
-			name := strings.TrimSpace(h.ChildText("a"))
+			name := strings.TrimSpace(h.Text)
+			// we only want the last part of the link, since the links on this page are not correct,
+			// so we need to reconstruct them ourselves later
+			// link := strings.Replace(
+			// 	h.ChildAttr("a", "href"),
+			// 	"/restauranger/", "", 1,
+			// )
 
 			lhs.Logger.Trace().
 				Str(keyRestaurant, name).
 				Msg("Adding restaurant")
 
+			// restaurant := lunchdata.NewRestaurant(
+			// 	name,
+			// 	getRestaurantID(name),
+			// 	"https://www.lindholmen.se/sv/"+getRestaurantID(name), // fill in the correct prefix for the link
+			// 	time.Now(),
+			// )
 			restaurant := lunchdata.Restaurant{
 				Name:     name,
 				ID:       getRestaurantID(name),
+				URL:      "", // TODO: implement
 				ParsedAt: time.Now(),
-				URL:      urlPrefix + strings.Replace(h.ChildAttr("a", "href"), "/restauranger/", "", 1), // fill in the correct prefix for the link
 			}
 
 			h.DOM.NextFilteredUntil(selectorDishRow, selectorTitle).Each(func(_ int, s *goquery.Selection) {
