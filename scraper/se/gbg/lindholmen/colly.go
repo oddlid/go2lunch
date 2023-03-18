@@ -87,7 +87,7 @@ type Scraper struct {
 
 func getRestaurantNameLinkName(name string) string {
 	name = strings.ToLower(name)
-	return "https://www.lindholmen.se/sv/" + restaurantNameReplacer.Replace(name)
+	return urlPrefix + restaurantNameReplacer.Replace(name)
 }
 
 func (Scraper) CountryID() string {
