@@ -101,7 +101,7 @@ func (Scraper) SiteID() string {
 	return siteID
 }
 
-func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
+func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
 	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
 	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
