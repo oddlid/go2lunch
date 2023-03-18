@@ -86,8 +86,7 @@ type Scraper struct {
 // }
 
 func getRestaurantNameLinkName(name string) string {
-	name = strings.ToLower(name)
-	return urlPrefix + restaurantNameReplacer.Replace(name)
+	return urlPrefix + restaurantNameReplacer.Replace(strings.ToLower(name))
 }
 
 func (Scraper) CountryID() string {
