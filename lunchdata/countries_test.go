@@ -7,18 +7,21 @@ import (
 )
 
 func TestCountries_Len(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).Len())
 	cs := Countries{{}}
 	assert.Equal(t, 1, cs.Len())
 }
 
 func TestCountries_NumCities(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumCities())
 	cs := Countries{{Cities: Cities{{}}}}
 	assert.Equal(t, 1, cs.NumCities())
 }
 
 func TestCountries_NumSites(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumSites())
 	cs := Countries{
 		{
@@ -33,6 +36,7 @@ func TestCountries_NumSites(t *testing.T) {
 }
 
 func TestCountries_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumRestaurants())
 	cs := Countries{
 		{
@@ -51,6 +55,7 @@ func TestCountries_NumRestaurants(t *testing.T) {
 }
 
 func TestCountries_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumDishes())
 	cs := Countries{
 		{
@@ -73,6 +78,7 @@ func TestCountries_NumDishes(t *testing.T) {
 }
 
 func TestCountries_Total(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Countries)(nil).Total())
 	cs := Countries{
 		{

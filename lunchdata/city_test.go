@@ -7,6 +7,7 @@ import (
 )
 
 func Test_City_NumSites(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*City)(nil).NumSites())
 
 	c := City{Sites: Sites{{}}}
@@ -14,6 +15,7 @@ func Test_City_NumSites(t *testing.T) {
 }
 
 func Test_City_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*City)(nil).NumRestaurants())
 
 	c := City{
@@ -27,6 +29,7 @@ func Test_City_NumRestaurants(t *testing.T) {
 }
 
 func Test_City_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*City)(nil).NumDishes())
 
 	c := City{
@@ -51,6 +54,7 @@ func Test_City_NumDishes(t *testing.T) {
 }
 
 func Test_City_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*City)(nil).Get(nil))
 	const id = `blah`
 	c := City{Sites: Sites{{ID: id}}}
@@ -58,6 +62,7 @@ func Test_City_Get(t *testing.T) {
 }
 
 func Test_City_setIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		(*City)(nil).setIDIfEmpty()
 	})

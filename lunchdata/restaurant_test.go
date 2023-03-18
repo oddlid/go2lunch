@@ -8,6 +8,7 @@ import (
 )
 
 func Test_Restaurant_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (*Restaurant)(nil).NumDishes())
 
 	r := Restaurant{
@@ -17,6 +18,7 @@ func Test_Restaurant_NumDishes(t *testing.T) {
 }
 
 func Test_Restaurant_ParsedRFC3339(t *testing.T) {
+	t.Parallel()
 	assert.NotEmpty(t, (*Restaurant)(nil).ParsedRFC3339())
 
 	now := time.Now()
@@ -25,6 +27,7 @@ func Test_Restaurant_ParsedRFC3339(t *testing.T) {
 }
 
 func Test_Restaurant_ParsedHumanDate(t *testing.T) {
+	t.Parallel()
 	assert.NotEmpty(t, (*Restaurant)(nil).ParsedHumanDate())
 
 	now := time.Now()
@@ -33,6 +36,7 @@ func Test_Restaurant_ParsedHumanDate(t *testing.T) {
 }
 
 func Test_Restaurant_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Restaurant)(nil).Get(nil))
 	const id = `blah`
 	r := Restaurant{Dishes: Dishes{{ID: id}}}
@@ -40,6 +44,7 @@ func Test_Restaurant_Get(t *testing.T) {
 }
 
 func Test_Restaurant_GetByID(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Restaurant)(nil).GetByID(""))
 
 	const id = `blah`
@@ -48,6 +53,7 @@ func Test_Restaurant_GetByID(t *testing.T) {
 }
 
 func Test_Restaurant_setIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		var r *Restaurant
 		r.setIDIfEmpty()

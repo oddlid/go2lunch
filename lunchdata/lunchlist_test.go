@@ -7,6 +7,7 @@ import (
 )
 
 func Test_LunchList_NumCountries(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*LunchList)(nil).NumCountries())
 	l := LunchList{
 		Countries: Countries{{}},
@@ -15,6 +16,7 @@ func Test_LunchList_NumCountries(t *testing.T) {
 }
 
 func Test_LunchList_NumCities(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*LunchList)(nil).NumCities())
 	l := LunchList{
 		Countries: Countries{
@@ -27,6 +29,7 @@ func Test_LunchList_NumCities(t *testing.T) {
 }
 
 func Test_LunchList_NumSites(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*LunchList)(nil).NumSites())
 	l := LunchList{
 		Countries: Countries{
@@ -43,6 +46,7 @@ func Test_LunchList_NumSites(t *testing.T) {
 }
 
 func Test_LunchList_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*LunchList)(nil).NumRestaurants())
 	l := LunchList{
 		Countries: Countries{
@@ -63,6 +67,7 @@ func Test_LunchList_NumRestaurants(t *testing.T) {
 }
 
 func Test_LunchList_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*LunchList)(nil).NumDishes())
 	l := LunchList{
 		Countries: Countries{
@@ -86,6 +91,7 @@ func Test_LunchList_NumDishes(t *testing.T) {
 }
 
 func Test_LunchList_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*LunchList)(nil).Get(nil))
 
 	const id = `blah`
@@ -94,6 +100,7 @@ func Test_LunchList_Get(t *testing.T) {
 }
 
 func Test_LunchList_GetByID(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*LunchList)(nil).GetByID(""))
 	const id = `blah`
 	ll := LunchList{Countries: Countries{{ID: id}}}
@@ -101,6 +108,7 @@ func Test_LunchList_GetByID(t *testing.T) {
 }
 
 func Test_LunchList_RegisterSiteScraper(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*LunchList)(nil).RegisterSiteScraper(nil))
 
 	ll := LunchList{}
@@ -140,12 +148,14 @@ func Test_LunchList_RegisterSiteScraper(t *testing.T) {
 }
 
 func Test_LunchList_RunSiteScrapers(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		(*LunchList)(nil).RunSiteScrapers()
 	})
 }
 
 func Test_LunchList_SetIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		(*LunchList)(nil).SetIDIfEmpty()
 	})

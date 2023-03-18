@@ -7,12 +7,14 @@ import (
 )
 
 func Test_Country_NumCities(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*Country)(nil).NumCities())
 	c := Country{Cities: Cities{{}}}
 	assert.Equal(t, 1, c.NumCities())
 }
 
 func Test_Country_NumSites(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*Country)(nil).NumSites())
 	c := Country{
 		Cities: Cities{
@@ -27,6 +29,7 @@ func Test_Country_NumSites(t *testing.T) {
 }
 
 func Test_Country_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*Country)(nil).NumRestaurants())
 	c := Country{
 		Cities: Cities{
@@ -45,6 +48,7 @@ func Test_Country_NumRestaurants(t *testing.T) {
 }
 
 func Test_Country_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (*Country)(nil).NumDishes())
 	c := Country{
 		Cities: Cities{
@@ -65,6 +69,7 @@ func Test_Country_NumDishes(t *testing.T) {
 }
 
 func Test_Country_setIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		(*Country)(nil).setIDIfEmpty()
 	})
@@ -74,6 +79,7 @@ func Test_Country_setIDIfEmpty(t *testing.T) {
 }
 
 func Test_Country_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Country)(nil).Get(nil))
 	const id = `blah`
 	c := Country{Cities: Cities{{ID: id}}}

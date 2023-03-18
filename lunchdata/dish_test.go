@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Dish_String(t *testing.T) {
+	t.Parallel()
 	assert.Empty(t, (*Dish)(nil).String())
 	d := Dish{
 		Name: "name",
@@ -16,6 +17,7 @@ func Test_Dish_String(t *testing.T) {
 }
 
 func Test_Dish_setIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		var d *Dish
 		d.setIDIfEmpty()

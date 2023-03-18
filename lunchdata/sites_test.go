@@ -7,6 +7,7 @@ import (
 )
 
 func TestSites_Len(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (Sites)(nil).Len())
 
 	s := Sites{{}, {}}
@@ -14,6 +15,7 @@ func TestSites_Len(t *testing.T) {
 }
 
 func TestSites_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (Sites)(nil).NumRestaurants())
 
 	ss := Sites{{Restaurants: Restaurants{{}}}}
@@ -21,6 +23,7 @@ func TestSites_NumRestaurants(t *testing.T) {
 }
 
 func TestSites_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (Sites)(nil).NumDishes())
 
 	ss := Sites{
@@ -31,6 +34,7 @@ func TestSites_NumDishes(t *testing.T) {
 }
 
 func TestSites_Total(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (Sites)(nil).Total())
 
 	ss := Sites{
@@ -41,5 +45,6 @@ func TestSites_Total(t *testing.T) {
 }
 
 func Test_Sites_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (Sites(nil).Get(nil)))
 }

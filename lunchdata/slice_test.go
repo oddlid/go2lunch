@@ -7,6 +7,7 @@ import (
 )
 
 func Test_sliceIndex(t *testing.T) {
+	t.Parallel()
 	idx := sliceIndex([]int(nil), func(n int) bool { return n == 0 })
 	assert.Equal(t, -1, idx)
 
@@ -34,12 +35,14 @@ func Test_sliceIndex(t *testing.T) {
 }
 
 func Test_deleteByIndex_outOfBounds(t *testing.T) {
+	t.Parallel()
 	slice := []int{0, 1, 2}
 	ret := deleteByIndex(slice, 3)
 	assert.Equal(t, slice, ret)
 }
 
 func Test_deleteByIndex(t *testing.T) {
+	t.Parallel()
 	slice := []int{0, 1, 2}
 	ret := deleteByIndex(slice, 0)
 	assert.Len(t, ret, 2)

@@ -7,16 +7,19 @@ import (
 )
 
 func TestRestaurants_Len_whenNil(t *testing.T) {
+	t.Parallel()
 	var rs Restaurants
 	assert.Zero(t, rs.Len())
 }
 
 func TestRestaurants_Len(t *testing.T) {
+	t.Parallel()
 	rs := Restaurants{{}, {}}
 	assert.Equal(t, 2, rs.Len())
 }
 
 func TestRestaurants_NumDishes(t *testing.T) {
+	t.Parallel()
 	rs := Restaurants{
 		{Dishes: Dishes{{}, {}}},
 		{Dishes: Dishes{{}}},
@@ -26,6 +29,7 @@ func TestRestaurants_NumDishes(t *testing.T) {
 }
 
 func TestRestaurants_Total(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Restaurants)(nil).Total())
 
 	rs := Restaurants{
@@ -37,6 +41,7 @@ func TestRestaurants_Total(t *testing.T) {
 }
 
 func Test_Restaurants_Get(t *testing.T) {
+	t.Parallel()
 	rs := Restaurants{
 		{URL: "a"},
 		{URL: "b"},
@@ -81,6 +86,7 @@ func Benchmark_Restaurant_GetFromMap(b *testing.B) {
 }
 
 func Test_Restaurants_first(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (Restaurants)(nil).first())
 
 	rs := Restaurants{{}}

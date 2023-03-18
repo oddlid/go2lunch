@@ -7,6 +7,7 @@ import (
 )
 
 func TestCities_Len(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Cities)(nil).Len())
 
 	cs := Cities{{}, {}}
@@ -14,6 +15,7 @@ func TestCities_Len(t *testing.T) {
 }
 
 func TestCities_NumSites(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Cities)(nil).NumSites())
 
 	cs := Cities{{Sites: Sites{{}}}}
@@ -21,6 +23,7 @@ func TestCities_NumSites(t *testing.T) {
 }
 
 func TestCities_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Cities)(nil).NumRestaurants())
 
 	cs := Cities{
@@ -36,6 +39,7 @@ func TestCities_NumRestaurants(t *testing.T) {
 }
 
 func TestCities_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Cities)(nil).NumDishes())
 
 	cs := Cities{
@@ -58,6 +62,7 @@ func TestCities_NumDishes(t *testing.T) {
 }
 
 func TestCities_Total(t *testing.T) {
+	t.Parallel()
 	assert.Zero(t, (Cities)(nil).Total())
 
 	cs := Cities{
@@ -80,9 +85,11 @@ func TestCities_Total(t *testing.T) {
 }
 
 func Test_Cities_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (Cities)(nil).Get(nil))
 }
 
 func Test_Cities_GetByID(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (Cities)(nil).GetByID(""))
 }

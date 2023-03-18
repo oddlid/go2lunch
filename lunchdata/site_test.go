@@ -9,6 +9,7 @@ import (
 )
 
 func TestSite_NumRestaurants(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (*Site)(nil).NumRestaurants())
 
 	s := Site{
@@ -18,6 +19,7 @@ func TestSite_NumRestaurants(t *testing.T) {
 }
 
 func Test_Site_ParsedHumanDate(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, dateFormat, (*Site)(nil).ParsedHumanDate())
 
 	s := Site{}
@@ -28,6 +30,7 @@ func Test_Site_ParsedHumanDate(t *testing.T) {
 }
 
 func TestSite_NumDishes(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, 0, (*Site)(nil).NumDishes())
 
 	s := Site{
@@ -40,6 +43,7 @@ func TestSite_NumDishes(t *testing.T) {
 }
 
 func Test_Site_Get(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Site)(nil).Get(nil))
 
 	const id = `blah`
@@ -48,6 +52,7 @@ func Test_Site_Get(t *testing.T) {
 }
 
 func Test_Site_GetByID(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Site)(nil).GetByID(""))
 
 	const id = `blah`
@@ -56,6 +61,7 @@ func Test_Site_GetByID(t *testing.T) {
 }
 
 func TestSite_SetScraper(t *testing.T) {
+	t.Parallel()
 	assert.Nil(t, (*Site)(nil).SetScraper(nil))
 
 	s := Site{}
@@ -71,6 +77,7 @@ func TestSite_SetScraper(t *testing.T) {
 }
 
 func TestSite_RunScraper(t *testing.T) {
+	t.Parallel()
 	err := (*Site)(nil).RunScraper()
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, errNilSite)
@@ -98,6 +105,7 @@ func TestSite_RunScraper(t *testing.T) {
 }
 
 func Test_Site_setIDIfEmpty(t *testing.T) {
+	t.Parallel()
 	assert.NotPanics(t, func() {
 		(*Site)(nil).setIDIfEmpty()
 	})
