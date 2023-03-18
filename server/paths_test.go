@@ -7,6 +7,7 @@ import (
 )
 
 func Test_urlID_fileName(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, "lunchlist.html", idLunchList.fileName(outputHTML))
 	assert.Equal(t, "lunchlist.txt", idLunchList.fileName(outputTXT))
 	assert.Equal(t, "lunchlist.json", idLunchList.fileName(outputJSON))
@@ -33,6 +34,7 @@ func Test_urlID_fileName(t *testing.T) {
 }
 
 func Test_buildRouterPathArgs(t *testing.T) {
+	t.Parallel()
 	format, args := buildRouterPathArgs("one")
 	assert.Equal(t, "/{%s}/", format)
 	assert.Len(t, args, 1)
@@ -46,6 +48,7 @@ func Test_buildRouterPathArgs(t *testing.T) {
 }
 
 func Test_urlID_routerPath(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, slash, idLunchList.routerPath())
 	assert.Equal(t, "/{country}/", idCountry.routerPath())
 	assert.Equal(t, "/{country}/{city}/", idCity.routerPath())

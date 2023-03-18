@@ -7,6 +7,7 @@ import (
 )
 
 func TestServer_logging(t *testing.T) {
+	t.Parallel()
 	s := LunchServer{}
 	// Test that unset/zero value logger works as no-op
 	s.Log.Info().Msg("This should not show up in the logs, and neither cause any problems")
