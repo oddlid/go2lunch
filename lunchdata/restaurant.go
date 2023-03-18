@@ -10,7 +10,6 @@ type Restaurant struct {
 	Name     string    `json:"name"`
 	ID       string    `json:"id"`
 	URL      string    `json:"url,omitempty"`
-	GTag     string    `json:"-"`
 	Address  string    `json:"address"`
 	MapURL   string    `json:"map_url"`
 	ParsedAt time.Time `json:"parsed_at"`

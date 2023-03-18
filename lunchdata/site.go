@@ -12,7 +12,6 @@ type Site struct {
 	ID          string      `json:"id"`
 	Comment     string      `json:"comment,omitempty"`
 	URL         string      `json:"url,omitempty"`
-	GTag        string      `json:"-"`
 	Restaurants Restaurants `json:"restaurants"`
 }
 

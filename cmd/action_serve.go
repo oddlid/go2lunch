@@ -20,7 +20,7 @@ func actionServe(cCtx *cli.Context) error {
 	// If cron param is not given, content will be static with whatever we have for the
 	// lunchlist.
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
-	var lunchList *lunchdata.LunchList
+	var lunchList lunchdata.LunchList
 
 	if loadPath := cCtx.Path(optLoad); loadPath != "" {
 		data, err := os.ReadFile(loadPath)
@@ -38,7 +38,7 @@ func actionServe(cCtx *cli.Context) error {
 
 	s := server.LunchServer{
 		Log:       logger,
-		LunchList: lunchList,
+		LunchList: &lunchList,
 		Config:    server.DefaultConfig(),
 	}
 

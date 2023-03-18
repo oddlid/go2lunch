@@ -14,8 +14,8 @@ const (
 	nameLH      = `Lindholmen`
 )
 
-func getEmptyLunchList() *lunchdata.LunchList {
-	return &lunchdata.LunchList{
+func getEmptyLunchList() lunchdata.LunchList {
+	return lunchdata.LunchList{
 		ID: idLunchList,
 		Countries: lunchdata.Countries{
 			{
