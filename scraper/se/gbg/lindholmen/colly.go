@@ -55,9 +55,24 @@ const (
 	urlPrefix           = `https://www.lindholmen.se/sv/`
 )
 
-var byURL = func(url string) lunchdata.RestaurantMatch {
-	return func(r lunchdata.Restaurant) bool { return r.URL == url }
-}
+var (
+	byURL = func(url string) lunchdata.RestaurantMatch {
+		return func(r lunchdata.Restaurant) bool { return r.URL == url }
+	}
+	restaurantNameReplacer = strings.NewReplacer(
+		"ä", "a",
+		"å", "a",
+		"è", "e,",
+		"é", "e",
+		"ê", "e",
+		"ö", "o",
+		"&", "",
+		" ", "-",
+		"-", "",
+		"´", "",
+		"/", "",
+	)
+)
 
 type Scraper struct {
 	URL        string
@@ -70,17 +85,9 @@ type Scraper struct {
 // 	return url.PathEscape(strings.ToLower(name))
 // }
 
-// func byURL(url string) lunchdata.RestaurantMatch {
-// 	return func(r lunchdata.Restaurant) bool { return r.URL == url }
-// }
-
 func getRestaurantNameLinkName(name string) string {
-	return urlPrefix + hyphenRX.ReplaceAllString(
-		restaurantNameReplacer.Replace(
-			strings.ToLower(name),
-		),
-		"-",
-	)
+	name = strings.ToLower(name)
+	return "https://www.lindholmen.se/sv/" + restaurantNameReplacer.Replace(name)
 }
 
 func (Scraper) CountryID() string {
@@ -129,7 +136,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 		if restaurant == nil {
 			lhs.Logger.Error().
 				Str(keyURL, reqURL).
-				Msg("No restaurant entry for URL")
+				Msgf("No restaurant entry for URL: %s", reqURL)
 			return
 		}
 
@@ -188,10 +195,11 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 			// 	"https://www.lindholmen.se/sv/"+getRestaurantID(name), // fill in the correct prefix for the link
 			// 	time.Now(),
 			// )
+			linkName := getRestaurantNameLinkName(name)
 			restaurant := lunchdata.Restaurant{
 				Name:     name,
-				ID:       getRestaurantID(name),
-				URL:      "", // TODO: implement
+				ID:       linkName,
+				URL:      linkName,
 				ParsedAt: time.Now(),
 			}
 
@@ -234,6 +242,7 @@ func (lhs *Scraper) Scrape() (lunchdata.Restaurants, error) {
 			if err := addrCollector.Visit(restaurant.URL); err != nil {
 				lhs.Logger.Error().Err(err).Send()
 			}
+			restaurants = append(restaurants, restaurant)
 		})
 	})
 
