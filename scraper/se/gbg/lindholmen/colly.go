@@ -23,7 +23,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 	"github.com/google/uuid"
-	"github.com/oddlid/go2lunch/lunchdata"
 	"github.com/rs/zerolog"
 
 	"github.com/oddlid/go2lunch/lunchdata"
@@ -56,9 +55,6 @@ const (
 )
 
 var (
-	byURL = func(url string) lunchdata.RestaurantMatch {
-		return func(r lunchdata.Restaurant) bool { return r.URL == url }
-	}
 	restaurantNameReplacer = strings.NewReplacer(
 		"ä", "a",
 		"å", "a",
@@ -68,10 +64,10 @@ var (
 		"ö", "o",
 		"&", "",
 		" ", "-",
-		"-", "",
 		"´", "",
 		"/", "",
 	)
+	hyphenRX = regexp.MustCompile(`-+`)
 )
 
 type Scraper struct {
@@ -85,8 +81,17 @@ type Scraper struct {
 // 	return url.PathEscape(strings.ToLower(name))
 // }
 
+func byURL(url string) lunchdata.RestaurantMatch {
+	return func(r lunchdata.Restaurant) bool { return r.URL == url }
+}
+
 func getRestaurantNameLinkName(name string) string {
-	return urlPrefix + restaurantNameReplacer.Replace(strings.ToLower(name))
+	return urlPrefix + hyphenRX.ReplaceAllString(
+		restaurantNameReplacer.Replace(
+			strings.ToLower(name),
+		),
+		"-",
+	)
 }
 
 func (Scraper) CountryID() string {

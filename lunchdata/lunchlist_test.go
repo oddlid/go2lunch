@@ -173,19 +173,21 @@ func Benchmark_LunchList_GetByID(b *testing.B) {
 				Cities: Cities{
 					{
 						ID: id,
-						Sites: Sites{{
-							ID: id,
-							Restaurants: Restaurants{
-								{
-									ID: id,
-									Dishes: Dishes{
-										{
-											ID: id,
+						Sites: Sites{
+							{
+								ID: id,
+								Restaurants: Restaurants{
+									{
+										ID: id,
+										Dishes: Dishes{
+											{
+												ID: id,
+											},
 										},
 									},
 								},
 							},
-						}},
+						},
 					},
 				},
 			},
