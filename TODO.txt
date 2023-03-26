@@ -1,3 +1,10 @@
+2023-03-26 12:23:21
+- Move resposibility of scraping out of the lunchdata package.
+- Make the lunchdata package as simple as possible. Make it usable as a plain data container, and don't have lots of magic methods on it.
+- Decide on slices vs maps for storing collections in lunchdata.
+	* Slices work quite well, since not much lookup is being done
+	* Slices will become slow when doing lookups if the higher level collections start to grow.
+
 2021-05-20 21:55:50
 
 - [ ] Rename server/Dockerfile to server/Dockerfile.remote or something.
@@ -5,5 +12,5 @@
       not pulling everything from github, but using the repo it resides in.
 - [ ] Restructure the repo. Maybe move server/* up to top level.
 - [ ] Find a better solution than staticlunchlist.go
-- [ ] Pass in GTag from cli or something, don't store in code
+- [x] Pass in GTag from cli or something, don't store in code
 - [x] Do some linting and clean up code

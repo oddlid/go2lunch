@@ -78,17 +78,17 @@ func (l *LunchList) GetByID(id string) *Country {
 // 	return nil
 // }
 
-func (l *LunchList) RunSiteScrapers() {
-	if l == nil {
-		return
-	}
-	// TODO: Think about how to best solve this. Do we want this func to be blocking or not?
-	// If we want to lock, then we need to create our own WaitGroup to pass in here, so we don't unlock
-	// until all is done.
-	// What might be a good way, is to create both the wg and the error channel here, pass them in,
-	// then wait on the wg, and after that close the error channel and return it. That way, the caller can range
-	// over any returned errors. Downside to that, is that this func is then blocking.
-}
+// func (l *LunchList) RunSiteScrapers() {
+// 	if l == nil {
+// 		return
+// 	}
+// 	// TODO: Think about how to best solve this. Do we want this func to be blocking or not?
+// 	// If we want to lock, then we need to create our own WaitGroup to pass in here, so we don't unlock
+// 	// until all is done.
+// 	// What might be a good way, is to create both the wg and the error channel here, pass them in,
+// 	// then wait on the wg, and after that close the error channel and return it. That way, the caller can range
+// 	// over any returned errors. Downside to that, is that this func is then blocking.
+// }
 
 // func (ll *LunchList) RunSiteScrapers(wg *sync.WaitGroup) {
 // 	// I _think_ we might not need to lock the whole LunchList... Should be
