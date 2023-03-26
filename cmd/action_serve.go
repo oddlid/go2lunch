@@ -38,7 +38,7 @@ func actionServe(cCtx *cli.Context) error {
 
 	s := server.LunchServer{
 		Log:       logger,
-		LunchList: &lunchList,
+		LunchList: lunchList,
 		Config:    server.DefaultConfig(),
 	}
 

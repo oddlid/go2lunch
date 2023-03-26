@@ -31,10 +31,6 @@ func getEmptyLunchList() lunchdata.LunchList {
 								ID:          idLH,
 								Comment:     "Gruvan",
 								Restaurants: lunchdata.Restaurants{},
-								// Scraper: &lindholmen.Scraper{
-								// 	Logger: logger,
-								// 	URL:    lindholmen.DefaultScrapeURL,
-								// },
 							},
 						},
 					},

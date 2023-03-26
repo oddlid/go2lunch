@@ -8,7 +8,7 @@ import (
 )
 
 type LunchServer struct {
-	LunchList *lunchdata.LunchList
+	LunchList lunchdata.LunchList
 	Log       zerolog.Logger
 	server    publicServer
 	Config    Config
@@ -16,7 +16,7 @@ type LunchServer struct {
 
 func (s *LunchServer) Start(ctx context.Context) error {
 	s.server = publicServer{
-		lunchData: s.LunchList,
+		lunchData: &s.LunchList,
 		log:       s.Log,
 		config:    s.Config,
 	}
