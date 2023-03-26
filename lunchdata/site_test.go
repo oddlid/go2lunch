@@ -1,7 +1,6 @@
 package lunchdata
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -60,49 +59,49 @@ func Test_Site_GetByID(t *testing.T) {
 	assert.Same(t, &s.Restaurants[0], s.GetByID(id))
 }
 
-func TestSite_SetScraper(t *testing.T) {
-	t.Parallel()
-	assert.Nil(t, (*Site)(nil).SetScraper(nil))
+// func TestSite_SetScraper(t *testing.T) {
+// 	t.Parallel()
+// 	assert.Nil(t, (*Site)(nil).SetScraper(nil))
 
-	s := Site{}
-	scraper := &mockSiteScraper{}
-	ret := s.SetScraper(scraper)
-	assert.NotNil(t, ret)
-	assert.Same(t, &s, ret)
-	assert.NotNil(t, s.Scraper)
-	assert.Same(t, scraper, s.Scraper)
+// 	s := Site{}
+// 	scraper := &mockSiteScraper{}
+// 	ret := s.SetScraper(scraper)
+// 	assert.NotNil(t, ret)
+// 	assert.Same(t, &s, ret)
+// 	assert.NotNil(t, s.Scraper)
+// 	assert.Same(t, scraper, s.Scraper)
 
-	assert.NotNil(t, s.SetScraper(nil))
-	assert.Nil(t, s.Scraper)
-}
+// 	assert.NotNil(t, s.SetScraper(nil))
+// 	assert.Nil(t, s.Scraper)
+// }
 
-func TestSite_RunScraper(t *testing.T) {
-	t.Parallel()
-	err := (*Site)(nil).RunScraper()
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errNilSite)
+// func TestSite_RunScraper(t *testing.T) {
+// 	t.Parallel()
+// 	err := (*Site)(nil).RunScraper()
+// 	assert.Error(t, err)
+// 	assert.ErrorIs(t, err, errNilSite)
 
-	mockScraper := mockSiteScraper{
-		err: errors.New("scrape error"),
-	}
-	s := Site{}
-	err = s.RunScraper()
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errNilScraper)
+// 	mockScraper := mockSiteScraper{
+// 		err: errors.New("scrape error"),
+// 	}
+// 	s := Site{}
+// 	err = s.RunScraper()
+// 	assert.Error(t, err)
+// 	assert.ErrorIs(t, err, errNilScraper)
 
-	s.Scraper = &mockScraper
-	err = s.RunScraper()
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, mockScraper.err)
-	assert.Nil(t, s.Restaurants)
+// 	s.Scraper = &mockScraper
+// 	err = s.RunScraper()
+// 	assert.Error(t, err)
+// 	assert.ErrorIs(t, err, mockScraper.err)
+// 	assert.Nil(t, s.Restaurants)
 
-	mockScraper.restaurants = Restaurants{{}, {}}
-	mockScraper.err = nil
-	err = s.RunScraper()
-	assert.NoError(t, err)
-	assert.NotNil(t, s.Restaurants)
-	assert.Len(t, s.Restaurants, 2)
-}
+// 	mockScraper.restaurants = Restaurants{{}, {}}
+// 	mockScraper.err = nil
+// 	err = s.RunScraper()
+// 	assert.NoError(t, err)
+// 	assert.NotNil(t, s.Restaurants)
+// 	assert.Len(t, s.Restaurants, 2)
+// }
 
 func Test_Site_setIDIfEmpty(t *testing.T) {
 	t.Parallel()

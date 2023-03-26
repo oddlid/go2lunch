@@ -7,7 +7,7 @@ import (
 )
 
 type Site struct {
-	Scraper     SiteScraper `json:"-"`
+	// Scraper     SiteScraper `json:"-"`
 	Name        string      `json:"name"`
 	ID          string      `json:"id"`
 	Comment     string      `json:"comment,omitempty"`
@@ -58,29 +58,29 @@ func (s *Site) ParsedHumanDate() string {
 	return dateFormat
 }
 
-func (s *Site) SetScraper(scraper SiteScraper) *Site {
-	if s == nil {
-		return nil
-	}
-	s.Scraper = scraper
-	return s
-}
+// func (s *Site) SetScraper(scraper SiteScraper) *Site {
+// 	if s == nil {
+// 		return nil
+// 	}
+// 	s.Scraper = scraper
+// 	return s
+// }
 
-func (s *Site) RunScraper() error {
-	if s == nil {
-		return errNilSite
-	}
-	if s.Scraper == nil {
-		return errNilScraper
-	}
-	rs, err := s.Scraper.Scrape()
-	if err != nil {
-		return err
-	}
-	s.Restaurants = rs
+// func (s *Site) RunScraper() error {
+// 	if s == nil {
+// 		return errNilSite
+// 	}
+// 	if s.Scraper == nil {
+// 		return errNilScraper
+// 	}
+// 	rs, err := s.Scraper.Scrape()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	s.Restaurants = rs
 
-	return nil
-}
+// 	return nil
+// }
 
 func (s *Site) setIDIfEmpty() {
 	if s == nil {

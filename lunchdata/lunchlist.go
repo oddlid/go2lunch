@@ -1,8 +1,6 @@
 package lunchdata
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -61,24 +59,24 @@ func (l *LunchList) GetByID(id string) *Country {
 	return l.Countries.GetByID(id)
 }
 
-func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
-	if l == nil {
-		return nil
-	}
-	if s == nil {
-		return errNilScraper
-	}
-	if site := l.GetByID(s.CountryID()).GetByID(s.CityID()).GetByID(s.SiteID()).SetScraper(s); site == nil {
-		return fmt.Errorf(
-			"%w: Not found: Country: %q City: %q Site: %q",
-			errNilSite,
-			s.CountryID(),
-			s.CityID(),
-			s.SiteID(),
-		)
-	}
-	return nil
-}
+// func (l *LunchList) RegisterSiteScraper(s SiteScraper) error {
+// 	if l == nil {
+// 		return nil
+// 	}
+// 	if s == nil {
+// 		return errNilScraper
+// 	}
+// 	if site := l.GetByID(s.CountryID()).GetByID(s.CityID()).GetByID(s.SiteID()).SetScraper(s); site == nil {
+// 		return fmt.Errorf(
+// 			"%w: Not found: Country: %q City: %q Site: %q",
+// 			errNilSite,
+// 			s.CountryID(),
+// 			s.CityID(),
+// 			s.SiteID(),
+// 		)
+// 	}
+// 	return nil
+// }
 
 func (l *LunchList) RunSiteScrapers() {
 	if l == nil {
