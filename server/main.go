@@ -74,7 +74,7 @@ For now, that is acceptable, but it's not very obvious and could lead to hard to
 We should rather not use init() at all, but register scrapers at a later point.
 */
 func init() {
-	lhs := lindholmen.LHScraper{
+	lhs := lindholmen.Scraper{
 		Logger: zerolog.New(os.Stdout),
 		URL:    "https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe",
 		// URL: "http://localhost:8080",

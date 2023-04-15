@@ -162,7 +162,7 @@ func setupRouter() (pubR, admR *mux.Router) {
 	return
 }
 
-func htmlIndexHandler(w http.ResponseWriter, r *http.Request) {
+func htmlIndexHandler(w http.ResponseWriter, _ *http.Request) {
 	if err := htmlTemplates.ExecuteTemplate(w, htmlFiles[4], getLunchList()); err != nil {
 		log.Error().Err(err).Str("func", "htmlIndexHandler").Send()
 	}
@@ -238,7 +238,7 @@ func htmlTmplHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonAPIHandler(w http.ResponseWriter, r *http.Request) {
 	// I think maybe it could be a good idea to add gzip to this reply
-	genericTmplHandler(w, r, func(tmplIdx int, wr http.ResponseWriter, obj interface{}) {
+	genericTmplHandler(w, r, func(_ int, wr http.ResponseWriter, obj interface{}) {
 		wr.Header().Set(headerKeyCT, headerValJSON)
 		if err := json.NewEncoder(wr).Encode(obj); err != nil {
 			log.Error().Err(err).Str("func", "jsonApiHandler").Send()

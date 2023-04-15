@@ -9,7 +9,7 @@ import (
 
 func Test_Scrape(t *testing.T) {
 	l := zerolog.New(zerolog.NewTestWriter(t))
-	lhs := LHScraper{
+	lhs := Scraper{
 		Logger: l,
 		URL:    "http://localhost:8080", // start a local webserver to test this
 	}
