@@ -76,11 +76,6 @@ type Scraper struct {
 	Logger     zerolog.Logger
 }
 
-// Encode ID field. Might find a better strategy for this later
-// func getRestaurantID(name string) string {
-// 	return url.PathEscape(strings.ToLower(name))
-// }
-
 func byURL(url string) lunchdata.RestaurantMatch {
 	return func(r lunchdata.Restaurant) bool { return r.URL == url }
 }

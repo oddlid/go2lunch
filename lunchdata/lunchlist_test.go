@@ -107,63 +107,6 @@ func Test_LunchList_GetByID(t *testing.T) {
 	assert.Same(t, &ll.Countries[0], ll.GetByID(id))
 }
 
-// func Test_LunchList_RegisterSiteScraper(t *testing.T) {
-// 	t.Parallel()
-// 	assert.Nil(t, (*LunchList)(nil).RegisterSiteScraper(nil))
-
-// 	ll := LunchList{}
-// 	err := ll.RegisterSiteScraper(nil)
-// 	assert.Error(t, err)
-// 	assert.ErrorIs(t, err, errNilScraper)
-
-// 	scraper := mockSiteScraper{
-// 		countryID: "se",
-// 		cityID:    "gbg",
-// 		siteID:    "lh",
-// 	}
-// 	err = ll.RegisterSiteScraper(&scraper)
-// 	assert.Error(t, err)
-// 	assert.ErrorIs(t, err, errNilSite)
-
-// 	ll = LunchList{
-// 		Countries: Countries{
-// 			{
-// 				ID: "se",
-// 				Cities: Cities{
-// 					{
-// 						ID: "gbg",
-// 						Sites: Sites{
-// 							{
-// 								ID: "lh",
-// 							},
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-// 	err = ll.RegisterSiteScraper(&scraper)
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, ll.Countries[0].Cities[0].Sites[0].Scraper)
-// }
-
-func Test_LunchList_RunSiteScrapers(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		(*LunchList)(nil).RunSiteScrapers()
-	})
-}
-
-func Test_LunchList_SetIDIfEmpty(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		(*LunchList)(nil).SetIDIfEmpty()
-	})
-	ll := LunchList{Countries: Countries{{Cities: Cities{{Sites: Sites{{Restaurants: Restaurants{{Dishes: Dishes{}}}}}}}}}}
-	ll.SetIDIfEmpty()
-	assert.NotEmpty(t, ll.ID)
-}
-
 func Benchmark_LunchList_GetByID(b *testing.B) {
 	const id = `id`
 	ll := LunchList{

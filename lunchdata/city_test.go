@@ -60,13 +60,3 @@ func Test_City_Get(t *testing.T) {
 	c := City{Sites: Sites{{ID: id}}}
 	assert.Same(t, &c.Sites[0], c.Get(func(s Site) bool { return s.ID == id }))
 }
-
-func Test_City_setIDIfEmpty(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		(*City)(nil).setIDIfEmpty()
-	})
-	c := City{}
-	c.setIDIfEmpty()
-	assert.NotEmpty(t, c.ID)
-}

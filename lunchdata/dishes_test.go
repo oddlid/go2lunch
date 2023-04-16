@@ -31,15 +31,3 @@ func Test_Dishes_GetByID(t *testing.T) {
 	assert.NotNil(t, ref)
 	assert.Same(t, &ds[0], ref)
 }
-
-func Test_Dishes_setIDIFEmpty(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		var nilDishes Dishes
-		nilDishes.setIDIfEmpty()
-	})
-	ds := Dishes{{}, {}}
-	ds.setIDIfEmpty()
-	assert.NotEmpty(t, ds[0].ID)
-	assert.NotEmpty(t, ds[1].ID)
-}

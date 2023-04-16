@@ -68,16 +68,6 @@ func Test_Country_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, c.NumDishes())
 }
 
-func Test_Country_setIDIfEmpty(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		(*Country)(nil).setIDIfEmpty()
-	})
-	c := Country{}
-	c.setIDIfEmpty()
-	assert.NotEmpty(t, c.ID)
-}
-
 func Test_Country_Get(t *testing.T) {
 	t.Parallel()
 	assert.Nil(t, (*Country)(nil).Get(nil))

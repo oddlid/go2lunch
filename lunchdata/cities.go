@@ -49,9 +49,3 @@ func (cs Cities) Get(f CityMatch) *City {
 func (cs Cities) GetByID(id string) *City {
 	return cs.Get(func(c City) bool { return c.ID == id })
 }
-
-func (cs Cities) setIDIfEmpty() {
-	for i := range cs {
-		cs[i].setIDIfEmpty()
-	}
-}

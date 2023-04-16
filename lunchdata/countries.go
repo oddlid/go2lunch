@@ -57,9 +57,3 @@ func (cs Countries) Get(f CountryMatch) *Country {
 func (cs Countries) GetByID(id string) *Country {
 	return cs.Get(func(c Country) bool { return c.ID == id })
 }
-
-func (cs Countries) setIDIfEmpty() {
-	for i := range cs {
-		cs[i].setIDIfEmpty()
-	}
-}

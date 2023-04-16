@@ -2,8 +2,6 @@ package lunchdata
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Restaurant struct {
@@ -51,14 +49,4 @@ func (r *Restaurant) GetByID(id string) *Dish {
 		return nil
 	}
 	return r.Dishes.GetByID(id)
-}
-
-func (r *Restaurant) setIDIfEmpty() {
-	if r == nil {
-		return
-	}
-	if r.ID == "" {
-		r.ID = uuid.NewString()
-	}
-	r.Dishes.setIDIfEmpty()
 }

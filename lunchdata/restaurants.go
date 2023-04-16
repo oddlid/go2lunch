@@ -36,9 +36,3 @@ func (rs Restaurants) first() *Restaurant {
 	}
 	return nil
 }
-
-func (rs Restaurants) setIDIfEmpty() {
-	for i := range rs {
-		rs[i].setIDIfEmpty()
-	}
-}

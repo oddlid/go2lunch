@@ -41,9 +41,3 @@ func (ss Sites) Get(f SiteMatch) *Site {
 func (ss Sites) GetByID(id string) *Site {
 	return ss.Get(func(s Site) bool { return s.ID == id })
 }
-
-func (ss Sites) setIDIfEmpty() {
-	for i := range ss {
-		ss[i].setIDIfEmpty()
-	}
-}

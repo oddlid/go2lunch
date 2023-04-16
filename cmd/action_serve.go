@@ -34,7 +34,6 @@ func actionServe(cCtx *cli.Context) error {
 	} else {
 		lunchList = getEmptyLunchList()
 	}
-	lunchList.SetIDIfEmpty()
 
 	s := server.LunchServer{
 		Log:       logger,

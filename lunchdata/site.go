@@ -2,8 +2,6 @@ package lunchdata
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type Site struct {
@@ -56,38 +54,4 @@ func (s *Site) ParsedHumanDate() string {
 		return r.ParsedHumanDate()
 	}
 	return dateFormat
-}
-
-// func (s *Site) SetScraper(scraper SiteScraper) *Site {
-// 	if s == nil {
-// 		return nil
-// 	}
-// 	s.Scraper = scraper
-// 	return s
-// }
-
-// func (s *Site) RunScraper() error {
-// 	if s == nil {
-// 		return errNilSite
-// 	}
-// 	if s.Scraper == nil {
-// 		return errNilScraper
-// 	}
-// 	rs, err := s.Scraper.Scrape()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	s.Restaurants = rs
-
-// 	return nil
-// }
-
-func (s *Site) setIDIfEmpty() {
-	if s == nil {
-		return
-	}
-	if s.ID == "" {
-		s.ID = uuid.NewString()
-	}
-	s.Restaurants.setIDIfEmpty()
 }

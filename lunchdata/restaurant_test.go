@@ -51,14 +51,3 @@ func Test_Restaurant_GetByID(t *testing.T) {
 	r := Restaurant{Dishes: Dishes{{ID: id}}}
 	assert.Same(t, &r.Dishes[0], r.GetByID(id))
 }
-
-func Test_Restaurant_setIDIfEmpty(t *testing.T) {
-	t.Parallel()
-	assert.NotPanics(t, func() {
-		var r *Restaurant
-		r.setIDIfEmpty()
-	})
-	r := Restaurant{}
-	r.setIDIfEmpty()
-	assert.NotEmpty(t, r.ID)
-}
