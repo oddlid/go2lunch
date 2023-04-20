@@ -7,24 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func Test_getRestaurantID(t *testing.T) {
-// 	name := "test"
-// 	assert.Equal(t, name, getRestaurantID(name))
-// }
-
-func Test_CountryID(t *testing.T) {
-	assert.Equal(t, countryID, Scraper{}.CountryID())
-}
-
-func Test_CityID(t *testing.T) {
-	assert.Equal(t, cityID, Scraper{}.CityID())
-}
-
-func Test_SiteID(t *testing.T) {
-	assert.Equal(t, siteID, Scraper{}.SiteID())
-}
-
 func Test_Scrape(t *testing.T) {
+	t.Parallel()
 	// Content is commented out, since this should only be tested manually against a local webserver
 
 	previousLevel := zerolog.GlobalLevel()
@@ -33,7 +17,7 @@ func Test_Scrape(t *testing.T) {
 	l := zerolog.New(zerolog.NewTestWriter(t))
 	lhs := Scraper{
 		Logger: l,
-		// URL:    "http://localhost:8080", // start a local webserver to test this
+		URL:    "http://localhost:8080", // start a local webserver to test this
 	}
 	rs, err := lhs.Scrape()
 	assert.NoError(t, err)

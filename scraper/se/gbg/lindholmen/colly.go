@@ -29,11 +29,9 @@ import (
 )
 
 const (
-	DefaultScrapeURL    = `https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe`
+	// DefaultScrapeURL    = `https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe`
+	DefaultScrapeURL    = `https://www.lindholmen.se/sv/dagens-lunch`
 	defaultDomainGlob   = `*.lindholmen.se`
-	countryID           = `se`
-	cityID              = `gbg`
-	siteID              = `lindholmen`
 	selectorViewContent = `div.view-content`
 	selectorContent     = `div.content`
 	selectorTitle       = `h3.title`
@@ -89,22 +87,14 @@ func getRestaurantNameLinkName(name string) string {
 	)
 }
 
-func (Scraper) CountryID() string {
-	return countryID
-}
-
-func (Scraper) CityID() string {
-	return cityID
-}
-
-func (Scraper) SiteID() string {
-	return siteID
-}
-
 func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	// lindholmen.se has changed the whole way they present menus. The menu is not available anymore on each restaurant page,
 	// so we need to parse the single page with all restaurants and menus instead. This is not even hosted on lindholmen.se anymore,
 	// but on https://lindholmen.uit.se/omradet/dagens-lunch?embed-mode=iframe (important to have the embed-mode in the url, or the site will be blocked with http auth)
+	// Update:
+	// The actual content now seems to be hosted on some CDN that might vary in the url, so we need to pick up the actual URL before starting to scrape the menus.
+	// The URL is at the time of writing: https://dagenslunch-wild-cloud-2243.a.udev.se/omradet/dagens-lunch?embed-mode=iframe
+	// It can be found on the page via selector "div > iframe"
 
 	if lhs.URL == "" {
 		lhs.URL = DefaultScrapeURL
@@ -177,23 +167,11 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 	menuCollector.OnHTML(selectorViewContent, func(e *colly.HTMLElement) {
 		e.ForEach(selectorTitle, func(_ int, h *colly.HTMLElement) {
 			name := strings.TrimSpace(h.Text)
-			// we only want the last part of the link, since the links on this page are not correct,
-			// so we need to reconstruct them ourselves later
-			// link := strings.Replace(
-			// 	h.ChildAttr("a", "href"),
-			// 	"/restauranger/", "", 1,
-			// )
 
 			lhs.Logger.Trace().
 				Str(keyRestaurant, name).
 				Msg("Adding restaurant")
 
-			// restaurant := lunchdata.NewRestaurant(
-			// 	name,
-			// 	getRestaurantID(name),
-			// 	"https://www.lindholmen.se/sv/"+getRestaurantID(name), // fill in the correct prefix for the link
-			// 	time.Now(),
-			// )
 			linkName := getRestaurantNameLinkName(name)
 			restaurant := lunchdata.Restaurant{
 				Name:     name,
@@ -237,11 +215,11 @@ func (lhs Scraper) Scrape() (lunchdata.Restaurants, error) {
 					Send()
 			})
 
+			restaurants = append(restaurants, restaurant)
 			lhs.Logger.Trace().Str(keyURL, restaurant.URL).Msg("Starting scrape for maps link")
 			if err := addrCollector.Visit(restaurant.URL); err != nil {
 				lhs.Logger.Error().Err(err).Send()
 			}
-			restaurants = append(restaurants, restaurant)
 		})
 	})
 

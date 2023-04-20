@@ -7,6 +7,7 @@ type Dish struct {
 	Price int    `json:"price"`
 }
 
+// String implements fmt.Stringer
 func (d *Dish) String() string {
 	if d == nil {
 		return ""

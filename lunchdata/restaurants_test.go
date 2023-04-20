@@ -1,6 +1,7 @@
 package lunchdata
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,18 +60,22 @@ func Test_Restaurants_Get(t *testing.T) {
 func Benchmark_Restaurants_Get(b *testing.B) {
 	// It can bee seen when running this benchmark that the time per operation is
 	// multiplied by the index of the element to be found when we search slices.
-	rs := Restaurants{
-		{URL: "a"},
-		{URL: "b"},
-		{URL: "c"},
+	// At the time of writing, there are 48 restaurants listed at lindholmen.se,
+	// so lets see how long it takes to get the last in the list...
+
+	numRestaurants := 48
+	rs := make(Restaurants, 0, numRestaurants)
+	for i := 0; i < numRestaurants; i++ {
+		rs = append(rs, Restaurant{URL: fmt.Sprint(i)})
 	}
 	f := func(url string) RestaurantMatch {
 		return func(r Restaurant) bool {
 			return r.URL == url
 		}
 	}
+	urlOfLast := fmt.Sprint(numRestaurants - 1)
 	for i := 0; i < b.N; i++ {
-		_ = rs.Get(f("c"))
+		_ = rs.Get(f(urlOfLast))
 	}
 }
 

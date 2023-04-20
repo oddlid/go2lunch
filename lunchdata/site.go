@@ -1,9 +1,5 @@
 package lunchdata
 
-import (
-	"errors"
-)
-
 type Site struct {
 	// Scraper     SiteScraper `json:"-"`
 	Name        string      `json:"name"`
@@ -12,11 +8,6 @@ type Site struct {
 	URL         string      `json:"url,omitempty"`
 	Restaurants Restaurants `json:"restaurants"`
 }
-
-var (
-	errNilSite    = errors.New("site is nil")
-	errNilScraper = errors.New("scraper is nil")
-)
 
 func (s *Site) NumRestaurants() int {
 	if s == nil {
