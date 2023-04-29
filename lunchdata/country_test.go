@@ -75,3 +75,12 @@ func Test_Country_Get(t *testing.T) {
 	c := Country{Cities: Cities{{ID: id}}}
 	assert.Same(t, &c.Cities[0], c.Get(func(c City) bool { return c.ID == id }))
 }
+
+func Test_Country_GetByID(t *testing.T) {
+	t.Parallel()
+	assert.Nil(t, (*Country)(nil).GetByID(""))
+
+	const id = `id`
+	c := Country{Cities: Cities{{ID: id}}}
+	assert.Same(t, &c.Cities[0], c.GetByID(id))
+}

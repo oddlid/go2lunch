@@ -92,4 +92,10 @@ func Test_Cities_Get(t *testing.T) {
 func Test_Cities_GetByID(t *testing.T) {
 	t.Parallel()
 	assert.Nil(t, (Cities)(nil).GetByID(""))
+
+	const id = `id`
+	cs := Cities{{ID: id}}
+	ref := cs.GetByID(id)
+	assert.NotNil(t, ref)
+	assert.Same(t, &cs[0], ref)
 }

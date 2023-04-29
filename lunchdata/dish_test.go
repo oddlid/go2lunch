@@ -8,10 +8,10 @@ import (
 
 func Test_Dish_String(t *testing.T) {
 	t.Parallel()
-	assert.Empty(t, (*Dish)(nil).String())
 	d := Dish{
-		Name: "name",
-		Desc: "desc",
+		Name:  "name",
+		Desc:  "desc",
+		Price: 1.2345,
 	}
-	assert.Equal(t, "name desc", d.String())
+	assert.Equal(t, "name desc :: 1.23", d.String())
 }

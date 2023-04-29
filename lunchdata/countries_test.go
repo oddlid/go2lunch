@@ -6,21 +6,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCountries_Len(t *testing.T) {
+func Test_Countries_Len(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).Len())
 	cs := Countries{{}}
 	assert.Equal(t, 1, cs.Len())
 }
 
-func TestCountries_NumCities(t *testing.T) {
+func Test_Countries_NumCities(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumCities())
 	cs := Countries{{Cities: Cities{{}}}}
 	assert.Equal(t, 1, cs.NumCities())
 }
 
-func TestCountries_NumSites(t *testing.T) {
+func Test_Countries_NumSites(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumSites())
 	cs := Countries{
@@ -35,7 +35,7 @@ func TestCountries_NumSites(t *testing.T) {
 	assert.Equal(t, 1, cs.NumSites())
 }
 
-func TestCountries_NumRestaurants(t *testing.T) {
+func Test_Countries_NumRestaurants(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumRestaurants())
 	cs := Countries{
@@ -54,7 +54,7 @@ func TestCountries_NumRestaurants(t *testing.T) {
 	assert.Equal(t, 1, cs.NumRestaurants())
 }
 
-func TestCountries_NumDishes(t *testing.T) {
+func Test_Countries_NumDishes(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).NumDishes())
 	cs := Countries{
@@ -77,7 +77,7 @@ func TestCountries_NumDishes(t *testing.T) {
 	assert.Equal(t, 1, cs.NumDishes())
 }
 
-func TestCountries_Total(t *testing.T) {
+func Test_Countries_Total(t *testing.T) {
 	t.Parallel()
 	assert.Zero(t, (Countries)(nil).Total())
 	cs := Countries{
@@ -98,4 +98,13 @@ func TestCountries_Total(t *testing.T) {
 		},
 	}
 	assert.Equal(t, 5, cs.Total())
+}
+
+func Test_Countries_GetByID(t *testing.T) {
+	t.Parallel()
+	assert.Nil(t, (Countries)(nil).GetByID(""))
+
+	const id = `id`
+	cs := Countries{{ID: id}}
+	assert.Same(t, &cs[0], cs.GetByID(id))
 }
