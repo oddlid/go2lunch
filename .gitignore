@@ -3,3 +3,4 @@ lhlunch.bin
 .tmp/
 scraper/**/*.html
 .vscode/
+.devenv/
